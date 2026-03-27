@@ -82,7 +82,9 @@ extern_lib z3ffi pkg := do
 
 @[default_target]
 lean_lib Z3 where
-  precompileModules := true
+  -- On Windows, precompileModules builds a shared z3ffi.dll which requires all Z3
+  -- symbols resolved at DLL link time. Disabling avoids this complexity on Windows.
+  precompileModules := !Platform.isWindows
   needs := #[z3Download]
   moreLinkObjs := #[libz3]
   moreLeancArgs := #[

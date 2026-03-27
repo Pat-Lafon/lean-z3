@@ -31,6 +31,7 @@ jobs:
       - uses: leanprover/lean-action@v1
         with:
           build-args: z3test
+          use-github-cache: false
 
       - name: Run tests
         run: .lake/build/bin/z3test

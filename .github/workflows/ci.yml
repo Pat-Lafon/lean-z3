@@ -16,7 +16,8 @@ jobs:
             name: Linux x64
           - os: macos-latest
             name: macOS arm64
-          # TODO: Windows needs dynamic linking (Z3 only ships DLL, no static lib)
+          - os: windows-latest
+            name: Windows x64
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -28,10 +29,34 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get install -y libc++1 libc++-dev libc++abi-dev
 
+      - name: Install elan (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          curl -sSf -o elan-init.ps1 https://raw.githubusercontent.com/leanprover/elan/master/elan-init.ps1
+          .\elan-init.ps1 -NoPrompt -DefaultToolchain none
+          echo "$env:USERPROFILE\.elan\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+
+      # On Linux, Z3 is dynamically linked (libz3.so). LD_LIBRARY_PATH is needed
+      # both during `lake build` (precompileModules loads the shared lib) and at runtime.
+      - name: Set Z3 library path (Linux)
+        if: runner.os == 'Linux'
+        run: echo "LD_LIBRARY_PATH=${{ github.workspace }}/z3-4.16.0-x64-glibc-2.39/bin" >> "$GITHUB_ENV"
+
+      - name: Set Z3 library path (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo "${{ github.workspace }}/z3-4.16.0-x64-win/bin" >> "$GITHUB_PATH"
+
       - uses: leanprover/lean-action@v1
+        if: runner.os != 'Windows'
         with:
           build-args: z3test
           use-github-cache: false
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: lake build z3test
 
       - name: Run tests
         run: .lake/build/bin/z3test

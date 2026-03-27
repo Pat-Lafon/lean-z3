@@ -44,10 +44,20 @@ target z3Download pkg : Unit := do
       }
     IO.FS.removeFile zipPath
 
-/-! ## Z3 Static Library -/
+/-! ## Z3 Library
+
+On macOS, we statically link libz3.a (Lean's clang/libc++ toolchain is compatible).
+On Linux and Windows, we dynamically link against libz3.so / libz3.dll to avoid
+ABI conflicts between Lean's libc++ toolchain and Z3's libstdc++ build.
+At runtime, LD_LIBRARY_PATH (Linux) or PATH (Windows) must include the Z3 bin dir. -/
+
+def z3.linkLibName :=
+  if Platform.isOSX then nameToStaticLib "z3"
+  else if Platform.isWindows then "libz3.lib"
+  else "libz3.so"
 
 input_file libz3 where
-  path := z3.targetName / "bin" / nameToStaticLib "z3"
+  path := z3.targetName / "bin" / z3.linkLibName
 
 /-! ## FFI C Library -/
 
@@ -86,4 +96,3 @@ lean_lib Z3Test where
 @[test_driver]
 lean_exe z3test where
   root := `Z3Test.Main
-  moreLinkArgs := if Platform.isOSX then #[] else #["-lstdc++"]

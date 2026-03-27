@@ -24,6 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install libc++ (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y libc++1 libc++-dev libc++abi-dev
+
       - uses: leanprover/lean-action@v1
         with:
           build-args: z3test

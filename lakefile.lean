@@ -75,7 +75,7 @@ lean_lib Z3 where
   precompileModules := true
   needs := #[z3Download]
   moreLinkObjs := #[libz3]
-  moreLinkArgs := if Platform.isOSX then #[] else #["-lstdc++"]
+  moreLinkArgs := if Platform.isOSX then #[] else #["-lc++", "-lc++abi"]
   moreLeancArgs := #[
     s!"-I{z3.targetName}/include",
     "-Iffi"

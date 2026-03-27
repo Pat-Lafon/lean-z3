@@ -2,6 +2,10 @@
 
 Lean 4 FFI bindings to Z3 4.16.0 using raw `@[extern]` C FFI (no alloy dependency).
 
+## Rules
+
+- **Never commit changes.** Always leave committing to the user.
+
 ## Build
 
 ```bash

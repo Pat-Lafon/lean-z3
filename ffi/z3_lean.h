@@ -66,6 +66,15 @@ typedef struct {
   Z3_constructor constructor;
 } Z3ConstructorWrapper;
 
+/* ── On-clause collector ─────────────────────────────────────────────────── */
+
+typedef struct {
+  lean_object *solver_obj; /* Lean reference to Solver — prevents premature GC */
+  lean_object *ctx_obj;    /* Lean reference to Context — for wrapping ASTs   */
+  Z3_context   ctx;        /* raw context pointer for Z3_inc_ref              */
+  lean_object *events;     /* Lean Array ClauseEvent — grows during solving   */
+} Z3OnClauseHandleData;
+
 /* ── FFI helpers ─────────────────────────────────────────────────────────── */
 
 /*

@@ -29,6 +29,7 @@ static lean_external_class *g_Params_class  = NULL;
 static lean_external_class *g_Solver_class  = NULL;
 static lean_external_class *g_Model_class   = NULL;
 static lean_external_class *g_Constructor_class = NULL;
+static lean_external_class *g_OnClauseHandle_class = NULL;
 
 /* ── Finalizers ─────────────────────────────────────────────────────────── */
 
@@ -87,6 +88,14 @@ static void Constructor_finalize(void *p) {
   free(c);
 }
 
+static void OnClauseHandle_finalize(void *p) {
+  Z3OnClauseHandleData *h = (Z3OnClauseHandleData *)p;
+  lean_dec(h->events);
+  lean_dec(h->solver_obj);
+  lean_dec(h->ctx_obj);
+  free(h);
+}
+
 /* ── Foreach (GC traversal — noop, ctx_obj prevented from GC by lean_inc) ─ */
 
 static void noop_foreach(void *p, b_lean_obj_arg fn) {
@@ -128,6 +137,9 @@ static inline lean_external_class *get_Model_class(void) {
 static inline lean_external_class *get_Constructor_class(void) {
   return ensure_class(&g_Constructor_class, Constructor_finalize, noop_foreach);
 }
+static inline lean_external_class *get_OnClauseHandle_class(void) {
+  return ensure_class(&g_OnClauseHandle_class, OnClauseHandle_finalize, noop_foreach);
+}
 
 /* ── Wrap / unwrap helpers ─────────────────────────────────────────────── */
 
@@ -155,6 +167,9 @@ static inline Z3ModelWrapper *to_Model(b_lean_obj_arg o) {
 static inline Z3ConstructorWrapper *to_Constructor(b_lean_obj_arg o) {
   return (Z3ConstructorWrapper *)lean_get_external_data(o);
 }
+static inline Z3OnClauseHandleData *to_OnClauseHandle(b_lean_obj_arg o) {
+  return (Z3OnClauseHandleData *)lean_get_external_data(o);
+}
 
 static inline lean_obj_res mk_Context(Z3Ctx *p) {
   return lean_alloc_external(get_Context_class(), p);
@@ -179,6 +194,9 @@ static inline lean_obj_res mk_Model(Z3ModelWrapper *p) {
 }
 static inline lean_obj_res mk_Constructor(Z3ConstructorWrapper *p) {
   return lean_alloc_external(get_Constructor_class(), p);
+}
+static inline lean_obj_res mk_OnClauseHandle(Z3OnClauseHandleData *p) {
+  return lean_alloc_external(get_OnClauseHandle_class(), p);
 }
 
 /* ── Common wrap patterns ──────────────────────────────────────────────── */
@@ -850,4 +868,85 @@ LEAN_EXPORT lean_obj_res lean_z3_Constructor_query(b_lean_obj_arg con, uint32_t 
   lean_ctor_set(triple, 1, inner);
 
   return z3_env_val(triple);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * On-clause callback
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * C callback invoked by Z3 when clauses are asserted, inferred, or deleted.
+ * Wraps the Z3 objects into Lean objects and appends a ClauseEvent to the
+ * handle's events array.
+ */
+static void on_clause_callback(void *user_ctx, Z3_ast proof_hint,
+                                unsigned n, unsigned const *deps,
+                                Z3_ast_vector literals) {
+  Z3OnClauseHandleData *h = (Z3OnClauseHandleData *)user_ctx;
+
+  /* Wrap proof_hint as Lean Ast */
+  lean_object *proof_lean = z3_wrap_ast(h->ctx_obj, h->ctx, proof_hint);
+
+  /* Build Array UInt32 from deps */
+  lean_object *deps_arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < n; i++) {
+    deps_arr = lean_array_push(deps_arr, lean_box_uint32(deps[i]));
+  }
+
+  /* Build Array Ast from literals vector */
+  unsigned lit_count = Z3_ast_vector_size(h->ctx, literals);
+  lean_object *lits_arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < lit_count; i++) {
+    Z3_ast lit = Z3_ast_vector_get(h->ctx, literals, i);
+    lits_arr = lean_array_push(lits_arr, z3_wrap_ast(h->ctx_obj, h->ctx, lit));
+  }
+
+  /* Build ClauseEvent structure: ⟨proofHint, deps, literals⟩ */
+  lean_object *event = lean_alloc_ctor(0, 3, 0);
+  lean_ctor_set(event, 0, proof_lean);
+  lean_ctor_set(event, 1, deps_arr);
+  lean_ctor_set(event, 2, lits_arr);
+
+  /* Append to events array (mutates in place when refcount == 1) */
+  h->events = lean_array_push(h->events, event);
+}
+
+/*
+ * Register an on-clause collector on the solver.
+ * Returns an OnClauseHandle that accumulates clause events during checkSat.
+ */
+LEAN_EXPORT lean_obj_res lean_z3_Solver_registerOnClause(b_lean_obj_arg solver_obj) {
+  Z3SolverWrapper *sw = to_Solver(solver_obj);
+
+  Z3OnClauseHandleData *h = (Z3OnClauseHandleData *)malloc(sizeof(Z3OnClauseHandleData));
+  lean_inc(solver_obj);
+  h->solver_obj = solver_obj;
+  lean_inc(sw->ctx_obj);
+  h->ctx_obj = sw->ctx_obj;
+  h->ctx = sw->ctx;
+  h->events = lean_mk_empty_array();
+
+  Z3_solver_register_on_clause(sw->ctx, sw->solver, (void *)h, on_clause_callback);
+
+  return mk_OnClauseHandle(h);
+}
+
+/*
+ * Retrieve all collected clause events and clear the buffer.
+ */
+LEAN_EXPORT lean_obj_res lean_z3_OnClauseHandle_getClauses(b_lean_obj_arg handle_obj) {
+  Z3OnClauseHandleData *h = to_OnClauseHandle(handle_obj);
+  lean_object *result = h->events;
+  lean_inc(result);
+  return result;
+}
+
+/*
+ * Clear the collected clause events.
+ */
+LEAN_EXPORT lean_obj_res lean_z3_OnClauseHandle_clear(b_lean_obj_arg handle_obj) {
+  Z3OnClauseHandleData *h = to_OnClauseHandle(handle_obj);
+  lean_dec(h->events);
+  h->events = lean_mk_empty_array();
+  return lean_box(0);
 }

@@ -401,6 +401,37 @@ opaque Srt.mkDatatype (ctx : @& Context) (name : @& String)
 opaque Constructor.query (c : @& Constructor) (numFields : UInt32)
     : Env (FuncDecl × FuncDecl × Array FuncDecl)
 
+/-! ## On-clause callback -/
+
+/-- An opaque handle for collecting clause events during solving.
+Created by `Solver.registerOnClause`, accumulates events when `checkSat` runs. -/
+opaque OnClauseHandle.Pointed : NonemptyType
+def OnClauseHandle : Type := OnClauseHandle.Pointed.type
+instance : Nonempty OnClauseHandle := OnClauseHandle.Pointed.property
+
+/-- A single clause event from the CDCL engine.
+- `proofHint`: a proof AST describing how the clause was derived
+- `deps`: indices of previously seen clauses this clause depends on
+- `literals`: the clause literals (disjuncts) -/
+structure ClauseEvent where
+  proofHint : Ast
+  deps : Array UInt32
+  literals : Array Ast
+
+/-- Register a clause event collector on the solver.
+The returned handle accumulates clause events (asserted, inferred, deleted)
+during subsequent `checkSat` calls. Use `OnClauseHandle.getClauses` to retrieve them. -/
+@[extern "lean_z3_Solver_registerOnClause"]
+opaque Solver.registerOnClause (s : @& Solver) : BaseIO OnClauseHandle
+
+/-- Retrieve all collected clause events. -/
+@[extern "lean_z3_OnClauseHandle_getClauses"]
+opaque OnClauseHandle.getClauses (h : @& OnClauseHandle) : BaseIO (Array ClauseEvent)
+
+/-- Clear the collected clause events buffer. -/
+@[extern "lean_z3_OnClauseHandle_clear"]
+opaque OnClauseHandle.clear (h : @& OnClauseHandle) : BaseIO PUnit
+
 /-! ## Proof navigation -/
 
 /-- Get the proof rule of an application AST, or `none` if not a proof step.

@@ -162,6 +162,44 @@ def testAstKinds : IO TestResult := runTest "AST kinds" do
   return check "AST kinds" (forallKind == .quantifier)
     s!"expected forall to be quantifier, got {forallKind}"
 
+/-- On-clause collector: register callback, solve unsat problem, check we got clauses -/
+def testOnClause : IO TestResult := runTest "on-clause collector" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let handle ← Solver.registerOnClause solver
+  let x := Ast.mkIntConst ctx "x"
+  let zero := Ast.mkNumeral ctx "0" (Srt.mkInt ctx)
+  let ten := Ast.mkNumeral ctx "10" (Srt.mkInt ctx)
+  Solver.assert solver (Ast.gt ctx x zero)
+  Solver.assert solver (Ast.lt ctx x ten)
+  Solver.assert solver (Ast.lt ctx x zero)
+  let result ← Solver.checkSat solver
+  if result != .false then
+    return check "on-clause collector" false s!"expected unsat, got {result}"
+  let clauses ← OnClauseHandle.getClauses handle
+  return check "on-clause collector" (clauses.size > 0)
+    s!"expected collected clauses, got {clauses.size}"
+
+/-- On-clause clear: register, solve, clear, check empty -/
+def testOnClauseClear : IO TestResult := runTest "on-clause clear" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let handle ← Solver.registerOnClause solver
+  let x := Ast.mkIntConst ctx "x"
+  let zero := Ast.mkNumeral ctx "0" (Srt.mkInt ctx)
+  let ten := Ast.mkNumeral ctx "10" (Srt.mkInt ctx)
+  Solver.assert solver (Ast.gt ctx x zero)
+  Solver.assert solver (Ast.lt ctx x ten)
+  Solver.assert solver (Ast.lt ctx x zero)
+  let _ ← Solver.checkSat solver
+  let before ← OnClauseHandle.getClauses handle
+  if before.size == 0 then
+    return check "on-clause clear" false "expected clauses before clear"
+  OnClauseHandle.clear handle
+  let after ← OnClauseHandle.getClauses handle
+  return check "on-clause clear" (after.size == 0)
+    s!"expected 0 clauses after clear, got {after.size}"
+
 def proofTests : List (IO TestResult) :=
   [ testProofBasic
   , testProofChildren
@@ -170,4 +208,6 @@ def proofTests : List (IO TestResult) :=
   , testProofRuleVariety
   , testProofTreeDepth
   , testAstKinds
+  , testOnClause
+  , testOnClauseClear
   ]

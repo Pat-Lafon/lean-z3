@@ -16,8 +16,7 @@ jobs:
             name: Linux x64
           - os: macos-latest
             name: macOS arm64
-          - os: windows-latest
-            name: Windows x64
+          # TODO: Windows needs dynamic linking (Z3 only ships DLL, no static lib)
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}

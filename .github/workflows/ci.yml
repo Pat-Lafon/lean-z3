@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            name: Linux x64
+          - os: macos-latest
+            name: macOS arm64
+          - os: windows-latest
+            name: Windows x64
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: leanprover/lean-action@v1
+        with:
+          build-args: z3test
+
+      - name: Run tests
+        run: .lake/build/bin/z3test

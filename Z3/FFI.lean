@@ -187,6 +187,144 @@ opaque Ast.ge (ctx : @& Context) (a b : @& Ast) : Ast
 @[extern "lean_z3_Ast_distinct"]
 opaque Ast.distinct (ctx : @& Context) (args : @& Array Ast) : Ast
 
+/-! ## Bitvector arithmetic -/
+
+/-- Bitvector negation (two's complement). -/
+@[extern "lean_z3_Ast_bvneg"]
+opaque Ast.bvneg (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Bitvector addition. -/
+@[extern "lean_z3_Ast_bvadd"]
+opaque Ast.bvadd (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Bitvector subtraction. -/
+@[extern "lean_z3_Ast_bvsub"]
+opaque Ast.bvsub (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Bitvector multiplication. -/
+@[extern "lean_z3_Ast_bvmul"]
+opaque Ast.bvmul (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Unsigned bitvector division. -/
+@[extern "lean_z3_Ast_bvudiv"]
+opaque Ast.bvudiv (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Signed bitvector division. -/
+@[extern "lean_z3_Ast_bvsdiv"]
+opaque Ast.bvsdiv (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Unsigned bitvector remainder. -/
+@[extern "lean_z3_Ast_bvurem"]
+opaque Ast.bvurem (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Signed bitvector remainder. -/
+@[extern "lean_z3_Ast_bvsrem"]
+opaque Ast.bvsrem (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-! ## Bitvector bitwise -/
+
+/-- Bitwise NOT. -/
+@[extern "lean_z3_Ast_bvnot"]
+opaque Ast.bvnot (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Bitwise AND. -/
+@[extern "lean_z3_Ast_bvand"]
+opaque Ast.bvand (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Bitwise OR. -/
+@[extern "lean_z3_Ast_bvor"]
+opaque Ast.bvor (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Bitwise XOR. -/
+@[extern "lean_z3_Ast_bvxor"]
+opaque Ast.bvxor (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-! ## Bitvector shifts and rotation -/
+
+/-- Shift left. -/
+@[extern "lean_z3_Ast_bvshl"]
+opaque Ast.bvshl (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Logical shift right. -/
+@[extern "lean_z3_Ast_bvlshr"]
+opaque Ast.bvlshr (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Arithmetic shift right. -/
+@[extern "lean_z3_Ast_bvashr"]
+opaque Ast.bvashr (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Rotate left by `n` bits. -/
+@[extern "lean_z3_Ast_rotateLeft"]
+opaque Ast.rotateLeft (ctx : @& Context) (a : @& Ast) (n : UInt32) : Ast
+
+/-- Rotate right by `n` bits. -/
+@[extern "lean_z3_Ast_rotateRight"]
+opaque Ast.rotateRight (ctx : @& Context) (a : @& Ast) (n : UInt32) : Ast
+
+/-! ## Bitvector comparisons (unsigned) -/
+
+/-- Unsigned less than. -/
+@[extern "lean_z3_Ast_bvult"]
+opaque Ast.bvult (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Unsigned less than or equal. -/
+@[extern "lean_z3_Ast_bvule"]
+opaque Ast.bvule (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Unsigned greater than. -/
+@[extern "lean_z3_Ast_bvugt"]
+opaque Ast.bvugt (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Unsigned greater than or equal. -/
+@[extern "lean_z3_Ast_bvuge"]
+opaque Ast.bvuge (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-! ## Bitvector comparisons (signed) -/
+
+/-- Signed less than. -/
+@[extern "lean_z3_Ast_bvslt"]
+opaque Ast.bvslt (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Signed less than or equal. -/
+@[extern "lean_z3_Ast_bvsle"]
+opaque Ast.bvsle (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Signed greater than. -/
+@[extern "lean_z3_Ast_bvsgt"]
+opaque Ast.bvsgt (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Signed greater than or equal. -/
+@[extern "lean_z3_Ast_bvsge"]
+opaque Ast.bvsge (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-! ## Bitvector extract / concat / extend -/
+
+/-- Extract bits `[high:low]` from a bitvector. -/
+@[extern "lean_z3_Ast_bvextract"]
+opaque Ast.bvextract (ctx : @& Context) (high low : UInt32) (a : @& Ast) : Ast
+
+/-- Concatenate two bitvectors. -/
+@[extern "lean_z3_Ast_bvconcat"]
+opaque Ast.bvconcat (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Zero-extend by `n` bits. -/
+@[extern "lean_z3_Ast_bvzeroExt"]
+opaque Ast.bvzeroExt (ctx : @& Context) (n : UInt32) (a : @& Ast) : Ast
+
+/-- Sign-extend by `n` bits. -/
+@[extern "lean_z3_Ast_bvsignExt"]
+opaque Ast.bvsignExt (ctx : @& Context) (n : UInt32) (a : @& Ast) : Ast
+
+/-! ## Bitvector / integer conversion -/
+
+/-- Convert a bitvector to an integer. If `isSigned`, treat as signed. -/
+@[extern "lean_z3_Ast_bv2int"]
+opaque Ast.bv2int (ctx : @& Context) (a : @& Ast) (isSigned : Bool) : Ast
+
+/-- Convert an integer to a bitvector of width `n`. -/
+@[extern "lean_z3_Ast_int2bv"]
+opaque Ast.int2bv (ctx : @& Context) (n : UInt32) (a : @& Ast) : Ast
+
 /-! ## Array operations -/
 
 /-- Select (read) from an array: `a[i]`. -/
@@ -320,6 +458,35 @@ opaque Solver.getProof (s : @& Solver) : Env Ast
 opaque Solver.toString' (s : @& Solver) : String
 
 instance : ToString Solver := ⟨fun s => Solver.toString' s⟩
+
+/-! ## Unsat cores and assumptions -/
+
+/-- Assert a constraint tracked by a Boolean literal.
+After an unsat check, the tracking literal appears in the unsat core
+if the constraint contributed to unsatisfiability. -/
+@[extern "lean_z3_Solver_assertAndTrack"]
+opaque Solver.assertAndTrack (s : @& Solver) (a : @& Ast) (track : @& Ast) : BaseIO PUnit
+
+/-- Check satisfiability under the given assumptions. Returns encoded `Z3_lbool` shifted by +1. -/
+@[extern "lean_z3_Solver_checkAssumptionsRaw"]
+opaque Solver.checkAssumptionsRaw (s : @& Solver) (assumptions : @& Array Ast) : BaseIO UInt32
+
+/-- Check satisfiability under the given assumptions. -/
+def Solver.checkAssumptions (s : @& Solver) (assumptions : @& Array Ast) : BaseIO LBool := do
+  let raw ← Solver.checkAssumptionsRaw s assumptions
+  return match raw with
+  | 0 => .false
+  | 2 => .true
+  | _ => .undef
+
+/-- Get the unsat core after an unsatisfiable `checkSat` or `checkAssumptions`.
+Returns the tracking literals / assumptions that contributed to unsatisfiability. -/
+@[extern "lean_z3_Solver_getUnsatCore"]
+opaque Solver.getUnsatCore (s : @& Solver) : Env (Array Ast)
+
+/-- Get all assertions in the solver. -/
+@[extern "lean_z3_Solver_getAssertions"]
+opaque Solver.getAssertions (s : @& Solver) : BaseIO (Array Ast)
 
 /-! ## Model operations -/
 

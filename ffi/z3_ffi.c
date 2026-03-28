@@ -446,6 +446,171 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_distinct(b_lean_obj_arg ctx, b_lean_obj_arg
   return z3_wrap_ast(ctx, c->ctx, result);
 }
 
+/* ── Bitvector operations (pure) ────────────────────────────────────────── */
+
+/* Arithmetic */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvneg(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvneg(c->ctx, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvadd(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvadd(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsub(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsub(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvmul(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvmul(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvudiv(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvudiv(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsdiv(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsdiv(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvurem(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvurem(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsrem(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsrem(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+/* Bitwise */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvnot(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvnot(c->ctx, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvand(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvand(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvor(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvor(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvxor(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvxor(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+/* Shifts */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvshl(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvshl(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvlshr(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvlshr(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvashr(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvashr(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+/* Rotation */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_rotateLeft(b_lean_obj_arg ctx, b_lean_obj_arg a, uint32_t n) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_rotate_left(c->ctx, n, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_rotateRight(b_lean_obj_arg ctx, b_lean_obj_arg a, uint32_t n) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_rotate_right(c->ctx, n, to_Ast(a)->ast));
+}
+
+/* Unsigned comparisons */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvult(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvult(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvule(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvule(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvugt(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvugt(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvuge(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvuge(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+/* Signed comparisons */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvslt(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvslt(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsle(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsle(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsgt(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsgt(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsge(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsge(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+/* Extract / concat / extend */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvextract(b_lean_obj_arg ctx, uint32_t high, uint32_t low, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_extract(c->ctx, high, low, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvconcat(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_concat(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvzeroExt(b_lean_obj_arg ctx, uint32_t n, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_zero_ext(c->ctx, n, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsignExt(b_lean_obj_arg ctx, uint32_t n, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_sign_ext(c->ctx, n, to_Ast(a)->ast));
+}
+
+/* BV / Int conversion */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bv2int(b_lean_obj_arg ctx, b_lean_obj_arg a, uint8_t isSigned) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bv2int(c->ctx, to_Ast(a)->ast, isSigned));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_int2bv(b_lean_obj_arg ctx, uint32_t n, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_int2bv(c->ctx, n, to_Ast(a)->ast));
+}
+
 /* ── Array operations (pure) ───────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_select(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg i) {
@@ -629,6 +794,57 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_getProof(b_lean_obj_arg s) {
 LEAN_EXPORT lean_obj_res lean_z3_Solver_toString(b_lean_obj_arg s) {
   Z3SolverWrapper *sw = to_Solver(s);
   return lean_mk_string(Z3_solver_to_string(sw->ctx, sw->solver));
+}
+
+/* ── Unsat core / assumptions ──────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Solver_assertAndTrack(b_lean_obj_arg s, b_lean_obj_arg a, b_lean_obj_arg track) {
+  Z3SolverWrapper *sw = to_Solver(s);
+  Z3_solver_assert_and_track(sw->ctx, sw->solver, to_Ast(a)->ast, to_Ast(track)->ast);
+  return lean_box(0);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Solver_checkAssumptionsRaw(b_lean_obj_arg s, b_lean_obj_arg assumptions) {
+  Z3SolverWrapper *sw = to_Solver(s);
+  unsigned n = lean_array_size(assumptions);
+  Z3_ast *arr = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+  for (unsigned i = 0; i < n; i++) {
+    arr[i] = to_Ast(lean_array_get_core(assumptions, i))->ast;
+  }
+  Z3_lbool result = Z3_solver_check_assumptions(sw->ctx, sw->solver, n, arr);
+  free(arr);
+  return (uint32_t)(result + 1);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Solver_getUnsatCore(b_lean_obj_arg s) {
+  Z3SolverWrapper *sw = to_Solver(s);
+  Z3_ast_vector core = Z3_solver_get_unsat_core(sw->ctx, sw->solver);
+  if (core == NULL) {
+    return z3_env_error("no unsat core available");
+  }
+  Z3_ast_vector_inc_ref(sw->ctx, core);
+  unsigned n = Z3_ast_vector_size(sw->ctx, core);
+  lean_object *arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < n; i++) {
+    Z3_ast a = Z3_ast_vector_get(sw->ctx, core, i);
+    arr = lean_array_push(arr, z3_wrap_ast(sw->ctx_obj, sw->ctx, a));
+  }
+  Z3_ast_vector_dec_ref(sw->ctx, core);
+  return z3_env_val(arr);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Solver_getAssertions(b_lean_obj_arg s) {
+  Z3SolverWrapper *sw = to_Solver(s);
+  Z3_ast_vector assertions = Z3_solver_get_assertions(sw->ctx, sw->solver);
+  Z3_ast_vector_inc_ref(sw->ctx, assertions);
+  unsigned n = Z3_ast_vector_size(sw->ctx, assertions);
+  lean_object *arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < n; i++) {
+    Z3_ast a = Z3_ast_vector_get(sw->ctx, assertions, i);
+    arr = lean_array_push(arr, z3_wrap_ast(sw->ctx_obj, sw->ctx, a));
+  }
+  Z3_ast_vector_dec_ref(sw->ctx, assertions);
+  return arr;
 }
 
 /* ── Model operations ──────────────────────────────────────────────────── */

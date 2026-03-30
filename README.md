@@ -36,7 +36,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
 - **DeclKind** — `DeclKind` enum (~80 variants), `FuncDecl.getDeclKind`, C-validated enum values
-- **Test suite** — 164 tests
+- **AST utilities** — `isApp`, `isNumeralAst`, `isWellSorted`, `isEqAst`, `getId`, `getHash`, `translate`
+- **Test suite** — 171 tests
 
 ### Unbound — Coverage Gaps
 
@@ -77,10 +78,10 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_simplify_get_param_descrs` — simplifier parameter descriptions
 
 #### AST utilities
-- [ ] `Z3_is_app` / `Z3_is_numeral_ast` / `Z3_is_well_sorted` — AST predicates
-- [ ] `Z3_is_eq_ast` — AST equality
-- [ ] `Z3_get_ast_id` / `Z3_get_ast_hash` — identity and hashing
-- [ ] `Z3_translate` — translate AST across contexts
+- [x] `Z3_is_app` / `Z3_is_numeral_ast` / `Z3_is_well_sorted` — AST predicates
+- [x] `Z3_is_eq_ast` — AST equality
+- [x] `Z3_get_ast_id` / `Z3_get_ast_hash` — identity and hashing
+- [x] `Z3_translate` — translate AST across contexts
 
 #### Function declaration inspection
 - [x] `Z3_get_arity` / `Z3_get_domain_size` / `Z3_get_domain` / `Z3_get_range` — signature inspection

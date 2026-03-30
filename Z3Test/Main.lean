@@ -12,9 +12,10 @@ import Z3Test.Subst
 import Z3Test.DeclKind
 import Z3Test.ModelExt
 import Z3Test.PseudoBool
+import Z3Test.AstUtils
 
 def main : IO UInt32 :=
   runTests (basicTests ++ z3rsTests ++ arrayTests ++ proofTests
     ++ bitvectorTests ++ unsatCoreTests ++ arithmeticTests ++ uninterpFunTests
     ++ numeralTests ++ quantifierTests ++ substTests ++ declKindTests
-    ++ modelExtTests ++ pseudoBoolTests)
+    ++ modelExtTests ++ pseudoBoolTests ++ astUtilTests)

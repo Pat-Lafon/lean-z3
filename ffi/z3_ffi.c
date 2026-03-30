@@ -1050,6 +1050,46 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_toString(b_lean_obj_arg a) {
   return lean_mk_string(str);
 }
 
+/* ── AST utilities ────────────────────────────────────────────────────── */
+
+LEAN_EXPORT uint8_t lean_z3_Ast_isApp(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_is_app(aw->ctx, aw->ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_isNumeralAst(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_is_numeral_ast(aw->ctx, aw->ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_isWellSorted(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_is_well_sorted(aw->ctx, aw->ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_isEqAst(b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3AstWrapper *aw = to_Ast(a);
+  Z3AstWrapper *bw = to_Ast(b);
+  return Z3_is_eq_ast(aw->ctx, aw->ast, bw->ast);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Ast_getId(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_get_ast_id(aw->ctx, aw->ast);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Ast_getHash(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_get_ast_hash(aw->ctx, aw->ast);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_translate(b_lean_obj_arg a, b_lean_obj_arg target) {
+  Z3AstWrapper *aw = to_Ast(a);
+  Z3Ctx *tc = to_Context(target);
+  Z3_ast result = Z3_translate(aw->ctx, aw->ast, tc->ctx);
+  return z3_wrap_ast(target, tc->ctx, result);
+}
+
 /* ── Quantifier inspection (pure) ──────────────────────────────────────── */
 
 LEAN_EXPORT uint8_t lean_z3_Ast_isQuantifierForall(b_lean_obj_arg a) {

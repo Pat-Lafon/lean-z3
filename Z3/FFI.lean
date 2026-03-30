@@ -578,6 +578,36 @@ opaque Ast.toString' (a : @& Ast) : String
 
 instance : ToString Ast := ⟨fun a => Ast.toString' a⟩
 
+/-! ## AST utilities -/
+
+/-- Check if an AST is an application node. -/
+@[extern "lean_z3_Ast_isApp"]
+opaque Ast.isApp (a : @& Ast) : Bool
+
+/-- Check if an AST is a numeral. -/
+@[extern "lean_z3_Ast_isNumeralAst"]
+opaque Ast.isNumeralAst (a : @& Ast) : Bool
+
+/-- Check if an AST is well-sorted. -/
+@[extern "lean_z3_Ast_isWellSorted"]
+opaque Ast.isWellSorted (a : @& Ast) : Bool
+
+/-- Check structural equality of two ASTs. -/
+@[extern "lean_z3_Ast_isEqAst"]
+opaque Ast.isEqAst (a b : @& Ast) : Bool
+
+/-- Get a unique identifier for an AST (unique within its context). -/
+@[extern "lean_z3_Ast_getId"]
+opaque Ast.getId (a : @& Ast) : UInt32
+
+/-- Get a hash value for an AST. -/
+@[extern "lean_z3_Ast_getHash"]
+opaque Ast.getHash (a : @& Ast) : UInt32
+
+/-- Translate an AST from one context to another. -/
+@[extern "lean_z3_Ast_translate"]
+opaque Ast.translate (a : @& Ast) (target : @& Context) : Ast
+
 /-! ## Quantifier inspection -/
 
 /-- Check if a quantifier AST is a universal (forall). -/

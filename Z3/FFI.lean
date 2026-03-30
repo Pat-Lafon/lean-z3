@@ -1827,10 +1827,10 @@ opaque Ast.fpaGetNumeralSignificandString (ctx : @& Context) (t : @& Ast) : Stri
 
 /-- Raw: returns significand or sets ok flag. Returns 0 with `ok=false` on failure. -/
 @[extern "lean_z3_Ast_fpaGetNumeralSignificandUInt64_raw"]
-private opaque Ast.fpaGetNumeralSignificandUInt64Raw (ctx : @& Context) (t : @& Ast) : UInt64
+private opaque Ast.fpaGetNumeralSignificandUInt64Raw (ctx : @& Context) (t : @& Ast) : BaseIO UInt64
 
 /-- Get the significand of a FP numeral as a UInt64. -/
-def Ast.fpaGetNumeralSignificandUInt64 (ctx : Context) (t : Ast) : UInt64 :=
+def Ast.fpaGetNumeralSignificandUInt64 (ctx : Context) (t : Ast) : BaseIO UInt64 :=
   Ast.fpaGetNumeralSignificandUInt64Raw ctx t
 
 /-- Get the exponent of a FP numeral as a string. If `biased` is true, return the biased exponent. -/
@@ -1839,10 +1839,10 @@ opaque Ast.fpaGetNumeralExponentString (ctx : @& Context) (t : @& Ast) (biased :
 
 /-- Raw: returns exponent as UInt64 (interpret as signed Int64), or 0 on failure. -/
 @[extern "lean_z3_Ast_fpaGetNumeralExponentInt64_raw"]
-private opaque Ast.fpaGetNumeralExponentInt64Raw (ctx : @& Context) (t : @& Ast) (biased : Bool) : UInt64
+private opaque Ast.fpaGetNumeralExponentInt64Raw (ctx : @& Context) (t : @& Ast) (biased : Bool) : BaseIO UInt64
 
 /-- Get the exponent of a FP numeral as a UInt64 (interpret as signed Int64). If `biased` is true, return the biased exponent. -/
-def Ast.fpaGetNumeralExponentInt64 (ctx : Context) (t : Ast) (biased : Bool) : UInt64 :=
+def Ast.fpaGetNumeralExponentInt64 (ctx : Context) (t : Ast) (biased : Bool) : BaseIO UInt64 :=
   Ast.fpaGetNumeralExponentInt64Raw ctx t biased
 
 /-- Get the sign bitvector of a FP numeral. -/

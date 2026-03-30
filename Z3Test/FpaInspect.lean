@@ -81,7 +81,7 @@ def testFpaGetSignificandUInt64 : IO TestResult := runTest "fpa getSignificandUI
   let ctx ← Env.run Context.new
   let fpSort := Srt.mkFpa ctx 8 24
   let one := Ast.mkFpaNumeralDouble ctx 1.0 fpSort
-  let sig := Ast.fpaGetNumeralSignificandUInt64 ctx one
+  let sig ← Ast.fpaGetNumeralSignificandUInt64 ctx one
   -- 1.0 in float32: mantissa bits are all 0 (implicit leading 1)
   return check "fpa getSignificandUInt64" (sig == 0)
     s!"expected 0, got {sig}"
@@ -101,7 +101,7 @@ def testFpaGetExponentInt64 : IO TestResult := runTest "fpa getExponentInt64" do
   let ctx ← Env.run Context.new
   let fpSort := Srt.mkFpa ctx 8 24
   let one := Ast.mkFpaNumeralDouble ctx 1.0 fpSort
-  let exp := Ast.fpaGetNumeralExponentInt64 ctx one false
+  let exp ← Ast.fpaGetNumeralExponentInt64 ctx one false
   -- 1.0 = 2^0, so exponent should be 0
   return check "fpa getExponentInt64" (exp == 0)
     s!"expected 0, got {exp}"

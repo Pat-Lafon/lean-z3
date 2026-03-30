@@ -120,6 +120,12 @@ typedef struct {
   Z3_fixedpoint fixedpoint;
 } Z3FixedpointWrapper;
 
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
+  Z3_probe     probe;
+} Z3ProbeWrapper;
+
 /* ── On-clause collector ─────────────────────────────────────────────────── */
 
 typedef struct {

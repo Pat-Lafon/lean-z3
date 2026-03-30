@@ -1784,6 +1784,119 @@ LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_toString(b_lean_obj_arg fp) {
   return lean_mk_string(str);
 }
 
+/* ── Probe API ─────────────────────────────────────────────────────────── */
+
+static void Probe_finalize(void *p) {
+  Z3ProbeWrapper *w = (Z3ProbeWrapper *)p;
+  Z3_probe_dec_ref(w->ctx, w->probe);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
+static lean_external_class *g_Probe_class = NULL;
+static inline lean_external_class *get_Probe_class(void) {
+  if (g_Probe_class == NULL)
+    g_Probe_class = lean_register_external_class(Probe_finalize, noop_foreach);
+  return g_Probe_class;
+}
+
+static inline lean_obj_res mk_Probe(Z3ProbeWrapper *w) {
+  return lean_alloc_external(get_Probe_class(), w);
+}
+
+static inline Z3ProbeWrapper *to_Probe(b_lean_obj_arg o) {
+  return (Z3ProbeWrapper *)lean_get_external_data(o);
+}
+
+static inline lean_obj_res z3_wrap_probe(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_probe p) {
+  Z3_probe_inc_ref(raw_ctx, p);
+  Z3ProbeWrapper *w = (Z3ProbeWrapper *)malloc(sizeof(Z3ProbeWrapper));
+  if (w == NULL) { Z3_probe_dec_ref(raw_ctx, p); lean_internal_panic("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = raw_ctx;
+  w->probe = p;
+  return mk_Probe(w);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_mk(b_lean_obj_arg ctx, b_lean_obj_arg name) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe p = Z3_mk_probe(c->ctx, lean_string_cstr(name));
+  return z3_wrap_probe(ctx, c->ctx, p);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_const(b_lean_obj_arg ctx, double val) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe p = Z3_probe_const(c->ctx, val);
+  return z3_wrap_probe(ctx, c->ctx, p);
+}
+
+LEAN_EXPORT double lean_z3_Probe_apply(b_lean_obj_arg ctx, b_lean_obj_arg probe, b_lean_obj_arg goal) {
+  Z3Ctx *c = to_Context(ctx);
+  return Z3_probe_apply(c->ctx, to_Probe(probe)->probe, to_Goal(goal)->goal);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_lt(b_lean_obj_arg ctx, b_lean_obj_arg p1, b_lean_obj_arg p2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe r = Z3_probe_lt(c->ctx, to_Probe(p1)->probe, to_Probe(p2)->probe);
+  return z3_wrap_probe(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_gt(b_lean_obj_arg ctx, b_lean_obj_arg p1, b_lean_obj_arg p2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe r = Z3_probe_gt(c->ctx, to_Probe(p1)->probe, to_Probe(p2)->probe);
+  return z3_wrap_probe(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_le(b_lean_obj_arg ctx, b_lean_obj_arg p1, b_lean_obj_arg p2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe r = Z3_probe_le(c->ctx, to_Probe(p1)->probe, to_Probe(p2)->probe);
+  return z3_wrap_probe(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_ge(b_lean_obj_arg ctx, b_lean_obj_arg p1, b_lean_obj_arg p2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe r = Z3_probe_ge(c->ctx, to_Probe(p1)->probe, to_Probe(p2)->probe);
+  return z3_wrap_probe(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_eq(b_lean_obj_arg ctx, b_lean_obj_arg p1, b_lean_obj_arg p2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe r = Z3_probe_eq(c->ctx, to_Probe(p1)->probe, to_Probe(p2)->probe);
+  return z3_wrap_probe(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_and(b_lean_obj_arg ctx, b_lean_obj_arg p1, b_lean_obj_arg p2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe r = Z3_probe_and(c->ctx, to_Probe(p1)->probe, to_Probe(p2)->probe);
+  return z3_wrap_probe(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_or(b_lean_obj_arg ctx, b_lean_obj_arg p1, b_lean_obj_arg p2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe r = Z3_probe_or(c->ctx, to_Probe(p1)->probe, to_Probe(p2)->probe);
+  return z3_wrap_probe(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_not(b_lean_obj_arg ctx, b_lean_obj_arg p) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_probe r = Z3_probe_not(c->ctx, to_Probe(p)->probe);
+  return z3_wrap_probe(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Context_getNumProbes(b_lean_obj_arg ctx) {
+  return Z3_get_num_probes(to_Context(ctx)->ctx);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Context_getProbeName(b_lean_obj_arg ctx, uint32_t i) {
+  return lean_mk_string(Z3_get_probe_name(to_Context(ctx)->ctx, i));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Probe_getDescr(b_lean_obj_arg ctx, b_lean_obj_arg name) {
+  const char *s = Z3_probe_get_descr(to_Context(ctx)->ctx, lean_string_cstr(name));
+  return lean_mk_string(s ? s : "");
+}
+
 /* ── Unsat core / assumptions ──────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Solver_assertAndTrack(b_lean_obj_arg s, b_lean_obj_arg a, b_lean_obj_arg track) {
@@ -2210,6 +2323,32 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_fromTactic(b_lean_obj_arg ctx, b_lean_ob
   w->ctx = c->ctx;
   w->solver = s;
   return z3_env_val(mk_Solver(w));
+}
+
+/* Tactic-probe combinators */
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_when(b_lean_obj_arg ctx, b_lean_obj_arg probe, b_lean_obj_arg tactic) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic r = Z3_tactic_when(c->ctx, to_Probe(probe)->probe, to_Tactic(tactic)->tactic);
+  return z3_wrap_tactic(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_cond(b_lean_obj_arg ctx, b_lean_obj_arg probe, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic r = Z3_tactic_cond(c->ctx, to_Probe(probe)->probe, to_Tactic(t1)->tactic, to_Tactic(t2)->tactic);
+  return z3_wrap_tactic(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_failIf(b_lean_obj_arg ctx, b_lean_obj_arg probe) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic r = Z3_tactic_fail_if(c->ctx, to_Probe(probe)->probe);
+  return z3_wrap_tactic(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_failIfNotDecided(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic r = Z3_tactic_fail_if_not_decided(c->ctx);
+  return z3_wrap_tactic(ctx, c->ctx, r);
 }
 
 /* ── Floating point theory ────────────────────────────────────────────── */

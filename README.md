@@ -47,17 +47,18 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Solver (extended)** — `mkSimple`, `mkForLogic`, `fromString`, `fromFile`, `getNumScopes`, `interrupt`, `translate`, `getTrail`, `getConsequences`, `getStatistics`
 - **Statistics** — `Stats` opaque type, `size`, `getKey`, `isUInt`, `isDouble`, `getUIntValue`, `getDoubleValue`, `toString`
 - **Fixedpoint (Datalog/CHC)** — `Fixedpoint` opaque type, `new`, `registerRelation`, `addRule`, `assert`, `query`, `getAnswer`, `getReasonUnknown`, `setParams`, `toString`
-- **Test suite** — 261 tests
+- **Probes** — `Probe` opaque type, `mk`, `const`, `apply`, comparisons (`lt`, `gt`, `le`, `ge`, `eq`), combinators (`and`, `or`, `not`), `getDescr`, `Context.getNumProbes`, `getProbeName`, tactic integration (`Tactic.when`, `cond`, `failIf`, `failIfNotDecided`)
+- **Test suite** — 271 tests
 
 ### Coverage
 
-383 `@[extern]` bindings covering ~54% of the Z3 C API (415 of 766 functions). Run `./scripts/check-ffi-sync.sh` to verify Lean/C declarations stay in sync, or `--coverage /path/to/z3/include` for a full coverage report.
+401 `@[extern]` bindings covering ~56% of the Z3 C API (433 of 766 functions). Run `./scripts/check-ffi-sync.sh` to verify Lean/C declarations stay in sync, or `--coverage /path/to/z3/include` for a full coverage report.
 
 ### TODO
 
 #### Binding gaps (exposed by other major Z3 bindings)
 
-- [ ] **Probes** (~13 functions) — tactic guards: `Z3_mk_probe`, `probe_apply`, `probe_const`, comparisons, combinators. Exposed by Python, Rust, C++, OCaml, .NET.
+- [x] **Probes** (~13 functions) — tactic guards: `Z3_mk_probe`, `probe_apply`, `probe_const`, comparisons, combinators. Exposed by Python, Rust, C++, OCaml, .NET.
 - [ ] **Solver user propagation** (~26 functions) — custom theory solvers via `Z3_solver_propagate_*` callbacks (`fixed`, `eq`, `diseq`, `final`, `decide`, `created`). Exposed by Python, C++, .NET; actively requested in z3-rs.
 - [ ] **FPA numeral inspection** (~15 functions) — extract sign/significand/exponent from FP numerals (`Z3_fpa_get_numeral_sign`, `_significand_string`, `_exponent_int64`, etc.). Exposed by all major bindings.
 - [ ] **Simplifier API** (~7 functions) — new simplifier framework replacing `Z3_simplify`: `Z3_mk_simplifier`, `simplifier_and_then`, `using_params`. Exposed by Python, C++, OCaml, .NET.

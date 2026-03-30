@@ -90,6 +90,11 @@ opaque Fixedpoint.Pointed : NonemptyType
 def Fixedpoint : Type := Fixedpoint.Pointed.type
 instance : Nonempty Fixedpoint := Fixedpoint.Pointed.property
 
+/-- A Z3 probe (`Z3_probe`). Probes measure properties of goals (e.g., number of variables). -/
+opaque Probe.Pointed : NonemptyType
+def Probe : Type := Probe.Pointed.type
+instance : Nonempty Probe := Probe.Pointed.property
+
 /-! ## Context operations -/
 
 /-- Create a new Z3 context with default configuration. -/
@@ -1258,6 +1263,80 @@ opaque Context.getNumTactics (ctx : @& Context) : UInt32
 /-- Get the name of the i-th available tactic. -/
 @[extern "lean_z3_Context_getTacticName"]
 opaque Context.getTacticName (ctx : @& Context) (i : UInt32) : String
+
+/-! ## Probe API -/
+
+/-- Create a probe by name (e.g., "num-consts", "is-qfbv"). -/
+@[extern "lean_z3_Probe_mk"]
+opaque Probe.mk (ctx : @& Context) (name : @& String) : Probe
+
+/-- Create a constant probe that always returns the given value. -/
+@[extern "lean_z3_Probe_const"]
+opaque Probe.const (ctx : @& Context) (val : Float) : Probe
+
+/-- Apply a probe to a goal, returning the probe value. -/
+@[extern "lean_z3_Probe_apply"]
+opaque Probe.apply (ctx : @& Context) (p : @& Probe) (g : @& Goal) : BaseIO Float
+
+/-- Create a probe that evaluates to true when p1 < p2. -/
+@[extern "lean_z3_Probe_lt"]
+opaque Probe.lt (ctx : @& Context) (p1 p2 : @& Probe) : Probe
+
+/-- Create a probe that evaluates to true when p1 > p2. -/
+@[extern "lean_z3_Probe_gt"]
+opaque Probe.gt (ctx : @& Context) (p1 p2 : @& Probe) : Probe
+
+/-- Create a probe that evaluates to true when p1 ≤ p2. -/
+@[extern "lean_z3_Probe_le"]
+opaque Probe.le (ctx : @& Context) (p1 p2 : @& Probe) : Probe
+
+/-- Create a probe that evaluates to true when p1 ≥ p2. -/
+@[extern "lean_z3_Probe_ge"]
+opaque Probe.ge (ctx : @& Context) (p1 p2 : @& Probe) : Probe
+
+/-- Create a probe that evaluates to true when p1 = p2. -/
+@[extern "lean_z3_Probe_eq"]
+opaque Probe.eq (ctx : @& Context) (p1 p2 : @& Probe) : Probe
+
+/-- Create a probe that evaluates to true when both p1 and p2 are true. -/
+@[extern "lean_z3_Probe_and"]
+opaque Probe.and (ctx : @& Context) (p1 p2 : @& Probe) : Probe
+
+/-- Create a probe that evaluates to true when either p1 or p2 is true. -/
+@[extern "lean_z3_Probe_or"]
+opaque Probe.or (ctx : @& Context) (p1 p2 : @& Probe) : Probe
+
+/-- Create a probe that negates another probe. -/
+@[extern "lean_z3_Probe_not"]
+opaque Probe.not (ctx : @& Context) (p : @& Probe) : Probe
+
+/-- Get the number of available probes. -/
+@[extern "lean_z3_Context_getNumProbes"]
+opaque Context.getNumProbes (ctx : @& Context) : UInt32
+
+/-- Get the name of the i-th available probe. -/
+@[extern "lean_z3_Context_getProbeName"]
+opaque Context.getProbeName (ctx : @& Context) (i : UInt32) : String
+
+/-- Get a description of a probe by name. -/
+@[extern "lean_z3_Probe_getDescr"]
+opaque Probe.getDescr (ctx : @& Context) (name : @& String) : String
+
+/-- Create a tactic that applies `t` only when probe `p` evaluates to true. -/
+@[extern "lean_z3_Tactic_when"]
+opaque Tactic.when (ctx : @& Context) (p : @& Probe) (t : @& Tactic) : Tactic
+
+/-- Create a tactic that applies `t1` when probe `p` is true, `t2` otherwise. -/
+@[extern "lean_z3_Tactic_cond"]
+opaque Tactic.cond (ctx : @& Context) (p : @& Probe) (t1 t2 : @& Tactic) : Tactic
+
+/-- Create a tactic that fails when probe `p` evaluates to true. -/
+@[extern "lean_z3_Tactic_failIf"]
+opaque Tactic.failIf (ctx : @& Context) (p : @& Probe) : Tactic
+
+/-- Create a tactic that fails if the goal is not already decided. -/
+@[extern "lean_z3_Tactic_failIfNotDecided"]
+opaque Tactic.failIfNotDecided (ctx : @& Context) : Tactic
 
 /-- Create a goal. -/
 @[extern "lean_z3_Goal_mk"]

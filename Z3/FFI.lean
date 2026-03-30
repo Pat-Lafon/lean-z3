@@ -50,6 +50,16 @@ opaque Constructor.Pointed : NonemptyType
 def Constructor : Type := Constructor.Pointed.type
 instance : Nonempty Constructor := Constructor.Pointed.property
 
+/-- A Z3 function interpretation (`Z3_func_interp`). -/
+opaque FuncInterp.Pointed : NonemptyType
+def FuncInterp : Type := FuncInterp.Pointed.type
+instance : Nonempty FuncInterp := FuncInterp.Pointed.property
+
+/-- A Z3 function entry (`Z3_func_entry`). -/
+opaque FuncEntry.Pointed : NonemptyType
+def FuncEntry : Type := FuncEntry.Pointed.type
+instance : Nonempty FuncEntry := FuncEntry.Pointed.property
+
 /-! ## Context operations -/
 
 /-- Create a new Z3 context with default configuration. -/
@@ -870,6 +880,60 @@ opaque Model.getConstInterp (m : @& Model) (fd : @& FuncDecl) : Env Ast
 opaque Model.toString' (m : @& Model) : String
 
 instance : ToString Model := ⟨fun m => Model.toString' m⟩
+
+/-! ## Model (extended) -/
+
+/-- Get the number of function interpretations in the model. -/
+@[extern "lean_z3_Model_getNumFuncs"]
+opaque Model.getNumFuncs (m : @& Model) : UInt32
+
+/-- Get the i-th function declaration in the model. -/
+@[extern "lean_z3_Model_getFuncDecl"]
+opaque Model.getFuncDecl (m : @& Model) (i : UInt32) : FuncDecl
+
+/-- Get the function interpretation for a function declaration. -/
+@[extern "lean_z3_Model_getFuncInterp"]
+opaque Model.getFuncInterp (m : @& Model) (fd : @& FuncDecl) : Env FuncInterp
+
+/-- Check whether the model has an interpretation for a given function declaration. -/
+@[extern "lean_z3_Model_hasInterp"]
+opaque Model.hasInterp (m : @& Model) (fd : @& FuncDecl) : Bool
+
+/-- Get the universe of an uninterpreted sort in the model. -/
+@[extern "lean_z3_Model_getSortUniverse"]
+opaque Model.getSortUniverse (m : @& Model) (s : @& Srt) : Env (Array Ast)
+
+/-! ## FuncInterp operations -/
+
+/-- Get the number of entries in a function interpretation. -/
+@[extern "lean_z3_FuncInterp_getNumEntries"]
+opaque FuncInterp.getNumEntries (fi : @& FuncInterp) : UInt32
+
+/-- Get the i-th entry in a function interpretation. -/
+@[extern "lean_z3_FuncInterp_getEntry"]
+opaque FuncInterp.getEntry (fi : @& FuncInterp) (i : UInt32) : FuncEntry
+
+/-- Get the else value of a function interpretation. -/
+@[extern "lean_z3_FuncInterp_getElse"]
+opaque FuncInterp.getElse (fi : @& FuncInterp) : Ast
+
+/-- Get the arity of a function interpretation. -/
+@[extern "lean_z3_FuncInterp_getArity"]
+opaque FuncInterp.getArity (fi : @& FuncInterp) : UInt32
+
+/-! ## FuncEntry operations -/
+
+/-- Get the value of a function entry. -/
+@[extern "lean_z3_FuncEntry_getValue"]
+opaque FuncEntry.getValue (fe : @& FuncEntry) : Ast
+
+/-- Get the number of arguments of a function entry. -/
+@[extern "lean_z3_FuncEntry_getNumArgs"]
+opaque FuncEntry.getNumArgs (fe : @& FuncEntry) : UInt32
+
+/-- Get the i-th argument of a function entry. -/
+@[extern "lean_z3_FuncEntry_getArg"]
+opaque FuncEntry.getArg (fe : @& FuncEntry) (i : UInt32) : Ast
 
 /-! ## SMT-LIB parsing -/
 

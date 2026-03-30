@@ -30,6 +30,8 @@ static lean_external_class *g_Solver_class  = NULL;
 static lean_external_class *g_Model_class   = NULL;
 static lean_external_class *g_Constructor_class = NULL;
 static lean_external_class *g_ParamDescrs_class = NULL;
+static lean_external_class *g_FuncInterp_class = NULL;
+static lean_external_class *g_FuncEntry_class = NULL;
 static lean_external_class *g_OnClauseHandle_class = NULL;
 
 /* ── Finalizers ─────────────────────────────────────────────────────────── */
@@ -95,6 +97,20 @@ static void ParamDescrs_finalize(void *p) {
   lean_dec(w->ctx_obj);
   free(w);
 }
+static void FuncInterp_finalize(void *p) {
+  Z3FuncInterpWrapper *w = (Z3FuncInterpWrapper *)p;
+  Z3_func_interp_dec_ref(w->ctx, w->func_interp);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
+static void FuncEntry_finalize(void *p) {
+  Z3FuncEntryWrapper *w = (Z3FuncEntryWrapper *)p;
+  Z3_func_entry_dec_ref(w->ctx, w->func_entry);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
 static void OnClauseHandle_finalize(void *p) {
   Z3OnClauseHandleData *h = (Z3OnClauseHandleData *)p;
   lean_dec(h->events);
@@ -147,6 +163,12 @@ static inline lean_external_class *get_Constructor_class(void) {
 static inline lean_external_class *get_ParamDescrs_class(void) {
   return ensure_class(&g_ParamDescrs_class, ParamDescrs_finalize, noop_foreach);
 }
+static inline lean_external_class *get_FuncInterp_class(void) {
+  return ensure_class(&g_FuncInterp_class, FuncInterp_finalize, noop_foreach);
+}
+static inline lean_external_class *get_FuncEntry_class(void) {
+  return ensure_class(&g_FuncEntry_class, FuncEntry_finalize, noop_foreach);
+}
 static inline lean_external_class *get_OnClauseHandle_class(void) {
   return ensure_class(&g_OnClauseHandle_class, OnClauseHandle_finalize, noop_foreach);
 }
@@ -180,6 +202,12 @@ static inline Z3ConstructorWrapper *to_Constructor(b_lean_obj_arg o) {
 static inline Z3ParamDescrsWrapper *to_ParamDescrs(b_lean_obj_arg o) {
   return (Z3ParamDescrsWrapper *)lean_get_external_data(o);
 }
+static inline Z3FuncInterpWrapper *to_FuncInterp(b_lean_obj_arg o) {
+  return (Z3FuncInterpWrapper *)lean_get_external_data(o);
+}
+static inline Z3FuncEntryWrapper *to_FuncEntry(b_lean_obj_arg o) {
+  return (Z3FuncEntryWrapper *)lean_get_external_data(o);
+}
 static inline Z3OnClauseHandleData *to_OnClauseHandle(b_lean_obj_arg o) {
   return (Z3OnClauseHandleData *)lean_get_external_data(o);
 }
@@ -210,6 +238,12 @@ static inline lean_obj_res mk_Constructor(Z3ConstructorWrapper *p) {
 }
 static inline lean_obj_res mk_ParamDescrs(Z3ParamDescrsWrapper *p) {
   return lean_alloc_external(get_ParamDescrs_class(), p);
+}
+static inline lean_obj_res mk_FuncInterp(Z3FuncInterpWrapper *p) {
+  return lean_alloc_external(get_FuncInterp_class(), p);
+}
+static inline lean_obj_res mk_FuncEntry(Z3FuncEntryWrapper *p) {
+  return lean_alloc_external(get_FuncEntry_class(), p);
 }
 static inline lean_obj_res mk_OnClauseHandle(Z3OnClauseHandleData *p) {
   return lean_alloc_external(get_OnClauseHandle_class(), p);
@@ -259,6 +293,28 @@ static inline lean_obj_res z3_wrap_param_descrs(b_lean_obj_arg ctx, Z3_context r
   w->ctx = raw_ctx;
   w->param_descrs = pd;
   return mk_ParamDescrs(w);
+}
+
+static inline lean_obj_res z3_wrap_func_interp(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_func_interp fi) {
+  Z3_func_interp_inc_ref(raw_ctx, fi);
+  Z3FuncInterpWrapper *w = (Z3FuncInterpWrapper *)malloc(sizeof(Z3FuncInterpWrapper));
+  if (w == NULL) { Z3_func_interp_dec_ref(raw_ctx, fi); lean_internal_panic("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = raw_ctx;
+  w->func_interp = fi;
+  return mk_FuncInterp(w);
+}
+
+static inline lean_obj_res z3_wrap_func_entry(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_func_entry fe) {
+  Z3_func_entry_inc_ref(raw_ctx, fe);
+  Z3FuncEntryWrapper *w = (Z3FuncEntryWrapper *)malloc(sizeof(Z3FuncEntryWrapper));
+  if (w == NULL) { Z3_func_entry_dec_ref(raw_ctx, fe); lean_internal_panic("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = raw_ctx;
+  w->func_entry = fe;
+  return mk_FuncEntry(w);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1413,6 +1469,101 @@ LEAN_EXPORT lean_obj_res lean_z3_Model_toString(b_lean_obj_arg m) {
   const char *str = Z3_model_to_string(mw->ctx, mw->model);
   if (str == NULL) { lean_internal_panic("Z3_model_to_string returned NULL"); }
   return lean_mk_string(str);
+}
+
+/* ── Model (extended) ─────────────────────────────────────────────────── */
+
+LEAN_EXPORT uint32_t lean_z3_Model_getNumFuncs(b_lean_obj_arg m) {
+  Z3ModelWrapper *mw = to_Model(m);
+  return Z3_model_get_num_funcs(mw->ctx, mw->model);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Model_getFuncDecl(b_lean_obj_arg m, uint32_t i) {
+  Z3ModelWrapper *mw = to_Model(m);
+  unsigned n = Z3_model_get_num_funcs(mw->ctx, mw->model);
+  if (i >= n) { lean_internal_panic("Model.getFuncDecl: index out of bounds"); }
+  return z3_wrap_func_decl(mw->ctx_obj, mw->ctx, Z3_model_get_func_decl(mw->ctx, mw->model, i));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Model_getFuncInterp(b_lean_obj_arg m, b_lean_obj_arg fd) {
+  Z3ModelWrapper *mw = to_Model(m);
+  Z3FuncDeclWrapper *fdw = to_FuncDecl(fd);
+  Z3_func_interp fi = Z3_model_get_func_interp(mw->ctx, mw->model, fdw->func_decl);
+  if (fi == NULL) {
+    return z3_env_error("no function interpretation available");
+  }
+  return z3_env_val(z3_wrap_func_interp(mw->ctx_obj, mw->ctx, fi));
+}
+
+LEAN_EXPORT uint8_t lean_z3_Model_hasInterp(b_lean_obj_arg m, b_lean_obj_arg fd) {
+  Z3ModelWrapper *mw = to_Model(m);
+  Z3FuncDeclWrapper *fdw = to_FuncDecl(fd);
+  return Z3_model_has_interp(mw->ctx, mw->model, fdw->func_decl);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Model_getSortUniverse(b_lean_obj_arg m, b_lean_obj_arg s) {
+  Z3ModelWrapper *mw = to_Model(m);
+  Z3SortWrapper *sw = to_Srt(s);
+  Z3_ast_vector vec = Z3_model_get_sort_universe(mw->ctx, mw->model, sw->sort);
+  if (vec == NULL) {
+    return z3_env_error("failed to get sort universe");
+  }
+  Z3_ast_vector_inc_ref(mw->ctx, vec);
+  unsigned n = Z3_ast_vector_size(mw->ctx, vec);
+  lean_obj_res arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < n; i++) {
+    Z3_ast a = Z3_ast_vector_get(mw->ctx, vec, i);
+    arr = lean_array_push(arr, z3_wrap_ast(mw->ctx_obj, mw->ctx, a));
+  }
+  Z3_ast_vector_dec_ref(mw->ctx, vec);
+  return z3_env_val(arr);
+}
+
+/* ── FuncInterp operations ────────────────────────────────────────────── */
+
+LEAN_EXPORT uint32_t lean_z3_FuncInterp_getNumEntries(b_lean_obj_arg fi) {
+  Z3FuncInterpWrapper *w = to_FuncInterp(fi);
+  return Z3_func_interp_get_num_entries(w->ctx, w->func_interp);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_FuncInterp_getEntry(b_lean_obj_arg fi, uint32_t i) {
+  Z3FuncInterpWrapper *w = to_FuncInterp(fi);
+  unsigned n = Z3_func_interp_get_num_entries(w->ctx, w->func_interp);
+  if (i >= n) { lean_internal_panic("FuncInterp.getEntry: index out of bounds"); }
+  Z3_func_entry fe = Z3_func_interp_get_entry(w->ctx, w->func_interp, i);
+  return z3_wrap_func_entry(w->ctx_obj, w->ctx, fe);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_FuncInterp_getElse(b_lean_obj_arg fi) {
+  Z3FuncInterpWrapper *w = to_FuncInterp(fi);
+  Z3_ast a = Z3_func_interp_get_else(w->ctx, w->func_interp);
+  return z3_wrap_ast(w->ctx_obj, w->ctx, a);
+}
+
+LEAN_EXPORT uint32_t lean_z3_FuncInterp_getArity(b_lean_obj_arg fi) {
+  Z3FuncInterpWrapper *w = to_FuncInterp(fi);
+  return Z3_func_interp_get_arity(w->ctx, w->func_interp);
+}
+
+/* ── FuncEntry operations ─────────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_FuncEntry_getValue(b_lean_obj_arg fe) {
+  Z3FuncEntryWrapper *w = to_FuncEntry(fe);
+  Z3_ast a = Z3_func_entry_get_value(w->ctx, w->func_entry);
+  return z3_wrap_ast(w->ctx_obj, w->ctx, a);
+}
+
+LEAN_EXPORT uint32_t lean_z3_FuncEntry_getNumArgs(b_lean_obj_arg fe) {
+  Z3FuncEntryWrapper *w = to_FuncEntry(fe);
+  return Z3_func_entry_get_num_args(w->ctx, w->func_entry);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_FuncEntry_getArg(b_lean_obj_arg fe, uint32_t i) {
+  Z3FuncEntryWrapper *w = to_FuncEntry(fe);
+  unsigned n = Z3_func_entry_get_num_args(w->ctx, w->func_entry);
+  if (i >= n) { lean_internal_panic("FuncEntry.getArg: index out of bounds"); }
+  Z3_ast a = Z3_func_entry_get_arg(w->ctx, w->func_entry, i);
+  return z3_wrap_ast(w->ctx_obj, w->ctx, a);
 }
 
 /* ── SMT-LIB parsing ──────────────────────────────────────────────────── */

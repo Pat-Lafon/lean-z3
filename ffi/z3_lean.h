@@ -72,6 +72,18 @@ typedef struct {
   Z3_param_descrs param_descrs;
 } Z3ParamDescrsWrapper;
 
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
+  Z3_func_interp func_interp;
+} Z3FuncInterpWrapper;
+
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
+  Z3_func_entry func_entry;
+} Z3FuncEntryWrapper;
+
 /* ── On-clause collector ─────────────────────────────────────────────────── */
 
 typedef struct {

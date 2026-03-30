@@ -49,172 +49,26 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Fixedpoint (Datalog/CHC)** — `Fixedpoint` opaque type, `new`, `registerRelation`, `addRule`, `assert`, `query`, `getAnswer`, `getReasonUnknown`, `setParams`, `toString`
 - **Test suite** — 261 tests
 
-### Unbound — Coverage Gaps
+### Coverage
 
-#### Core arithmetic
-- [x] `Z3_mk_div` — integer/real division
-- [x] `Z3_mk_mod` — integer modulus
-- [x] `Z3_mk_rem` — integer remainder
-- [x] `Z3_mk_power` — exponentiation
-- [x] `Z3_mk_abs` — absolute value
-- [x] `Z3_mk_unary_minus` — unary negation
-- [x] `Z3_mk_int2real` — integer to real coercion
-- [x] `Z3_mk_real2int` — real to integer (floor)
-- [x] `Z3_mk_is_int` — test if real value is an integer
+383 `@[extern]` bindings covering ~54% of the Z3 C API (415 of 766 functions). Run `./scripts/check-ffi-sync.sh` to verify Lean/C declarations stay in sync, or `--coverage /path/to/z3/include` for a full coverage report.
 
-#### Uninterpreted functions
-- [x] `Z3_mk_func_decl` — declare uninterpreted function
-- [x] `Z3_mk_app` — apply function declaration to arguments
-- [x] `Z3_mk_fresh_const` — fresh constant with prefix
-- [x] `Z3_mk_fresh_func_decl` — fresh function decl with prefix
-- [x] `Z3_mk_rec_func_decl` / `Z3_add_rec_def` — recursive functions
+### TODO
 
-#### Bool / propositional
-- [x] `Z3_mk_xor` — exclusive or
-- [x] `Z3_mk_iff` — biconditional
-- [x] `Z3_get_bool_value` — extract bool from model AST
+#### Binding gaps (exposed by other major Z3 bindings)
 
-#### Numeral constructors & extraction
-- [x] `Z3_mk_int` / `Z3_mk_int64` / `Z3_mk_unsigned_int64` — numeric convenience constructors
-- [x] `Z3_mk_real` / `Z3_mk_real_int64` — rational from numerator/denominator
-- [x] `Z3_get_numeral_int64` / `Z3_get_numeral_uint64` / `Z3_get_numeral_double` — extract as native types
-- [x] `Z3_get_numeral_decimal_string` / `Z3_get_numeral_binary_string` — alternative string reprs
-- [x] `Z3_get_numerator` / `Z3_get_denominator` — rational decomposition
+- [ ] **Probes** (~13 functions) — tactic guards: `Z3_mk_probe`, `probe_apply`, `probe_const`, comparisons, combinators. Exposed by Python, Rust, C++, OCaml, .NET.
+- [ ] **Solver user propagation** (~26 functions) — custom theory solvers via `Z3_solver_propagate_*` callbacks (`fixed`, `eq`, `diseq`, `final`, `decide`, `created`). Exposed by Python, C++, .NET; actively requested in z3-rs.
+- [ ] **FPA numeral inspection** (~15 functions) — extract sign/significand/exponent from FP numerals (`Z3_fpa_get_numeral_sign`, `_significand_string`, `_exponent_int64`, etc.). Exposed by all major bindings.
+- [ ] **Simplifier API** (~7 functions) — new simplifier framework replacing `Z3_simplify`: `Z3_mk_simplifier`, `simplifier_and_then`, `using_params`. Exposed by Python, C++, OCaml, .NET.
+- [ ] **Quantifier elimination** (~4 functions) — `Z3_qe_lite`, `Z3_qe_model_project`. Exposed by z3-rs, C++.
+- [ ] **Fixedpoint extended** (~25 functions) — fill remaining methods on existing `Fixedpoint` type: `from_string`, `from_file`, `get_rules`, `get_statistics`, `get_cover_delta`, `add_cover`, etc.
+- [ ] **Optimize extended** (~13 functions) — fill remaining methods on existing `Optimize` type: `from_string`, `from_file`, `get_objectives`, `get_statistics`, `assert_and_track`, etc.
 
-#### Substitution & simplification
-- [x] `Z3_substitute` — substitute ASTs in an expression
-- [x] `Z3_substitute_vars` — substitute bound variables
-- [x] `Z3_simplify` / `Z3_simplify_ex` — simplify expression
-- [x] `Z3_simplify_get_param_descrs` — simplifier parameter descriptions
+#### Ergonomics
 
-#### AST utilities
-- [x] `Z3_is_app` / `Z3_is_numeral_ast` / `Z3_is_well_sorted` — AST predicates
-- [x] `Z3_is_eq_ast` — AST equality
-- [x] `Z3_get_ast_id` / `Z3_get_ast_hash` — identity and hashing
-- [x] `Z3_translate` — translate AST across contexts
-
-#### Function declaration inspection
-- [x] `Z3_get_arity` / `Z3_get_domain_size` / `Z3_get_domain` / `Z3_get_range` — signature inspection
-
-#### Pseudo-boolean constraints
-- [x] `Z3_mk_atmost` / `Z3_mk_atleast` — cardinality constraints
-- [x] `Z3_mk_pble` / `Z3_mk_pbge` / `Z3_mk_pbeq` — weighted pseudo-boolean
-
-#### Optimization API
-- [x] `Z3_mk_optimize` — create optimizer
-- [x] `Z3_optimize_assert` / `Z3_optimize_assert_soft` — hard and soft constraints
-- [x] `Z3_optimize_maximize` / `Z3_optimize_minimize` — objectives
-- [x] `Z3_optimize_check` / `Z3_optimize_get_model` — solve and extract
-- [x] `Z3_optimize_get_lower` / `Z3_optimize_get_upper` — objective bounds
-- [x] `Z3_optimize_push` / `Z3_optimize_pop` — scope management
-
-#### Tactic / Goal API
-- [x] `Z3_mk_tactic` / `Z3_tactic_and_then` / `Z3_tactic_or_else` — tactic creation and combinators
-- [x] `Z3_mk_goal` / `Z3_goal_assert` / `Z3_goal_formula` — goal management
-- [x] `Z3_tactic_apply` / `Z3_tactic_apply_ex` — apply tactic to goal
-- [x] `Z3_apply_result_*` — result access
-- [x] `Z3_mk_solver_from_tactic` — solver from tactic
-
-#### String / Sequence theory
-- [x] `Z3_mk_string_sort` / `Z3_mk_seq_sort` — string and sequence sorts
-- [x] `Z3_mk_string` — string literal
-- [x] `Z3_mk_seq_concat` / `Z3_mk_seq_length` / `Z3_mk_seq_contains` — sequence ops
-- [x] `Z3_mk_seq_prefix` / `Z3_mk_seq_suffix` / `Z3_mk_seq_extract` / `Z3_mk_seq_at` / `Z3_mk_seq_index`
-- [x] `Z3_mk_str_to_int` / `Z3_mk_int_to_str` — conversions
-- [x] `Z3_mk_seq_in_re` — regex membership
-
-#### Regular expressions
-- [x] `Z3_mk_re_sort` / `Z3_mk_re_star` / `Z3_mk_re_plus` / `Z3_mk_re_option` — regex constructors
-- [x] `Z3_mk_re_union` / `Z3_mk_re_intersect` / `Z3_mk_re_concat` / `Z3_mk_re_complement`
-- [x] `Z3_mk_re_range` / `Z3_mk_seq_to_re`
-
-#### Floating point theory
-- [x] `Z3_mk_fpa_sort` / `Z3_mk_fpa_sort_32` / `Z3_mk_fpa_sort_64` — FP sorts
-- [x] `Z3_mk_fpa_rne` / `Z3_mk_fpa_rna` / `Z3_mk_fpa_rtp` / `Z3_mk_fpa_rtn` / `Z3_mk_fpa_rtz` — rounding modes
-- [x] `Z3_mk_fpa_add` / `Z3_mk_fpa_sub` / `Z3_mk_fpa_mul` / `Z3_mk_fpa_div` — arithmetic
-- [x] `Z3_mk_fpa_sqrt` / `Z3_mk_fpa_rem` / `Z3_mk_fpa_abs` / `Z3_mk_fpa_neg` / `Z3_mk_fpa_fma`
-- [x] `Z3_mk_fpa_lt` / `Z3_mk_fpa_leq` / `Z3_mk_fpa_gt` / `Z3_mk_fpa_geq` / `Z3_mk_fpa_eq` — comparisons
-- [x] `Z3_mk_fpa_is_nan` / `Z3_mk_fpa_is_inf` / `Z3_mk_fpa_is_zero` — classification predicates
-- [x] `Z3_mk_fpa_to_fp_*` / `Z3_mk_fpa_to_ubv` / `Z3_mk_fpa_to_sbv` — conversions
-
-#### Sets
-- [x] `Z3_mk_set_sort` / `Z3_mk_empty_set` / `Z3_mk_full_set`
-- [x] `Z3_mk_set_add` / `Z3_mk_set_del` / `Z3_mk_set_union` / `Z3_mk_set_intersect` / `Z3_mk_set_difference`
-- [x] `Z3_mk_set_complement` / `Z3_mk_set_member` / `Z3_mk_set_subset`
-
-#### Additional sorts
-- [x] `Z3_mk_enumeration_sort` / `Z3_mk_list_sort` / `Z3_mk_tuple_sort`
-- [x] `Z3_mk_finite_domain_sort` / `Z3_mk_char_sort`
-- [x] `Z3_mk_datatypes` — mutually recursive datatypes
-
-#### Sort inspection (extended)
-- [x] `Z3_get_array_sort_domain` / `Z3_get_array_sort_range`
-- [x] `Z3_get_datatype_sort_*` — datatype sort inspection
-
-#### Model (extended)
-- [x] `Z3_model_get_num_funcs` / `Z3_model_get_func_decl` / `Z3_model_get_func_interp`
-- [x] `Z3_model_has_interp` / `Z3_model_get_sort_universe`
-- [x] `Z3_func_interp_*` / `Z3_func_entry_*` — function interpretation API
-
-#### Solver (extended)
-- [x] `Z3_mk_simple_solver` / `Z3_mk_solver_for_logic`
-- [x] `Z3_solver_from_string` / `Z3_solver_from_file`
-- [x] `Z3_solver_get_statistics` / `Z3_solver_get_num_scopes`
-- [x] `Z3_solver_interrupt` / `Z3_solver_translate`
-- [x] `Z3_solver_get_consequences` / `Z3_solver_get_trail`
-
-#### Quantifiers (extended)
-- [x] `Z3_is_quantifier_forall` / `Z3_is_quantifier_exists` — quantifier kind checks
-- [x] `Z3_get_quantifier_body` — get quantifier body
-- [x] `Z3_get_quantifier_num_bound` / `Z3_get_quantifier_bound_name` / `Z3_get_quantifier_bound_sort` — bound variable info
-- [x] `Z3_get_index_value` — de Bruijn index for variable ASTs
-- [x] `Z3_mk_pattern` — quantifier triggers/patterns
-- [x] `Z3_mk_quantifier_ex` — quantifier with patterns/weight/id
-- [x] `Z3_mk_forall_const` / `Z3_mk_exists_const` — quantifier over constants
-- [x] `Z3_mk_lambda` / `Z3_mk_lambda_const` — lambda expressions
-
-#### Params (extended)
-- [x] `Z3_params_set_double` / `Z3_params_set_symbol`
-- [x] `Z3_params_to_string` — string representation
-- [x] `Z3_params_validate` — validate params against param descriptors
-- [x] `Z3_param_descrs_*` — full param descriptors API (`size`, `get_name`, `get_kind`, `get_documentation`, `to_string`)
-- [x] `Z3_solver_get_param_descrs` / `Z3_get_global_param_descrs` — obtain param descriptors
-
-#### Fixedpoint (Datalog/CHC)
-- [x] `Z3_mk_fixedpoint` / `Z3_fixedpoint_add_rule` / `Z3_fixedpoint_query`
-- [x] `Z3_fixedpoint_assert` / `Z3_fixedpoint_get_answer`
-
-#### Bitvector (remaining ops)
-- [x] `Z3_mk_bvnand` / `Z3_mk_bvnor` / `Z3_mk_bvxnor` / `Z3_mk_bvsmod`
-- [x] `Z3_mk_bvredand` / `Z3_mk_bvredor` / `Z3_mk_repeat`
-- [x] `Z3_mk_bvadd_no_overflow` / `Z3_mk_bvadd_no_underflow` / `Z3_mk_bvsub_no_overflow` / `Z3_mk_bvsub_no_underflow` / `Z3_mk_bvmul_no_overflow` / `Z3_mk_bvmul_no_underflow` / `Z3_mk_bvsdiv_no_overflow` / `Z3_mk_bvneg_no_overflow` — overflow checks
-
-#### Statistics
-- [x] `Z3_stats_to_string` / `Z3_stats_size` / `Z3_stats_get_key`
-- [x] `Z3_stats_get_uint_value` / `Z3_stats_get_double_value`
-
-#### Parser (extended)
-- [x] `Z3_parse_smtlib2_file`
-- [x] `Z3_eval_smtlib2_string` — evaluate SMT-LIB2 command string
-
-### TODO — Build & CI
-
-- [ ] Cross-platform CI (GitHub Actions matrix: Linux x86_64/arm64, macOS x86_64/arm64, Windows x64)
-- [ ] Dynamic linking option (for dev builds where static libz3.a is too slow to link)
-
-### TODO — Ergonomics
-
-- [x] `DeclKind` typed enum from raw `UInt32` (with C-validated values)
-- [ ] `SortKind` typed enum from raw `UInt32`
-- [ ] Nicer API wrappers that thread Context implicitly (ReaderT-style)
-- [ ] `Solver.checkSatAndGetModel` convenience
-- [ ] `ToString` / `Repr` for all types
-
-### Future — lean-smt Integration
-
-- [ ] Solver abstraction (typeclass or sum type) over `cvc5.Solver` / `Z3.Solver`
-- [ ] Parallel Reconstruct registries — `Z3.ProofRule` handlers alongside `cvc5.ProofRule`
-- [ ] Sort/Term reconstruction adapters mapping `Z3.Srt` / `Z3.Ast` to Lean `Expr`
+- [ ] `SortKind` typed enum from raw `UInt32` (same pattern as `DeclKind`)
+- [ ] ReaderT-style API layer that threads `Context` implicitly
 
 ## Building
 

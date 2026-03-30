@@ -30,6 +30,7 @@ static lean_external_class *g_Solver_class  = NULL;
 static lean_external_class *g_Model_class   = NULL;
 static lean_external_class *g_Constructor_class = NULL;
 static lean_external_class *g_ParamDescrs_class = NULL;
+static lean_external_class *g_Optimize_class = NULL;
 static lean_external_class *g_FuncInterp_class = NULL;
 static lean_external_class *g_FuncEntry_class = NULL;
 static lean_external_class *g_OnClauseHandle_class = NULL;
@@ -97,6 +98,13 @@ static void ParamDescrs_finalize(void *p) {
   lean_dec(w->ctx_obj);
   free(w);
 }
+static void Optimize_finalize(void *p) {
+  Z3OptimizeWrapper *w = (Z3OptimizeWrapper *)p;
+  Z3_optimize_dec_ref(w->ctx, w->optimize);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
 static void FuncInterp_finalize(void *p) {
   Z3FuncInterpWrapper *w = (Z3FuncInterpWrapper *)p;
   Z3_func_interp_dec_ref(w->ctx, w->func_interp);
@@ -163,6 +171,9 @@ static inline lean_external_class *get_Constructor_class(void) {
 static inline lean_external_class *get_ParamDescrs_class(void) {
   return ensure_class(&g_ParamDescrs_class, ParamDescrs_finalize, noop_foreach);
 }
+static inline lean_external_class *get_Optimize_class(void) {
+  return ensure_class(&g_Optimize_class, Optimize_finalize, noop_foreach);
+}
 static inline lean_external_class *get_FuncInterp_class(void) {
   return ensure_class(&g_FuncInterp_class, FuncInterp_finalize, noop_foreach);
 }
@@ -202,6 +213,9 @@ static inline Z3ConstructorWrapper *to_Constructor(b_lean_obj_arg o) {
 static inline Z3ParamDescrsWrapper *to_ParamDescrs(b_lean_obj_arg o) {
   return (Z3ParamDescrsWrapper *)lean_get_external_data(o);
 }
+static inline Z3OptimizeWrapper *to_Optimize(b_lean_obj_arg o) {
+  return (Z3OptimizeWrapper *)lean_get_external_data(o);
+}
 static inline Z3FuncInterpWrapper *to_FuncInterp(b_lean_obj_arg o) {
   return (Z3FuncInterpWrapper *)lean_get_external_data(o);
 }
@@ -238,6 +252,9 @@ static inline lean_obj_res mk_Constructor(Z3ConstructorWrapper *p) {
 }
 static inline lean_obj_res mk_ParamDescrs(Z3ParamDescrsWrapper *p) {
   return lean_alloc_external(get_ParamDescrs_class(), p);
+}
+static inline lean_obj_res mk_Optimize(Z3OptimizeWrapper *p) {
+  return lean_alloc_external(get_Optimize_class(), p);
 }
 static inline lean_obj_res mk_FuncInterp(Z3FuncInterpWrapper *p) {
   return lean_alloc_external(get_FuncInterp_class(), p);
@@ -1658,6 +1675,111 @@ LEAN_EXPORT lean_obj_res lean_z3_FuncEntry_getArg(b_lean_obj_arg fe, uint32_t i)
   if (i >= n) { lean_internal_panic("FuncEntry.getArg: index out of bounds"); }
   Z3_ast a = Z3_func_entry_get_arg(w->ctx, w->func_entry, i);
   return z3_wrap_ast(w->ctx_obj, w->ctx, a);
+}
+
+/* ── Optimization API ─────────────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_new(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_optimize o = Z3_mk_optimize(c->ctx);
+  Z3_optimize_inc_ref(c->ctx, o);
+  Z3OptimizeWrapper *w = (Z3OptimizeWrapper *)malloc(sizeof(Z3OptimizeWrapper));
+  if (w == NULL) { Z3_optimize_dec_ref(c->ctx, o); return z3_env_error("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = c->ctx;
+  w->optimize = o;
+  return z3_env_val(mk_Optimize(w));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_assert(b_lean_obj_arg o, b_lean_obj_arg a) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_optimize_assert(ow->ctx, ow->optimize, to_Ast(a)->ast);
+  return lean_box(0);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Optimize_assertSoft(b_lean_obj_arg o, b_lean_obj_arg a, b_lean_obj_arg weight, b_lean_obj_arg id) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_symbol sym = Z3_mk_string_symbol(ow->ctx, lean_string_cstr(id));
+  return Z3_optimize_assert_soft(ow->ctx, ow->optimize, to_Ast(a)->ast, lean_string_cstr(weight), sym);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Optimize_maximize(b_lean_obj_arg o, b_lean_obj_arg a) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  return Z3_optimize_maximize(ow->ctx, ow->optimize, to_Ast(a)->ast);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Optimize_minimize(b_lean_obj_arg o, b_lean_obj_arg a) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  return Z3_optimize_minimize(ow->ctx, ow->optimize, to_Ast(a)->ast);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_check(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_lbool r = Z3_optimize_check(ow->ctx, ow->optimize, 0, NULL);
+  /* Map: Z3_L_FALSE=-1 → 0, Z3_L_UNDEF=0 → 1, Z3_L_TRUE=1 → 2 */
+  return lean_box((uint8_t)(r + 1));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getModel(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_model m = Z3_optimize_get_model(ow->ctx, ow->optimize);
+  if (m == NULL) {
+    return z3_env_error("no model available");
+  }
+  Z3_model_inc_ref(ow->ctx, m);
+  Z3ModelWrapper *w = (Z3ModelWrapper *)malloc(sizeof(Z3ModelWrapper));
+  if (w == NULL) { Z3_model_dec_ref(ow->ctx, m); return z3_env_error("out of memory"); }
+  lean_inc(ow->ctx_obj);
+  w->ctx_obj = ow->ctx_obj;
+  w->ctx = ow->ctx;
+  w->model = m;
+  return z3_env_val(mk_Model(w));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getLower(b_lean_obj_arg o, uint32_t idx) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_ast a = Z3_optimize_get_lower(ow->ctx, ow->optimize, idx);
+  return z3_wrap_ast(ow->ctx_obj, ow->ctx, a);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getUpper(b_lean_obj_arg o, uint32_t idx) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_ast a = Z3_optimize_get_upper(ow->ctx, ow->optimize, idx);
+  return z3_wrap_ast(ow->ctx_obj, ow->ctx, a);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_push(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_optimize_push(ow->ctx, ow->optimize);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_pop(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_optimize_pop(ow->ctx, ow->optimize);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_toString(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  const char *str = Z3_optimize_to_string(ow->ctx, ow->optimize);
+  if (str == NULL) { lean_internal_panic("Z3_optimize_to_string returned NULL"); }
+  return lean_mk_string(str);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_setParams(b_lean_obj_arg o, b_lean_obj_arg p) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3ParamsWrapper *pw = to_Params(p);
+  Z3_optimize_set_params(ow->ctx, ow->optimize, pw->params);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getReasonUnknown(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  const char *str = Z3_optimize_get_reason_unknown(ow->ctx, ow->optimize);
+  if (str == NULL) return lean_mk_string("unknown");
+  return lean_mk_string(str);
 }
 
 /* ── SMT-LIB parsing ──────────────────────────────────────────────────── */

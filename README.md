@@ -37,7 +37,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
 - **DeclKind** — `DeclKind` enum (~80 variants), `FuncDecl.getDeclKind`, C-validated enum values
 - **AST utilities** — `isApp`, `isNumeralAst`, `isWellSorted`, `isEqAst`, `getId`, `getHash`, `translate`
-- **Test suite** — 171 tests
+- **Optimize** — `new`, `assert`, `assertSoft`, `maximize`, `minimize`, `check`, `getModel`, `getLower`, `getUpper`, `push`, `pop`, `setParams`, `getReasonUnknown`, `toString`
+- **Test suite** — 178 tests
 
 ### Unbound — Coverage Gaps
 
@@ -91,12 +92,12 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_pble` / `Z3_mk_pbge` / `Z3_mk_pbeq` — weighted pseudo-boolean
 
 #### Optimization API
-- [ ] `Z3_mk_optimize` — create optimizer
-- [ ] `Z3_optimize_assert` / `Z3_optimize_assert_soft` — hard and soft constraints
-- [ ] `Z3_optimize_maximize` / `Z3_optimize_minimize` — objectives
-- [ ] `Z3_optimize_check` / `Z3_optimize_get_model` — solve and extract
-- [ ] `Z3_optimize_get_lower` / `Z3_optimize_get_upper` — objective bounds
-- [ ] `Z3_optimize_push` / `Z3_optimize_pop` — scope management
+- [x] `Z3_mk_optimize` — create optimizer
+- [x] `Z3_optimize_assert` / `Z3_optimize_assert_soft` — hard and soft constraints
+- [x] `Z3_optimize_maximize` / `Z3_optimize_minimize` — objectives
+- [x] `Z3_optimize_check` / `Z3_optimize_get_model` — solve and extract
+- [x] `Z3_optimize_get_lower` / `Z3_optimize_get_upper` — objective bounds
+- [x] `Z3_optimize_push` / `Z3_optimize_pop` — scope management
 
 #### Tactic / Goal API
 - [ ] `Z3_mk_tactic` / `Z3_tactic_and_then` / `Z3_tactic_or_else` — tactic creation and combinators

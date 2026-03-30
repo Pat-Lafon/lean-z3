@@ -60,6 +60,11 @@ opaque FuncEntry.Pointed : NonemptyType
 def FuncEntry : Type := FuncEntry.Pointed.type
 instance : Nonempty FuncEntry := FuncEntry.Pointed.property
 
+/-- A Z3 optimizer (`Z3_optimize`). -/
+opaque Optimize.Pointed : NonemptyType
+def Optimize : Type := Optimize.Pointed.type
+instance : Nonempty Optimize := Optimize.Pointed.property
+
 /-! ## Context operations -/
 
 /-- Create a new Z3 context with default configuration. -/
@@ -1000,6 +1005,68 @@ opaque Context.parseSMTLIB2File (ctx : @& Context) (filename : @& String) : Env 
 /-- Evaluate an SMT-LIB2 command string and return the result as a string. -/
 @[extern "lean_z3_Context_evalSMTLIB2String"]
 opaque Context.evalSMTLIB2String (ctx : @& Context) (str : @& String) : BaseIO String
+
+/-! ## Optimization API -/
+
+/-- Create a new optimizer. -/
+@[extern "lean_z3_Optimize_new"]
+opaque Optimize.new (ctx : @& Context) : Env Optimize
+
+/-- Assert a hard constraint in the optimizer. -/
+@[extern "lean_z3_Optimize_assert"]
+opaque Optimize.assert (o : @& Optimize) (a : @& Ast) : BaseIO PUnit
+
+/-- Assert a soft constraint with a weight string and group id.
+    Returns an index that can be used to query the constraint status. -/
+@[extern "lean_z3_Optimize_assertSoft"]
+opaque Optimize.assertSoft (o : @& Optimize) (a : @& Ast)
+    (weight : @& String) (id : @& String) : BaseIO UInt32
+
+/-- Add a maximization objective. Returns the objective index. -/
+@[extern "lean_z3_Optimize_maximize"]
+opaque Optimize.maximize (o : @& Optimize) (a : @& Ast) : BaseIO UInt32
+
+/-- Add a minimization objective. Returns the objective index. -/
+@[extern "lean_z3_Optimize_minimize"]
+opaque Optimize.minimize (o : @& Optimize) (a : @& Ast) : BaseIO UInt32
+
+/-- Check satisfiability of the optimization problem. -/
+@[extern "lean_z3_Optimize_check"]
+opaque Optimize.check (o : @& Optimize) : BaseIO LBool
+
+/-- Get the model after a satisfiable optimization check. -/
+@[extern "lean_z3_Optimize_getModel"]
+opaque Optimize.getModel (o : @& Optimize) : Env Model
+
+/-- Get the lower bound for objective at the given index. -/
+@[extern "lean_z3_Optimize_getLower"]
+opaque Optimize.getLower (o : @& Optimize) (idx : UInt32) : Ast
+
+/-- Get the upper bound for objective at the given index. -/
+@[extern "lean_z3_Optimize_getUpper"]
+opaque Optimize.getUpper (o : @& Optimize) (idx : UInt32) : Ast
+
+/-- Push a scope in the optimizer. -/
+@[extern "lean_z3_Optimize_push"]
+opaque Optimize.push (o : @& Optimize) : BaseIO PUnit
+
+/-- Pop a scope in the optimizer. -/
+@[extern "lean_z3_Optimize_pop"]
+opaque Optimize.pop (o : @& Optimize) : BaseIO PUnit
+
+/-- Set parameters on the optimizer. -/
+@[extern "lean_z3_Optimize_setParams"]
+opaque Optimize.setParams (o : @& Optimize) (p : @& Params) : BaseIO PUnit
+
+/-- Get the reason for an unknown result. -/
+@[extern "lean_z3_Optimize_getReasonUnknown"]
+opaque Optimize.getReasonUnknown (o : @& Optimize) : String
+
+/-- String representation. -/
+@[extern "lean_z3_Optimize_toString"]
+opaque Optimize.toString' (o : @& Optimize) : String
+
+instance : ToString Optimize := ⟨fun o => Optimize.toString' o⟩
 
 /-! ## Quantifiers -/
 

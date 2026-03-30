@@ -75,6 +75,12 @@ typedef struct {
 typedef struct {
   lean_object *ctx_obj;
   Z3_context   ctx;
+  Z3_optimize  optimize;
+} Z3OptimizeWrapper;
+
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
   Z3_func_interp func_interp;
 } Z3FuncInterpWrapper;
 

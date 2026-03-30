@@ -14,9 +14,11 @@ import Z3Test.ModelExt
 import Z3Test.PseudoBool
 import Z3Test.AstUtils
 import Z3Test.Optimize
+import Z3Test.Tactics
 
 def main : IO UInt32 :=
   runTests (basicTests ++ z3rsTests ++ arrayTests ++ proofTests
     ++ bitvectorTests ++ unsatCoreTests ++ arithmeticTests ++ uninterpFunTests
     ++ numeralTests ++ quantifierTests ++ substTests ++ declKindTests
-    ++ modelExtTests ++ pseudoBoolTests ++ astUtilTests ++ optimizeTests)
+    ++ modelExtTests ++ pseudoBoolTests ++ astUtilTests ++ optimizeTests
+    ++ tacticTests)

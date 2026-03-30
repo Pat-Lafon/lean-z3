@@ -60,6 +60,21 @@ opaque FuncEntry.Pointed : NonemptyType
 def FuncEntry : Type := FuncEntry.Pointed.type
 instance : Nonempty FuncEntry := FuncEntry.Pointed.property
 
+/-- A Z3 tactic (`Z3_tactic`). -/
+opaque Tactic.Pointed : NonemptyType
+def Tactic : Type := Tactic.Pointed.type
+instance : Nonempty Tactic := Tactic.Pointed.property
+
+/-- A Z3 goal (`Z3_goal`). -/
+opaque Goal.Pointed : NonemptyType
+def Goal : Type := Goal.Pointed.type
+instance : Nonempty Goal := Goal.Pointed.property
+
+/-- A Z3 apply result (`Z3_apply_result`). -/
+opaque ApplyResult.Pointed : NonemptyType
+def ApplyResult : Type := ApplyResult.Pointed.type
+instance : Nonempty ApplyResult := ApplyResult.Pointed.property
+
 /-- A Z3 optimizer (`Z3_optimize`). -/
 opaque Optimize.Pointed : NonemptyType
 def Optimize : Type := Optimize.Pointed.type
@@ -1067,6 +1082,124 @@ opaque Optimize.getReasonUnknown (o : @& Optimize) : String
 opaque Optimize.toString' (o : @& Optimize) : String
 
 instance : ToString Optimize := ⟨fun o => Optimize.toString' o⟩
+
+/-! ## Tactic / Goal API -/
+
+/-- Create a tactic by name. -/
+@[extern "lean_z3_Tactic_mk"]
+opaque Tactic.mk (ctx : @& Context) (name : @& String) : Tactic
+
+/-- Combine two tactics sequentially: apply `t1`, then `t2` to each subgoal. -/
+@[extern "lean_z3_Tactic_andThen"]
+opaque Tactic.andThen (ctx : @& Context) (t1 t2 : @& Tactic) : Tactic
+
+/-- Try `t1`; if it fails, apply `t2`. -/
+@[extern "lean_z3_Tactic_orElse"]
+opaque Tactic.orElse (ctx : @& Context) (t1 t2 : @& Tactic) : Tactic
+
+/-- Apply tactic with a timeout in milliseconds. -/
+@[extern "lean_z3_Tactic_tryFor"]
+opaque Tactic.tryFor (ctx : @& Context) (t : @& Tactic) (ms : UInt32) : Tactic
+
+/-- Repeat tactic up to `max` times. -/
+@[extern "lean_z3_Tactic_repeat"]
+opaque Tactic.repeat (ctx : @& Context) (t : @& Tactic) (max : UInt32) : Tactic
+
+/-- No-op tactic. -/
+@[extern "lean_z3_Tactic_skip"]
+opaque Tactic.skip (ctx : @& Context) : Tactic
+
+/-- Always-failing tactic. -/
+@[extern "lean_z3_Tactic_fail"]
+opaque Tactic.fail (ctx : @& Context) : Tactic
+
+/-- Apply tactic with parameters. -/
+@[extern "lean_z3_Tactic_usingParams"]
+opaque Tactic.usingParams (ctx : @& Context) (t : @& Tactic) (p : @& Params) : Tactic
+
+/-- Get help string for a tactic. -/
+@[extern "lean_z3_Tactic_getHelp"]
+opaque Tactic.getHelp (ctx : @& Context) (t : @& Tactic) : String
+
+/-- Get description of a tactic by name. -/
+@[extern "lean_z3_Tactic_getDescr"]
+opaque Tactic.getDescr (ctx : @& Context) (name : @& String) : String
+
+/-- Get the number of available tactics. -/
+@[extern "lean_z3_Context_getNumTactics"]
+opaque Context.getNumTactics (ctx : @& Context) : UInt32
+
+/-- Get the name of the i-th available tactic. -/
+@[extern "lean_z3_Context_getTacticName"]
+opaque Context.getTacticName (ctx : @& Context) (i : UInt32) : String
+
+/-- Create a goal. -/
+@[extern "lean_z3_Goal_mk"]
+opaque Goal.mk (ctx : @& Context) (models : Bool) (unsatCores : Bool) (proofs : Bool) : Goal
+
+/-- Assert a formula into a goal. -/
+@[extern "lean_z3_Goal_assert"]
+opaque Goal.assert (g : @& Goal) (a : @& Ast) : BaseIO PUnit
+
+/-- Get the number of formulas in a goal. -/
+@[extern "lean_z3_Goal_size"]
+opaque Goal.size (g : @& Goal) : UInt32
+
+/-- Get the i-th formula in a goal. -/
+@[extern "lean_z3_Goal_formula"]
+opaque Goal.formula (g : @& Goal) (i : UInt32) : Ast
+
+/-- Get the depth of a goal. -/
+@[extern "lean_z3_Goal_depth"]
+opaque Goal.depth (g : @& Goal) : UInt32
+
+/-- Check if a goal is inconsistent. -/
+@[extern "lean_z3_Goal_inconsistent"]
+opaque Goal.inconsistent (g : @& Goal) : Bool
+
+/-- Check if a goal is decided sat. -/
+@[extern "lean_z3_Goal_isDecidedSat"]
+opaque Goal.isDecidedSat (g : @& Goal) : Bool
+
+/-- Check if a goal is decided unsat. -/
+@[extern "lean_z3_Goal_isDecidedUnsat"]
+opaque Goal.isDecidedUnsat (g : @& Goal) : Bool
+
+/-- Reset a goal, removing all formulas. -/
+@[extern "lean_z3_Goal_reset"]
+opaque Goal.reset (g : @& Goal) : BaseIO PUnit
+
+/-- String representation. -/
+@[extern "lean_z3_Goal_toString"]
+opaque Goal.toString' (g : @& Goal) : String
+
+instance : ToString Goal := ⟨fun g => Goal.toString' g⟩
+
+/-- Apply a tactic to a goal. -/
+@[extern "lean_z3_Tactic_apply"]
+opaque Tactic.apply (ctx : @& Context) (t : @& Tactic) (g : @& Goal) : ApplyResult
+
+/-- Apply a tactic to a goal with parameters. -/
+@[extern "lean_z3_Tactic_applyEx"]
+opaque Tactic.applyEx (ctx : @& Context) (t : @& Tactic) (g : @& Goal) (p : @& Params) : ApplyResult
+
+/-- Get the number of subgoals in an apply result. -/
+@[extern "lean_z3_ApplyResult_getNumSubgoals"]
+opaque ApplyResult.getNumSubgoals (r : @& ApplyResult) : UInt32
+
+/-- Get the i-th subgoal from an apply result. -/
+@[extern "lean_z3_ApplyResult_getSubgoal"]
+opaque ApplyResult.getSubgoal (r : @& ApplyResult) (i : UInt32) : Goal
+
+/-- String representation. -/
+@[extern "lean_z3_ApplyResult_toString"]
+opaque ApplyResult.toString' (r : @& ApplyResult) : String
+
+instance : ToString ApplyResult := ⟨fun r => ApplyResult.toString' r⟩
+
+/-- Create a solver from a tactic. -/
+@[extern "lean_z3_Solver_fromTactic"]
+opaque Solver.fromTactic (ctx : @& Context) (t : @& Tactic) : Env Solver
 
 /-! ## Quantifiers -/
 

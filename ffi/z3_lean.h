@@ -81,6 +81,24 @@ typedef struct {
 typedef struct {
   lean_object *ctx_obj;
   Z3_context   ctx;
+  Z3_tactic    tactic;
+} Z3TacticWrapper;
+
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
+  Z3_goal      goal;
+} Z3GoalWrapper;
+
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
+  Z3_apply_result apply_result;
+} Z3ApplyResultWrapper;
+
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
   Z3_func_interp func_interp;
 } Z3FuncInterpWrapper;
 

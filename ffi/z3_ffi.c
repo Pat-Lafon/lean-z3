@@ -31,6 +31,9 @@ static lean_external_class *g_Model_class   = NULL;
 static lean_external_class *g_Constructor_class = NULL;
 static lean_external_class *g_ParamDescrs_class = NULL;
 static lean_external_class *g_Optimize_class = NULL;
+static lean_external_class *g_Tactic_class = NULL;
+static lean_external_class *g_Goal_class = NULL;
+static lean_external_class *g_ApplyResult_class = NULL;
 static lean_external_class *g_FuncInterp_class = NULL;
 static lean_external_class *g_FuncEntry_class = NULL;
 static lean_external_class *g_OnClauseHandle_class = NULL;
@@ -98,6 +101,27 @@ static void ParamDescrs_finalize(void *p) {
   lean_dec(w->ctx_obj);
   free(w);
 }
+static void Tactic_finalize(void *p) {
+  Z3TacticWrapper *w = (Z3TacticWrapper *)p;
+  Z3_tactic_dec_ref(w->ctx, w->tactic);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
+static void Goal_finalize(void *p) {
+  Z3GoalWrapper *w = (Z3GoalWrapper *)p;
+  Z3_goal_dec_ref(w->ctx, w->goal);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
+static void ApplyResult_finalize(void *p) {
+  Z3ApplyResultWrapper *w = (Z3ApplyResultWrapper *)p;
+  Z3_apply_result_dec_ref(w->ctx, w->apply_result);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
 static void Optimize_finalize(void *p) {
   Z3OptimizeWrapper *w = (Z3OptimizeWrapper *)p;
   Z3_optimize_dec_ref(w->ctx, w->optimize);
@@ -171,6 +195,15 @@ static inline lean_external_class *get_Constructor_class(void) {
 static inline lean_external_class *get_ParamDescrs_class(void) {
   return ensure_class(&g_ParamDescrs_class, ParamDescrs_finalize, noop_foreach);
 }
+static inline lean_external_class *get_Tactic_class(void) {
+  return ensure_class(&g_Tactic_class, Tactic_finalize, noop_foreach);
+}
+static inline lean_external_class *get_Goal_class(void) {
+  return ensure_class(&g_Goal_class, Goal_finalize, noop_foreach);
+}
+static inline lean_external_class *get_ApplyResult_class(void) {
+  return ensure_class(&g_ApplyResult_class, ApplyResult_finalize, noop_foreach);
+}
 static inline lean_external_class *get_Optimize_class(void) {
   return ensure_class(&g_Optimize_class, Optimize_finalize, noop_foreach);
 }
@@ -213,6 +246,15 @@ static inline Z3ConstructorWrapper *to_Constructor(b_lean_obj_arg o) {
 static inline Z3ParamDescrsWrapper *to_ParamDescrs(b_lean_obj_arg o) {
   return (Z3ParamDescrsWrapper *)lean_get_external_data(o);
 }
+static inline Z3TacticWrapper *to_Tactic(b_lean_obj_arg o) {
+  return (Z3TacticWrapper *)lean_get_external_data(o);
+}
+static inline Z3GoalWrapper *to_Goal(b_lean_obj_arg o) {
+  return (Z3GoalWrapper *)lean_get_external_data(o);
+}
+static inline Z3ApplyResultWrapper *to_ApplyResult(b_lean_obj_arg o) {
+  return (Z3ApplyResultWrapper *)lean_get_external_data(o);
+}
 static inline Z3OptimizeWrapper *to_Optimize(b_lean_obj_arg o) {
   return (Z3OptimizeWrapper *)lean_get_external_data(o);
 }
@@ -252,6 +294,15 @@ static inline lean_obj_res mk_Constructor(Z3ConstructorWrapper *p) {
 }
 static inline lean_obj_res mk_ParamDescrs(Z3ParamDescrsWrapper *p) {
   return lean_alloc_external(get_ParamDescrs_class(), p);
+}
+static inline lean_obj_res mk_Tactic(Z3TacticWrapper *p) {
+  return lean_alloc_external(get_Tactic_class(), p);
+}
+static inline lean_obj_res mk_Goal(Z3GoalWrapper *p) {
+  return lean_alloc_external(get_Goal_class(), p);
+}
+static inline lean_obj_res mk_ApplyResult(Z3ApplyResultWrapper *p) {
+  return lean_alloc_external(get_ApplyResult_class(), p);
 }
 static inline lean_obj_res mk_Optimize(Z3OptimizeWrapper *p) {
   return lean_alloc_external(get_Optimize_class(), p);
@@ -1675,6 +1726,211 @@ LEAN_EXPORT lean_obj_res lean_z3_FuncEntry_getArg(b_lean_obj_arg fe, uint32_t i)
   if (i >= n) { lean_internal_panic("FuncEntry.getArg: index out of bounds"); }
   Z3_ast a = Z3_func_entry_get_arg(w->ctx, w->func_entry, i);
   return z3_wrap_ast(w->ctx_obj, w->ctx, a);
+}
+
+/* ── Tactic / Goal API ────────────────────────────────────────────────── */
+
+static inline lean_obj_res z3_wrap_tactic(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_tactic t) {
+  Z3_tactic_inc_ref(raw_ctx, t);
+  Z3TacticWrapper *w = (Z3TacticWrapper *)malloc(sizeof(Z3TacticWrapper));
+  if (w == NULL) { Z3_tactic_dec_ref(raw_ctx, t); lean_internal_panic("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = raw_ctx;
+  w->tactic = t;
+  return mk_Tactic(w);
+}
+
+static inline lean_obj_res z3_wrap_goal(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_goal g) {
+  Z3_goal_inc_ref(raw_ctx, g);
+  Z3GoalWrapper *w = (Z3GoalWrapper *)malloc(sizeof(Z3GoalWrapper));
+  if (w == NULL) { Z3_goal_dec_ref(raw_ctx, g); lean_internal_panic("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = raw_ctx;
+  w->goal = g;
+  return mk_Goal(w);
+}
+
+static inline lean_obj_res z3_wrap_apply_result(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_apply_result r) {
+  Z3_apply_result_inc_ref(raw_ctx, r);
+  Z3ApplyResultWrapper *w = (Z3ApplyResultWrapper *)malloc(sizeof(Z3ApplyResultWrapper));
+  if (w == NULL) { Z3_apply_result_dec_ref(raw_ctx, r); lean_internal_panic("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = raw_ctx;
+  w->apply_result = r;
+  return mk_ApplyResult(w);
+}
+
+/* Tactic creation */
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_mk(b_lean_obj_arg ctx, b_lean_obj_arg name) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic t = Z3_mk_tactic(c->ctx, lean_string_cstr(name));
+  return z3_wrap_tactic(ctx, c->ctx, t);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_andThen(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic r = Z3_tactic_and_then(c->ctx, to_Tactic(t1)->tactic, to_Tactic(t2)->tactic);
+  return z3_wrap_tactic(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_orElse(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic r = Z3_tactic_or_else(c->ctx, to_Tactic(t1)->tactic, to_Tactic(t2)->tactic);
+  return z3_wrap_tactic(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_tryFor(b_lean_obj_arg ctx, b_lean_obj_arg t, uint32_t ms) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic r = Z3_tactic_try_for(c->ctx, to_Tactic(t)->tactic, ms);
+  return z3_wrap_tactic(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_repeat(b_lean_obj_arg ctx, b_lean_obj_arg t, uint32_t max) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic r = Z3_tactic_repeat(c->ctx, to_Tactic(t)->tactic, max);
+  return z3_wrap_tactic(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_skip(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_tactic(ctx, c->ctx, Z3_tactic_skip(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_fail(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_tactic(ctx, c->ctx, Z3_tactic_fail(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_usingParams(b_lean_obj_arg ctx, b_lean_obj_arg t, b_lean_obj_arg p) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_tactic r = Z3_tactic_using_params(c->ctx, to_Tactic(t)->tactic, to_Params(p)->params);
+  return z3_wrap_tactic(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_getHelp(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  const char *s = Z3_tactic_get_help(c->ctx, to_Tactic(t)->tactic);
+  return lean_mk_string(s ? s : "");
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_getDescr(b_lean_obj_arg ctx, b_lean_obj_arg name) {
+  Z3Ctx *c = to_Context(ctx);
+  const char *s = Z3_tactic_get_descr(c->ctx, lean_string_cstr(name));
+  return lean_mk_string(s ? s : "");
+}
+
+LEAN_EXPORT uint32_t lean_z3_Context_getNumTactics(b_lean_obj_arg ctx) {
+  return Z3_get_num_tactics(to_Context(ctx)->ctx);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Context_getTacticName(b_lean_obj_arg ctx, uint32_t i) {
+  Z3Ctx *c = to_Context(ctx);
+  const char *s = Z3_get_tactic_name(c->ctx, i);
+  return lean_mk_string(s ? s : "");
+}
+
+/* Goal */
+
+LEAN_EXPORT lean_obj_res lean_z3_Goal_mk(b_lean_obj_arg ctx, uint8_t models, uint8_t unsat_cores, uint8_t proofs) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_goal g = Z3_mk_goal(c->ctx, models, unsat_cores, proofs);
+  return z3_wrap_goal(ctx, c->ctx, g);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Goal_assert(b_lean_obj_arg g, b_lean_obj_arg a) {
+  Z3GoalWrapper *gw = to_Goal(g);
+  Z3_goal_assert(gw->ctx, gw->goal, to_Ast(a)->ast);
+  return lean_box(0);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Goal_size(b_lean_obj_arg g) {
+  Z3GoalWrapper *gw = to_Goal(g);
+  return Z3_goal_size(gw->ctx, gw->goal);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Goal_formula(b_lean_obj_arg g, uint32_t i) {
+  Z3GoalWrapper *gw = to_Goal(g);
+  return z3_wrap_ast(gw->ctx_obj, gw->ctx, Z3_goal_formula(gw->ctx, gw->goal, i));
+}
+
+LEAN_EXPORT uint32_t lean_z3_Goal_depth(b_lean_obj_arg g) {
+  return Z3_goal_depth(to_Goal(g)->ctx, to_Goal(g)->goal);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Goal_inconsistent(b_lean_obj_arg g) {
+  return Z3_goal_inconsistent(to_Goal(g)->ctx, to_Goal(g)->goal);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Goal_isDecidedSat(b_lean_obj_arg g) {
+  return Z3_goal_is_decided_sat(to_Goal(g)->ctx, to_Goal(g)->goal);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Goal_isDecidedUnsat(b_lean_obj_arg g) {
+  return Z3_goal_is_decided_unsat(to_Goal(g)->ctx, to_Goal(g)->goal);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Goal_reset(b_lean_obj_arg g) {
+  Z3GoalWrapper *gw = to_Goal(g);
+  Z3_goal_reset(gw->ctx, gw->goal);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Goal_toString(b_lean_obj_arg g) {
+  Z3GoalWrapper *gw = to_Goal(g);
+  const char *s = Z3_goal_to_string(gw->ctx, gw->goal);
+  return lean_mk_string(s ? s : "");
+}
+
+/* Tactic application */
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_apply(b_lean_obj_arg ctx, b_lean_obj_arg t, b_lean_obj_arg g) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_apply_result r = Z3_tactic_apply(c->ctx, to_Tactic(t)->tactic, to_Goal(g)->goal);
+  return z3_wrap_apply_result(ctx, c->ctx, r);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Tactic_applyEx(b_lean_obj_arg ctx, b_lean_obj_arg t, b_lean_obj_arg g, b_lean_obj_arg p) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_apply_result r = Z3_tactic_apply_ex(c->ctx, to_Tactic(t)->tactic, to_Goal(g)->goal, to_Params(p)->params);
+  return z3_wrap_apply_result(ctx, c->ctx, r);
+}
+
+/* ApplyResult */
+
+LEAN_EXPORT uint32_t lean_z3_ApplyResult_getNumSubgoals(b_lean_obj_arg r) {
+  Z3ApplyResultWrapper *rw = to_ApplyResult(r);
+  return Z3_apply_result_get_num_subgoals(rw->ctx, rw->apply_result);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_ApplyResult_getSubgoal(b_lean_obj_arg r, uint32_t i) {
+  Z3ApplyResultWrapper *rw = to_ApplyResult(r);
+  Z3_goal g = Z3_apply_result_get_subgoal(rw->ctx, rw->apply_result, i);
+  return z3_wrap_goal(rw->ctx_obj, rw->ctx, g);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_ApplyResult_toString(b_lean_obj_arg r) {
+  Z3ApplyResultWrapper *rw = to_ApplyResult(r);
+  const char *s = Z3_apply_result_to_string(rw->ctx, rw->apply_result);
+  return lean_mk_string(s ? s : "");
+}
+
+/* Solver from tactic */
+
+LEAN_EXPORT lean_obj_res lean_z3_Solver_fromTactic(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_solver s = Z3_mk_solver_from_tactic(c->ctx, to_Tactic(t)->tactic);
+  Z3_solver_inc_ref(c->ctx, s);
+  Z3SolverWrapper *w = (Z3SolverWrapper *)malloc(sizeof(Z3SolverWrapper));
+  if (w == NULL) { Z3_solver_dec_ref(c->ctx, s); return z3_env_error("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = c->ctx;
+  w->solver = s;
+  return z3_env_val(mk_Solver(w));
 }
 
 /* ── Optimization API ─────────────────────────────────────────────────── */

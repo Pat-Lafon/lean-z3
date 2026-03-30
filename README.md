@@ -38,7 +38,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **DeclKind** — `DeclKind` enum (~80 variants), `FuncDecl.getDeclKind`, C-validated enum values
 - **AST utilities** — `isApp`, `isNumeralAst`, `isWellSorted`, `isEqAst`, `getId`, `getHash`, `translate`
 - **Optimize** — `new`, `assert`, `assertSoft`, `maximize`, `minimize`, `check`, `getModel`, `getLower`, `getUpper`, `push`, `pop`, `setParams`, `getReasonUnknown`, `toString`
-- **Test suite** — 178 tests
+- **Tactic / Goal** — `Tactic.mk`, `andThen`, `orElse`, `repeat`, `skip`, `fail`, `getHelp`, `Goal.mk`, `assert`, `formula`, `size`, `reset`, `toString`, `Tactic.apply`, `ApplyResult.getNumSubgoals`, `getSubgoal`, `toString`, `Solver.fromTactic`, `Context.getNumTactics`, `getTacticName`, `getTacticDescription`
+- **Test suite** — 188 tests
 
 ### Unbound — Coverage Gaps
 
@@ -100,11 +101,11 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_optimize_push` / `Z3_optimize_pop` — scope management
 
 #### Tactic / Goal API
-- [ ] `Z3_mk_tactic` / `Z3_tactic_and_then` / `Z3_tactic_or_else` — tactic creation and combinators
-- [ ] `Z3_mk_goal` / `Z3_goal_assert` / `Z3_goal_formula` — goal management
-- [ ] `Z3_tactic_apply` / `Z3_tactic_apply_ex` — apply tactic to goal
-- [ ] `Z3_apply_result_*` — result access
-- [ ] `Z3_mk_solver_from_tactic` — solver from tactic
+- [x] `Z3_mk_tactic` / `Z3_tactic_and_then` / `Z3_tactic_or_else` — tactic creation and combinators
+- [x] `Z3_mk_goal` / `Z3_goal_assert` / `Z3_goal_formula` — goal management
+- [x] `Z3_tactic_apply` / `Z3_tactic_apply_ex` — apply tactic to goal
+- [x] `Z3_apply_result_*` — result access
+- [x] `Z3_mk_solver_from_tactic` — solver from tactic
 
 #### String / Sequence theory
 - [ ] `Z3_mk_string_sort` / `Z3_mk_seq_sort` — string and sequence sorts

@@ -2755,6 +2755,86 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToIeeeBv(b_lean_obj_arg ctx, b_lean_ob
   return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_ieee_bv(c->ctx, to_Ast(t)->ast));
 }
 
+/* ── FPA numeral inspection ───────────────────────────────────────────── */
+
+LEAN_EXPORT uint8_t lean_z3_Ast_fpaIsNumeralNan(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  return Z3_fpa_is_numeral_nan(to_Context(ctx)->ctx, to_Ast(t)->ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_fpaIsNumeralInf(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  return Z3_fpa_is_numeral_inf(to_Context(ctx)->ctx, to_Ast(t)->ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_fpaIsNumeralZero(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  return Z3_fpa_is_numeral_zero(to_Context(ctx)->ctx, to_Ast(t)->ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_fpaIsNumeralNormal(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  return Z3_fpa_is_numeral_normal(to_Context(ctx)->ctx, to_Ast(t)->ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_fpaIsNumeralSubnormal(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  return Z3_fpa_is_numeral_subnormal(to_Context(ctx)->ctx, to_Ast(t)->ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_fpaIsNumeralPositive(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  return Z3_fpa_is_numeral_positive(to_Context(ctx)->ctx, to_Ast(t)->ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_fpaIsNumeralNegative(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  return Z3_fpa_is_numeral_negative(to_Context(ctx)->ctx, to_Ast(t)->ast);
+}
+
+
+/* Returns 0 for positive, 1 for negative, UINT32_MAX on failure */
+LEAN_EXPORT uint32_t lean_z3_Ast_fpaGetNumeralSign_raw(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  int sgn = 0;
+  bool ok = Z3_fpa_get_numeral_sign(to_Context(ctx)->ctx, to_Ast(t)->ast, &sgn);
+  if (!ok) return UINT32_MAX;
+  return (uint32_t)(sgn != 0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_fpaGetNumeralSignificandString(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3_string s = Z3_fpa_get_numeral_significand_string(to_Context(ctx)->ctx, to_Ast(t)->ast);
+  if (s == NULL) return lean_mk_string("");
+  return lean_mk_string(s);
+}
+
+/* Returns significand or 0 on failure */
+LEAN_EXPORT uint64_t lean_z3_Ast_fpaGetNumeralSignificandUInt64_raw(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  uint64_t n = 0;
+  Z3_fpa_get_numeral_significand_uint64(to_Context(ctx)->ctx, to_Ast(t)->ast, &n);
+  return n;
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_fpaGetNumeralExponentString(b_lean_obj_arg ctx, b_lean_obj_arg t, uint8_t biased) {
+  Z3_string s = Z3_fpa_get_numeral_exponent_string(to_Context(ctx)->ctx, to_Ast(t)->ast, biased);
+  if (s == NULL) return lean_mk_string("");
+  return lean_mk_string(s);
+}
+
+/* Returns exponent as uint64 (interpret as signed int64), or 0 on failure */
+LEAN_EXPORT uint64_t lean_z3_Ast_fpaGetNumeralExponentInt64_raw(b_lean_obj_arg ctx, b_lean_obj_arg t, uint8_t biased) {
+  int64_t n = 0;
+  Z3_fpa_get_numeral_exponent_int64(to_Context(ctx)->ctx, to_Ast(t)->ast, &n, biased);
+  return (uint64_t)n;
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_fpaGetNumeralSignBv(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_fpa_get_numeral_sign_bv(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_fpaGetNumeralSignificandBv(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_fpa_get_numeral_significand_bv(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_fpaGetNumeralExponentBv(b_lean_obj_arg ctx, b_lean_obj_arg t, uint8_t biased) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_fpa_get_numeral_exponent_bv(c->ctx, to_Ast(t)->ast, biased));
+}
+
 /* ── Additional sorts ─────────────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Srt_mkFiniteDomain(b_lean_obj_arg ctx, b_lean_obj_arg name, uint64_t size) {

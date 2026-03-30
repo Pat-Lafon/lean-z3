@@ -25,6 +25,7 @@ import Z3Test.Fixedpoint
 import Z3Test.Probes
 import Z3Test.UserProp
 import Z3Test.Simplifier
+import Z3Test.FpaInspect
 
 def main : IO UInt32 :=
   runTests (basicTests ++ z3rsTests ++ arrayTests ++ proofTests
@@ -33,4 +34,5 @@ def main : IO UInt32 :=
     ++ modelExtTests ++ pseudoBoolTests ++ astUtilTests ++ optimizeTests
     ++ tacticTests ++ stringTests ++ floatingPointTests ++ setTests
     ++ additionalSortTests ++ sortInspectTests ++ solverExtTests
-    ++ fixedpointTests ++ probeTests ++ userPropTests ++ simplifierTests)
+    ++ fixedpointTests ++ probeTests ++ userPropTests ++ simplifierTests
+    ++ fpaInspectTests)

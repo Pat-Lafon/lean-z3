@@ -1782,6 +1782,81 @@ opaque Ast.mkFpaToReal (ctx : @& Context) (t : @& Ast) : Ast
 @[extern "lean_z3_Ast_mkFpaToIeeeBv"]
 opaque Ast.mkFpaToIeeeBv (ctx : @& Context) (t : @& Ast) : Ast
 
+/-! ### FPA numeral inspection -/
+
+/-- Check if `t` is a FP NaN numeral. -/
+@[extern "lean_z3_Ast_fpaIsNumeralNan"]
+opaque Ast.fpaIsNumeralNan (ctx : @& Context) (t : @& Ast) : Bool
+
+/-- Check if `t` is a FP infinity numeral. -/
+@[extern "lean_z3_Ast_fpaIsNumeralInf"]
+opaque Ast.fpaIsNumeralInf (ctx : @& Context) (t : @& Ast) : Bool
+
+/-- Check if `t` is a FP zero numeral. -/
+@[extern "lean_z3_Ast_fpaIsNumeralZero"]
+opaque Ast.fpaIsNumeralZero (ctx : @& Context) (t : @& Ast) : Bool
+
+/-- Check if `t` is a normal FP numeral. -/
+@[extern "lean_z3_Ast_fpaIsNumeralNormal"]
+opaque Ast.fpaIsNumeralNormal (ctx : @& Context) (t : @& Ast) : Bool
+
+/-- Check if `t` is a subnormal FP numeral. -/
+@[extern "lean_z3_Ast_fpaIsNumeralSubnormal"]
+opaque Ast.fpaIsNumeralSubnormal (ctx : @& Context) (t : @& Ast) : Bool
+
+/-- Check if `t` is a positive FP numeral. -/
+@[extern "lean_z3_Ast_fpaIsNumeralPositive"]
+opaque Ast.fpaIsNumeralPositive (ctx : @& Context) (t : @& Ast) : Bool
+
+/-- Check if `t` is a negative FP numeral. -/
+@[extern "lean_z3_Ast_fpaIsNumeralNegative"]
+opaque Ast.fpaIsNumeralNegative (ctx : @& Context) (t : @& Ast) : Bool
+
+/-- Raw: returns 0 for positive, 1 for negative, `UInt32.max` on failure. -/
+@[extern "lean_z3_Ast_fpaGetNumeralSign_raw"]
+private opaque Ast.fpaGetNumeralSignRaw (ctx : @& Context) (t : @& Ast) : BaseIO UInt32
+
+/-- Get the sign of a FP numeral. Returns `some true` for negative, `some false` for positive, `none` on failure. -/
+def Ast.fpaGetNumeralSign (ctx : Context) (t : Ast) : BaseIO (Option Bool) := do
+  let v ← Ast.fpaGetNumeralSignRaw ctx t
+  return if v == 4294967295 then none else some (v != 0)
+
+/-- Get the significand of a FP numeral as a string. -/
+@[extern "lean_z3_Ast_fpaGetNumeralSignificandString"]
+opaque Ast.fpaGetNumeralSignificandString (ctx : @& Context) (t : @& Ast) : String
+
+/-- Raw: returns significand or sets ok flag. Returns 0 with `ok=false` on failure. -/
+@[extern "lean_z3_Ast_fpaGetNumeralSignificandUInt64_raw"]
+private opaque Ast.fpaGetNumeralSignificandUInt64Raw (ctx : @& Context) (t : @& Ast) : UInt64
+
+/-- Get the significand of a FP numeral as a UInt64. -/
+def Ast.fpaGetNumeralSignificandUInt64 (ctx : Context) (t : Ast) : UInt64 :=
+  Ast.fpaGetNumeralSignificandUInt64Raw ctx t
+
+/-- Get the exponent of a FP numeral as a string. If `biased` is true, return the biased exponent. -/
+@[extern "lean_z3_Ast_fpaGetNumeralExponentString"]
+opaque Ast.fpaGetNumeralExponentString (ctx : @& Context) (t : @& Ast) (biased : Bool) : String
+
+/-- Raw: returns exponent as UInt64 (interpret as signed Int64), or 0 on failure. -/
+@[extern "lean_z3_Ast_fpaGetNumeralExponentInt64_raw"]
+private opaque Ast.fpaGetNumeralExponentInt64Raw (ctx : @& Context) (t : @& Ast) (biased : Bool) : UInt64
+
+/-- Get the exponent of a FP numeral as a UInt64 (interpret as signed Int64). If `biased` is true, return the biased exponent. -/
+def Ast.fpaGetNumeralExponentInt64 (ctx : Context) (t : Ast) (biased : Bool) : UInt64 :=
+  Ast.fpaGetNumeralExponentInt64Raw ctx t biased
+
+/-- Get the sign bitvector of a FP numeral. -/
+@[extern "lean_z3_Ast_fpaGetNumeralSignBv"]
+opaque Ast.fpaGetNumeralSignBv (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Get the significand bitvector of a FP numeral. -/
+@[extern "lean_z3_Ast_fpaGetNumeralSignificandBv"]
+opaque Ast.fpaGetNumeralSignificandBv (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Get the exponent bitvector of a FP numeral. If `biased` is true, return the biased exponent. -/
+@[extern "lean_z3_Ast_fpaGetNumeralExponentBv"]
+opaque Ast.fpaGetNumeralExponentBv (ctx : @& Context) (t : @& Ast) (biased : Bool) : Ast
+
 /-! ## Additional sorts -/
 
 /-- Create a finite domain sort with the given name and size. -/

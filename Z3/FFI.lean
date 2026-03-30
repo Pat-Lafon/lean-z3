@@ -1201,6 +1201,108 @@ instance : ToString ApplyResult := ⟨fun r => ApplyResult.toString' r⟩
 @[extern "lean_z3_Solver_fromTactic"]
 opaque Solver.fromTactic (ctx : @& Context) (t : @& Tactic) : Env Solver
 
+/-! ## String / Sequence theory -/
+
+/-- Create the string sort. -/
+@[extern "lean_z3_Srt_mkString"]
+opaque Srt.mkString (ctx : @& Context) : Srt
+
+/-- Create a sequence sort over element sort `s`. -/
+@[extern "lean_z3_Srt_mkSeq"]
+opaque Srt.mkSeq (ctx : @& Context) (s : @& Srt) : Srt
+
+/-- Create a regular expression sort over sequence sort `seq`. -/
+@[extern "lean_z3_Srt_mkRe"]
+opaque Srt.mkRe (ctx : @& Context) (seq : @& Srt) : Srt
+
+/-- Create a string literal. -/
+@[extern "lean_z3_Ast_mkString"]
+opaque Ast.mkString (ctx : @& Context) (s : @& String) : Ast
+
+/-- Get the string value of a string literal AST. -/
+@[extern "lean_z3_Ast_getString"]
+opaque Ast.getString (ctx : @& Context) (a : @& Ast) : String
+
+/-- Concatenate sequences (or strings). -/
+@[extern "lean_z3_Ast_mkSeqConcat"]
+opaque Ast.mkSeqConcat (ctx : @& Context) (args : @& Array Ast) : Ast
+
+/-- Get the length of a sequence (or string). -/
+@[extern "lean_z3_Ast_mkSeqLength"]
+opaque Ast.mkSeqLength (ctx : @& Context) (s : @& Ast) : Ast
+
+/-- Check if `container` contains `containee`. -/
+@[extern "lean_z3_Ast_mkSeqContains"]
+opaque Ast.mkSeqContains (ctx : @& Context) (container containee : @& Ast) : Ast
+
+/-- Check if `s` starts with `prefix`. -/
+@[extern "lean_z3_Ast_mkSeqPrefix"]
+opaque Ast.mkSeqPrefix (ctx : @& Context) (pfx s : @& Ast) : Ast
+
+/-- Check if `s` ends with `suffix`. -/
+@[extern "lean_z3_Ast_mkSeqSuffix"]
+opaque Ast.mkSeqSuffix (ctx : @& Context) (sfx s : @& Ast) : Ast
+
+/-- Extract substring of `s` starting at `offset` with given `length`. -/
+@[extern "lean_z3_Ast_mkSeqExtract"]
+opaque Ast.mkSeqExtract (ctx : @& Context) (s offset length : @& Ast) : Ast
+
+/-- Get the element at `index` in sequence `s` (unit sequence). -/
+@[extern "lean_z3_Ast_mkSeqAt"]
+opaque Ast.mkSeqAt (ctx : @& Context) (s index : @& Ast) : Ast
+
+/-- Find first index of `substr` in `s` starting from `offset`. Returns -1 if not found. -/
+@[extern "lean_z3_Ast_mkSeqIndex"]
+opaque Ast.mkSeqIndex (ctx : @& Context) (s substr offset : @& Ast) : Ast
+
+/-- Convert string to integer. -/
+@[extern "lean_z3_Ast_mkStrToInt"]
+opaque Ast.mkStrToInt (ctx : @& Context) (s : @& Ast) : Ast
+
+/-- Convert integer to string. -/
+@[extern "lean_z3_Ast_mkIntToStr"]
+opaque Ast.mkIntToStr (ctx : @& Context) (s : @& Ast) : Ast
+
+/-- Convert a sequence to a regular expression (singleton). -/
+@[extern "lean_z3_Ast_mkSeqToRe"]
+opaque Ast.mkSeqToRe (ctx : @& Context) (seq : @& Ast) : Ast
+
+/-- Check membership of a sequence in a regular expression. -/
+@[extern "lean_z3_Ast_mkSeqInRe"]
+opaque Ast.mkSeqInRe (ctx : @& Context) (seq re : @& Ast) : Ast
+
+/-- Kleene star of a regular expression. -/
+@[extern "lean_z3_Ast_mkReStar"]
+opaque Ast.mkReStar (ctx : @& Context) (re : @& Ast) : Ast
+
+/-- Kleene plus of a regular expression. -/
+@[extern "lean_z3_Ast_mkRePlus"]
+opaque Ast.mkRePlus (ctx : @& Context) (re : @& Ast) : Ast
+
+/-- Optional (zero or one) of a regular expression. -/
+@[extern "lean_z3_Ast_mkReOption"]
+opaque Ast.mkReOption (ctx : @& Context) (re : @& Ast) : Ast
+
+/-- Union of regular expressions. -/
+@[extern "lean_z3_Ast_mkReUnion"]
+opaque Ast.mkReUnion (ctx : @& Context) (args : @& Array Ast) : Ast
+
+/-- Concatenation of regular expressions. -/
+@[extern "lean_z3_Ast_mkReConcat"]
+opaque Ast.mkReConcat (ctx : @& Context) (args : @& Array Ast) : Ast
+
+/-- Character range [lo, hi]. -/
+@[extern "lean_z3_Ast_mkReRange"]
+opaque Ast.mkReRange (ctx : @& Context) (lo hi : @& Ast) : Ast
+
+/-- Complement of a regular expression. -/
+@[extern "lean_z3_Ast_mkReComplement"]
+opaque Ast.mkReComplement (ctx : @& Context) (re : @& Ast) : Ast
+
+/-- Intersection of regular expressions. -/
+@[extern "lean_z3_Ast_mkReIntersect"]
+opaque Ast.mkReIntersect (ctx : @& Context) (args : @& Array Ast) : Ast
+
 /-! ## Quantifiers -/
 
 /-- Create a bound variable with de Bruijn index `idx` and sort `s`. -/

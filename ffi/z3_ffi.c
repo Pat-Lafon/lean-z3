@@ -1933,6 +1933,147 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_fromTactic(b_lean_obj_arg ctx, b_lean_ob
   return z3_env_val(mk_Solver(w));
 }
 
+/* ── String / Sequence theory ─────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkString(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_string_sort(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkSeq(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_seq_sort(c->ctx, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkRe(b_lean_obj_arg ctx, b_lean_obj_arg seq) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_re_sort(c->ctx, to_Srt(seq)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkString(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  const char *str = lean_string_cstr(s);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_string(c->ctx, str));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getString(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_string str = Z3_get_string(c->ctx, to_Ast(a)->ast);
+  return lean_mk_string(str);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqConcat(b_lean_obj_arg ctx, b_lean_obj_arg args) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(args);
+  Z3_ast buf[n];
+  for (unsigned i = 0; i < n; i++) buf[i] = to_Ast(lean_array_get_core(args, i))->ast;
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_concat(c->ctx, n, buf));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqLength(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_length(c->ctx, to_Ast(s)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqContains(b_lean_obj_arg ctx, b_lean_obj_arg container, b_lean_obj_arg containee) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_contains(c->ctx, to_Ast(container)->ast, to_Ast(containee)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqPrefix(b_lean_obj_arg ctx, b_lean_obj_arg pfx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_prefix(c->ctx, to_Ast(pfx)->ast, to_Ast(s)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqSuffix(b_lean_obj_arg ctx, b_lean_obj_arg sfx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_suffix(c->ctx, to_Ast(sfx)->ast, to_Ast(s)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqExtract(b_lean_obj_arg ctx, b_lean_obj_arg s, b_lean_obj_arg offset, b_lean_obj_arg length) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_extract(c->ctx, to_Ast(s)->ast, to_Ast(offset)->ast, to_Ast(length)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqAt(b_lean_obj_arg ctx, b_lean_obj_arg s, b_lean_obj_arg index) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_at(c->ctx, to_Ast(s)->ast, to_Ast(index)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqIndex(b_lean_obj_arg ctx, b_lean_obj_arg s, b_lean_obj_arg substr, b_lean_obj_arg offset) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_index(c->ctx, to_Ast(s)->ast, to_Ast(substr)->ast, to_Ast(offset)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkStrToInt(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_str_to_int(c->ctx, to_Ast(s)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkIntToStr(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_int_to_str(c->ctx, to_Ast(s)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqToRe(b_lean_obj_arg ctx, b_lean_obj_arg seq) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_to_re(c->ctx, to_Ast(seq)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkSeqInRe(b_lean_obj_arg ctx, b_lean_obj_arg seq, b_lean_obj_arg re) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_seq_in_re(c->ctx, to_Ast(seq)->ast, to_Ast(re)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkReStar(b_lean_obj_arg ctx, b_lean_obj_arg re) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_re_star(c->ctx, to_Ast(re)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkRePlus(b_lean_obj_arg ctx, b_lean_obj_arg re) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_re_plus(c->ctx, to_Ast(re)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkReOption(b_lean_obj_arg ctx, b_lean_obj_arg re) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_re_option(c->ctx, to_Ast(re)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkReUnion(b_lean_obj_arg ctx, b_lean_obj_arg args) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(args);
+  Z3_ast buf[n];
+  for (unsigned i = 0; i < n; i++) buf[i] = to_Ast(lean_array_get_core(args, i))->ast;
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_re_union(c->ctx, n, buf));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkReConcat(b_lean_obj_arg ctx, b_lean_obj_arg args) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(args);
+  Z3_ast buf[n];
+  for (unsigned i = 0; i < n; i++) buf[i] = to_Ast(lean_array_get_core(args, i))->ast;
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_re_concat(c->ctx, n, buf));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkReRange(b_lean_obj_arg ctx, b_lean_obj_arg lo, b_lean_obj_arg hi) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_re_range(c->ctx, to_Ast(lo)->ast, to_Ast(hi)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkReComplement(b_lean_obj_arg ctx, b_lean_obj_arg re) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_re_complement(c->ctx, to_Ast(re)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkReIntersect(b_lean_obj_arg ctx, b_lean_obj_arg args) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(args);
+  Z3_ast buf[n];
+  for (unsigned i = 0; i < n; i++) buf[i] = to_Ast(lean_array_get_core(args, i))->ast;
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_re_intersect(c->ctx, n, buf));
+}
+
 /* ── Optimization API ─────────────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Optimize_new(b_lean_obj_arg ctx) {

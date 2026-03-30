@@ -39,7 +39,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **AST utilities** — `isApp`, `isNumeralAst`, `isWellSorted`, `isEqAst`, `getId`, `getHash`, `translate`
 - **Optimize** — `new`, `assert`, `assertSoft`, `maximize`, `minimize`, `check`, `getModel`, `getLower`, `getUpper`, `push`, `pop`, `setParams`, `getReasonUnknown`, `toString`
 - **Tactic / Goal** — `Tactic.mk`, `andThen`, `orElse`, `repeat`, `skip`, `fail`, `getHelp`, `Goal.mk`, `assert`, `formula`, `size`, `reset`, `toString`, `Tactic.apply`, `ApplyResult.getNumSubgoals`, `getSubgoal`, `toString`, `Solver.fromTactic`, `Context.getNumTactics`, `getTacticName`, `getTacticDescription`
-- **Test suite** — 188 tests
+- **String / Sequence** — `Srt.mkString`, `Srt.mkSeq`, `Srt.mkRe`, `Ast.mkString`, `getString`, `mkSeqConcat`, `mkSeqLength`, `mkSeqContains`, `mkSeqPrefix`, `mkSeqSuffix`, `mkSeqExtract`, `mkSeqAt`, `mkSeqIndex`, `mkStrToInt`, `mkIntToStr`, `mkSeqToRe`, `mkSeqInRe`, `mkReStar`, `mkRePlus`, `mkReOption`, `mkReUnion`, `mkReConcat`, `mkReRange`, `mkReComplement`, `mkReIntersect`
+- **Test suite** — 204 tests
 
 ### Unbound — Coverage Gaps
 
@@ -108,12 +109,12 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_solver_from_tactic` — solver from tactic
 
 #### String / Sequence theory
-- [ ] `Z3_mk_string_sort` / `Z3_mk_seq_sort` — string and sequence sorts
-- [ ] `Z3_mk_string` — string literal
-- [ ] `Z3_mk_seq_concat` / `Z3_mk_seq_length` / `Z3_mk_seq_contains` — sequence ops
-- [ ] `Z3_mk_seq_prefix` / `Z3_mk_seq_suffix` / `Z3_mk_seq_extract` / `Z3_mk_seq_at` / `Z3_mk_seq_index`
-- [ ] `Z3_mk_str_to_int` / `Z3_mk_int_to_str` — conversions
-- [ ] `Z3_mk_seq_in_re` — regex membership
+- [x] `Z3_mk_string_sort` / `Z3_mk_seq_sort` — string and sequence sorts
+- [x] `Z3_mk_string` — string literal
+- [x] `Z3_mk_seq_concat` / `Z3_mk_seq_length` / `Z3_mk_seq_contains` — sequence ops
+- [x] `Z3_mk_seq_prefix` / `Z3_mk_seq_suffix` / `Z3_mk_seq_extract` / `Z3_mk_seq_at` / `Z3_mk_seq_index`
+- [x] `Z3_mk_str_to_int` / `Z3_mk_int_to_str` — conversions
+- [x] `Z3_mk_seq_in_re` — regex membership
 
 #### Regular expressions
 - [ ] `Z3_mk_re_sort` / `Z3_mk_re_star` / `Z3_mk_re_plus` / `Z3_mk_re_option` — regex constructors

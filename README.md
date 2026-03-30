@@ -12,7 +12,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 
 - **Context** — `new`, `newWithProofs`
 - **Sorts** — Bool, Int, Real, BV, Uninterpreted, Array + inspection (`getKindRaw`, `getName`, `getBvSize`)
-- **Term constructors** — `mkBool`, `mkNumeral`, `mkIntConst`, `mkBoolConst`, `mkConst`, `mkBvConst`
+- **Term constructors** — `mkBool`, `mkNumeral`, `mkInt`, `mkInt64`, `mkUInt64`, `mkReal`, `mkRealVal`, `mkIntConst`, `mkBoolConst`, `mkConst`, `mkBvConst`
 - **Boolean ops** — `not`, `and`, `or`, `xor`, `implies`, `iff`, `eq`, `ite`, `getBoolValue`
 - **Arithmetic ops** — `add`, `sub`, `mul`, `div`, `mod`, `rem`, `power`, `abs`, `unaryMinus`, `lt`, `le`, `gt`, `ge`, `int2real`, `real2int`, `isInt`
 - **Bitvector ops** — arithmetic (`bvadd`, `bvsub`, `bvmul`, `bvudiv`, `bvsdiv`, `bvurem`, `bvsrem`, `bvneg`), bitwise (`bvand`, `bvor`, `bvxor`, `bvnot`), shifts (`bvshl`, `bvlshr`, `bvashr`), rotations, comparisons (signed + unsigned), extract/concat/extend, bv2int/int2bv
@@ -20,7 +20,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Distinct** — `distinct`
 - **Quantifiers** — `mkBound`, `mkForall`, `mkExists`
 - **Datatypes** — `Constructor.mk`, `Srt.mkDatatype`, `Constructor.query`
-- **Term inspection** — `getSort`, `getAstKind`, `getNumArgs`, `getArg`, `getFuncDecl`, `getNumeralString`, `getVarIndex`, `toString`
+- **Term inspection** — `getSort`, `getAstKind`, `getNumArgs`, `getArg`, `getFuncDecl`, `getNumeralString`, `getNumeralDecimalString`, `getNumeralBinaryString`, `getNumeralInt64`, `getNumeralUInt64`, `getNumeralDouble`, `getNumerator`, `getDenominator`, `getVarIndex`, `toString`
 - **Quantifier inspection** — `isQuantifierForall`, `isQuantifierExists`, `getQuantifierBody`, `getQuantifierNumBound`, `getQuantifierBoundName`, `getQuantifierBoundSort`
 - **Uninterpreted functions** — `FuncDecl.mk`, `Ast.mkApp`, `Ast.mkFreshConst`, `FuncDecl.mkFresh`
 - **FuncDecl** — `getDeclKindRaw`, `getName`, `getArity`, `getDomain`, `getRange`, `toString`
@@ -30,7 +30,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **SMT-LIB parsing** — `parseSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 86 tests
+- **Test suite** — 99 tests
 
 ### Unbound — Coverage Gaps
 
@@ -58,11 +58,11 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_get_bool_value` — extract bool from model AST
 
 #### Numeral constructors & extraction
-- [ ] `Z3_mk_int` / `Z3_mk_int64` / `Z3_mk_unsigned_int64` — numeric convenience constructors
-- [ ] `Z3_mk_real` / `Z3_mk_real_int64` — rational from numerator/denominator
-- [ ] `Z3_get_numeral_int64` / `Z3_get_numeral_uint64` / `Z3_get_numeral_double` — extract as native types
-- [ ] `Z3_get_numeral_decimal_string` / `Z3_get_numeral_binary_string` — alternative string reprs
-- [ ] `Z3_get_numerator` / `Z3_get_denominator` — rational decomposition
+- [x] `Z3_mk_int` / `Z3_mk_int64` / `Z3_mk_unsigned_int64` — numeric convenience constructors
+- [x] `Z3_mk_real` / `Z3_mk_real_int64` — rational from numerator/denominator
+- [x] `Z3_get_numeral_int64` / `Z3_get_numeral_uint64` / `Z3_get_numeral_double` — extract as native types
+- [x] `Z3_get_numeral_decimal_string` / `Z3_get_numeral_binary_string` — alternative string reprs
+- [x] `Z3_get_numerator` / `Z3_get_denominator` — rational decomposition
 
 #### Substitution & simplification
 - [ ] `Z3_substitute` — substitute ASTs in an expression

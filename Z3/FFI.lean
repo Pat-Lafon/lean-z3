@@ -127,6 +127,28 @@ opaque Ast.mkConst (ctx : @& Context) (name : @& String) (sort : @& Srt) : Ast
 @[extern "lean_z3_Ast_mkBvConst"]
 opaque Ast.mkBvConst (ctx : @& Context) (name : @& String) (size : UInt32) : Ast
 
+/-! ## Numeral constructors -/
+
+/-- Create a numeral from an `Int32` and a sort. -/
+@[extern "lean_z3_Ast_mkInt"]
+opaque Ast.mkInt (ctx : @& Context) (v : Int32) (sort : @& Srt) : Ast
+
+/-- Create a real numeral from numerator and denominator (as `Int32`). -/
+@[extern "lean_z3_Ast_mkReal"]
+opaque Ast.mkReal (ctx : @& Context) (num den : Int32) : Ast
+
+/-- Create a numeral from an `Int64` and a sort. -/
+@[extern "lean_z3_Ast_mkInt64"]
+opaque Ast.mkInt64 (ctx : @& Context) (v : Int64) (sort : @& Srt) : Ast
+
+/-- Create a numeral from a `UInt64` and a sort. -/
+@[extern "lean_z3_Ast_mkUInt64"]
+opaque Ast.mkUInt64 (ctx : @& Context) (v : UInt64) (sort : @& Srt) : Ast
+
+/-- Create a real numeral from numerator and denominator (as `Int64`). -/
+@[extern "lean_z3_Ast_mkRealVal"]
+opaque Ast.mkRealVal (ctx : @& Context) (num den : Int64) : Ast
+
 /-! ## Boolean operations -/
 
 /-- Logical negation. -/
@@ -424,6 +446,34 @@ opaque Ast.getFuncDecl (a : @& Ast) : FuncDecl
 /-- Get the numeral value as a string. -/
 @[extern "lean_z3_Ast_getNumeralString"]
 opaque Ast.getNumeralString (a : @& Ast) : String
+
+/-- Get the numeral value as a decimal string with given precision. -/
+@[extern "lean_z3_Ast_getNumeralDecimalString"]
+opaque Ast.getNumeralDecimalString (a : @& Ast) (precision : UInt32) : String
+
+/-- Get the numeral value as a binary string. -/
+@[extern "lean_z3_Ast_getNumeralBinaryString"]
+opaque Ast.getNumeralBinaryString (a : @& Ast) : String
+
+/-- Get the numeral value as an Int64. Fails if the value doesn't fit. -/
+@[extern "lean_z3_Ast_getNumeralInt64"]
+opaque Ast.getNumeralInt64 (a : @& Ast) : Env Int64
+
+/-- Get the numeral value as a UInt64. Fails if the value doesn't fit. -/
+@[extern "lean_z3_Ast_getNumeralUInt64"]
+opaque Ast.getNumeralUInt64 (a : @& Ast) : Env UInt64
+
+/-- Get the numeral value as a Float (double). -/
+@[extern "lean_z3_Ast_getNumeralDouble"]
+opaque Ast.getNumeralDouble (a : @& Ast) : Float
+
+/-- Get the numerator of a rational numeral. -/
+@[extern "lean_z3_Ast_getNumerator"]
+opaque Ast.getNumerator (a : @& Ast) : Ast
+
+/-- Get the denominator of a rational numeral. -/
+@[extern "lean_z3_Ast_getDenominator"]
+opaque Ast.getDenominator (a : @& Ast) : Ast
 
 /-- Get a string representation. -/
 @[extern "lean_z3_Ast_toString"]

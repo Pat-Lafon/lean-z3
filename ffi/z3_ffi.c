@@ -376,6 +376,36 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_mkBvConst(b_lean_obj_arg ctx, b_lean_obj_ar
   return result;
 }
 
+/* ── Numeral constructors (pure) ──────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkInt(b_lean_obj_arg ctx, int32_t v, b_lean_obj_arg sort) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3SortWrapper *s = to_Srt(sort);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_int(c->ctx, (int)v, s->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkReal(b_lean_obj_arg ctx, int32_t num, int32_t den) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_real(c->ctx, (int)num, (int)den));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkInt64(b_lean_obj_arg ctx, int64_t v, b_lean_obj_arg sort) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3SortWrapper *s = to_Srt(sort);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_int64(c->ctx, v, s->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkUInt64(b_lean_obj_arg ctx, uint64_t v, b_lean_obj_arg sort) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3SortWrapper *s = to_Srt(sort);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_unsigned_int64(c->ctx, v, s->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkRealVal(b_lean_obj_arg ctx, int64_t num, int64_t den) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_real_int64(c->ctx, num, den));
+}
+
 /* ── Boolean operations (pure) ─────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_not(b_lean_obj_arg ctx, b_lean_obj_arg a) {
@@ -746,6 +776,57 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_getNumeralString(b_lean_obj_arg a) {
   const char *s = Z3_get_numeral_string(aw->ctx, aw->ast);
   if (s == NULL) { lean_internal_panic("Z3_get_numeral_string failed: AST is not a numeral"); }
   return lean_mk_string(s);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getNumeralDecimalString(b_lean_obj_arg a, uint32_t precision) {
+  Z3AstWrapper *aw = to_Ast(a);
+  const char *s = Z3_get_numeral_decimal_string(aw->ctx, aw->ast, precision);
+  if (s == NULL) { lean_internal_panic("Z3_get_numeral_decimal_string failed"); }
+  return lean_mk_string(s);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getNumeralBinaryString(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  const char *s = Z3_get_numeral_binary_string(aw->ctx, aw->ast);
+  if (s == NULL) { lean_internal_panic("Z3_get_numeral_binary_string failed"); }
+  return lean_mk_string(s);
+}
+
+/* Returns Int64 via Env monad. Errors if the value doesn't fit in int64. */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getNumeralInt64(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  int64_t val = 0;
+  bool ok = Z3_get_numeral_int64(aw->ctx, aw->ast, &val);
+  if (!ok) { return z3_env_error("Z3_get_numeral_int64: value does not fit in Int64"); }
+  return z3_env_val(lean_box_uint64((uint64_t)val));
+}
+
+/* Returns UInt64 via Env monad. Errors if the value doesn't fit in uint64. */
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getNumeralUInt64(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  uint64_t val = 0;
+  bool ok = Z3_get_numeral_uint64(aw->ctx, aw->ast, &val);
+  if (!ok) { return z3_env_error("Z3_get_numeral_uint64: value does not fit in UInt64"); }
+  return z3_env_val(lean_box_uint64(val));
+}
+
+LEAN_EXPORT double lean_z3_Ast_getNumeralDouble(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_get_numeral_double(aw->ctx, aw->ast);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getNumerator(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  Z3_ast num = Z3_get_numerator(aw->ctx, aw->ast);
+  if (num == NULL) { lean_internal_panic("Z3_get_numerator failed: not a rational numeral"); }
+  return z3_wrap_ast(aw->ctx_obj, aw->ctx, num);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getDenominator(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  Z3_ast den = Z3_get_denominator(aw->ctx, aw->ast);
+  if (den == NULL) { lean_internal_panic("Z3_get_denominator failed: not a rational numeral"); }
+  return z3_wrap_ast(aw->ctx_obj, aw->ctx, den);
 }
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_toString(b_lean_obj_arg a) {

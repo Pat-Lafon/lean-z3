@@ -6,7 +6,9 @@ import Z3Test.Bitvectors
 import Z3Test.UnsatCore
 import Z3Test.Arithmetic
 import Z3Test.UninterpFun
+import Z3Test.Numerals
 
 def main : IO UInt32 :=
   runTests (basicTests ++ z3rsTests ++ arrayTests ++ proofTests
-    ++ bitvectorTests ++ unsatCoreTests ++ arithmeticTests ++ uninterpFunTests)
+    ++ bitvectorTests ++ unsatCoreTests ++ arithmeticTests ++ uninterpFunTests
+    ++ numeralTests)

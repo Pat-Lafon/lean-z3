@@ -28,6 +28,7 @@ typedef struct {
   lean_object *ctx_obj; /* Lean reference to Context — prevents premature GC */
   Z3_context   ctx;     /* raw context pointer for Z3_dec_ref calls          */
   Z3_solver    solver;
+  lean_object *propagator; /* Lean ref to Propagator — prevents GC while Z3 holds user_ctx */
 } Z3SolverWrapper;
 
 typedef struct {
@@ -125,6 +126,30 @@ typedef struct {
   Z3_context   ctx;
   Z3_probe     probe;
 } Z3ProbeWrapper;
+
+/* ── User propagator ────────────────────────────────────────────────────── */
+
+typedef struct {
+  Z3_context   ctx;        /* raw context pointer                            */
+  Z3_solver_callback cb;   /* ephemeral — only valid within a callback       */
+  lean_object *ctx_obj;    /* Lean ref to Context for wrapping ASTs          */
+} Z3SolverCallbackWrapper;
+
+typedef struct {
+  lean_object *ctx_obj;    /* Lean ref to Context — GC anchor                */
+  lean_object *solver_obj; /* Lean ref to Solver — GC anchor                 */
+  Z3_context   ctx;        /* raw context pointer                            */
+  Z3_solver    solver;     /* raw solver pointer (for propagate_register)    */
+  /* Lean closures — NULL if not registered */
+  lean_object *push_fn;    /* SolverCallback → BaseIO PUnit                 */
+  lean_object *pop_fn;     /* SolverCallback → UInt32 → BaseIO PUnit        */
+  lean_object *fixed_fn;   /* SolverCallback → Ast → Ast → BaseIO PUnit     */
+  lean_object *final_fn;   /* SolverCallback → BaseIO PUnit                 */
+  lean_object *eq_fn;      /* SolverCallback → Ast → Ast → BaseIO PUnit     */
+  lean_object *diseq_fn;   /* SolverCallback → Ast → Ast → BaseIO PUnit     */
+  lean_object *created_fn; /* SolverCallback → Ast → BaseIO PUnit           */
+  lean_object *decide_fn;  /* SolverCallback → Ast → UInt32 → Bool → BaseIO PUnit */
+} Z3PropagatorData;
 
 /* ── On-clause collector ─────────────────────────────────────────────────── */
 

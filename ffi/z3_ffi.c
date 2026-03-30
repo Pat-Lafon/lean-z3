@@ -77,6 +77,7 @@ static void Params_finalize(void *p) {
 static void Solver_finalize(void *p) {
   Z3SolverWrapper *s = (Z3SolverWrapper *)p;
   Z3_solver_dec_ref(s->ctx, s->solver);
+  if (s->propagator) lean_dec(s->propagator);
   lean_dec(s->ctx_obj);
   free(s);
 }
@@ -1435,6 +1436,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_new(b_lean_obj_arg ctx) {
   w->ctx_obj = ctx;
   w->ctx = c->ctx;
   w->solver = s;
+  w->propagator = NULL;
   return mk_Solver(w);
 }
 
@@ -1538,7 +1540,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_mkSimple(b_lean_obj_arg ctx) {
   Z3SolverWrapper *w = (Z3SolverWrapper *)malloc(sizeof(Z3SolverWrapper));
   if (w == NULL) { Z3_solver_dec_ref(c->ctx, s); return z3_env_error("out of memory"); }
   lean_inc(ctx);
-  w->ctx_obj = ctx; w->ctx = c->ctx; w->solver = s;
+  w->ctx_obj = ctx; w->ctx = c->ctx; w->solver = s; w->propagator = NULL;
   return z3_env_val(mk_Solver(w));
 }
 
@@ -1550,7 +1552,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_mkForLogic(b_lean_obj_arg ctx, b_lean_ob
   Z3SolverWrapper *w = (Z3SolverWrapper *)malloc(sizeof(Z3SolverWrapper));
   if (w == NULL) { Z3_solver_dec_ref(c->ctx, s); return z3_env_error("out of memory"); }
   lean_inc(ctx);
-  w->ctx_obj = ctx; w->ctx = c->ctx; w->solver = s;
+  w->ctx_obj = ctx; w->ctx = c->ctx; w->solver = s; w->propagator = NULL;
   return z3_env_val(mk_Solver(w));
 }
 
@@ -1585,7 +1587,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_translate(b_lean_obj_arg s, b_lean_obj_a
   Z3SolverWrapper *w = (Z3SolverWrapper *)malloc(sizeof(Z3SolverWrapper));
   if (w == NULL) { Z3_solver_dec_ref(tc->ctx, ts); return z3_env_error("out of memory"); }
   lean_inc(target);
-  w->ctx_obj = target; w->ctx = tc->ctx; w->solver = ts;
+  w->ctx_obj = target; w->ctx = tc->ctx; w->solver = ts; w->propagator = NULL;
   return z3_env_val(mk_Solver(w));
 }
 
@@ -2476,6 +2478,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_fromTactic(b_lean_obj_arg ctx, b_lean_ob
   w->ctx_obj = ctx;
   w->ctx = c->ctx;
   w->solver = s;
+  w->propagator = NULL;
   return z3_env_val(mk_Solver(w));
 }
 
@@ -3927,4 +3930,301 @@ LEAN_EXPORT lean_obj_res lean_z3_OnClauseHandle_clear(b_lean_obj_arg handle_obj)
   lean_dec(h->events);
   h->events = lean_mk_empty_array();
   return lean_box(0);
+}
+
+/* ── User Propagator ───────────────────────────────────────────────────── */
+
+static void Propagator_finalize(void *p) {
+  Z3PropagatorData *d = (Z3PropagatorData *)p;
+  if (d->push_fn)    lean_dec(d->push_fn);
+  if (d->pop_fn)     lean_dec(d->pop_fn);
+  if (d->fixed_fn)   lean_dec(d->fixed_fn);
+  if (d->final_fn)   lean_dec(d->final_fn);
+  if (d->eq_fn)      lean_dec(d->eq_fn);
+  if (d->diseq_fn)   lean_dec(d->diseq_fn);
+  if (d->created_fn) lean_dec(d->created_fn);
+  if (d->decide_fn)  lean_dec(d->decide_fn);
+  lean_dec(d->solver_obj);
+  lean_dec(d->ctx_obj);
+  free(d);
+}
+
+static lean_external_class *g_Propagator_class = NULL;
+static inline lean_external_class *get_Propagator_class(void) {
+  if (g_Propagator_class == NULL)
+    g_Propagator_class = lean_register_external_class(Propagator_finalize, noop_foreach);
+  return g_Propagator_class;
+}
+static inline lean_obj_res mk_Propagator(Z3PropagatorData *p) {
+  return lean_alloc_external(get_Propagator_class(), p);
+}
+static inline Z3PropagatorData *to_Propagator(b_lean_obj_arg o) {
+  return (Z3PropagatorData *)lean_get_external_data(o);
+}
+
+/* SolverCallback — ephemeral, no Z3 ref counting */
+static void SolverCallback_finalize(void *p) {
+  Z3SolverCallbackWrapper *w = (Z3SolverCallbackWrapper *)p;
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
+static lean_external_class *g_SolverCallback_class = NULL;
+static inline lean_external_class *get_SolverCallback_class(void) {
+  if (g_SolverCallback_class == NULL)
+    g_SolverCallback_class = lean_register_external_class(SolverCallback_finalize, noop_foreach);
+  return g_SolverCallback_class;
+}
+static inline lean_obj_res mk_SolverCallback(Z3SolverCallbackWrapper *w) {
+  return lean_alloc_external(get_SolverCallback_class(), w);
+}
+static inline Z3SolverCallbackWrapper *to_SolverCallback(b_lean_obj_arg o) {
+  return (Z3SolverCallbackWrapper *)lean_get_external_data(o);
+}
+
+/* Create a temporary SolverCallback Lean object for use within a trampoline.
+ * The caller must lean_dec the result when done. */
+static inline lean_obj_res z3_wrap_solver_callback(Z3PropagatorData *d, Z3_solver_callback cb) {
+  Z3SolverCallbackWrapper *w = (Z3SolverCallbackWrapper *)malloc(sizeof(Z3SolverCallbackWrapper));
+  if (w == NULL) lean_internal_panic("out of memory");
+  lean_inc(d->ctx_obj);
+  w->ctx_obj = d->ctx_obj;
+  w->ctx = d->ctx;
+  w->cb = cb;
+  return mk_SolverCallback(w);
+}
+
+/* ── Callback trampolines ──────────────────────────────────────────────── */
+
+static void prop_push_trampoline(void *user_ctx, Z3_solver_callback cb) {
+  Z3PropagatorData *d = (Z3PropagatorData *)user_ctx;
+  if (!d->push_fn) return;
+  lean_object *scb = z3_wrap_solver_callback(d, cb);
+  lean_inc(d->push_fn);
+  lean_object *res = lean_apply_2(d->push_fn, scb, lean_box(0) /* world token */);
+  lean_dec(res);
+}
+
+static void prop_pop_trampoline(void *user_ctx, Z3_solver_callback cb, unsigned num_scopes) {
+  Z3PropagatorData *d = (Z3PropagatorData *)user_ctx;
+  if (!d->pop_fn) return;
+  lean_object *scb = z3_wrap_solver_callback(d, cb);
+  lean_inc(d->pop_fn);
+  lean_object *res = lean_apply_3(d->pop_fn, scb, lean_box_uint32(num_scopes), lean_box(0));
+  lean_dec(res);
+}
+
+static void *prop_fresh_trampoline(void *user_ctx, Z3_context new_ctx) {
+  (void)new_ctx;
+  /* Return same context — parallel solving not supported */
+  return user_ctx;
+}
+
+static void prop_fixed_trampoline(void *user_ctx, Z3_solver_callback cb, Z3_ast t, Z3_ast value) {
+  Z3PropagatorData *d = (Z3PropagatorData *)user_ctx;
+  if (!d->fixed_fn) return;
+  lean_object *scb = z3_wrap_solver_callback(d, cb);
+  lean_object *t_lean = z3_wrap_ast(d->ctx_obj, d->ctx, t);
+  lean_object *v_lean = z3_wrap_ast(d->ctx_obj, d->ctx, value);
+  lean_inc(d->fixed_fn);
+  lean_object *res = lean_apply_4(d->fixed_fn, scb, t_lean, v_lean, lean_box(0));
+  lean_dec(res);
+}
+
+static void prop_final_trampoline(void *user_ctx, Z3_solver_callback cb) {
+  Z3PropagatorData *d = (Z3PropagatorData *)user_ctx;
+  if (!d->final_fn) return;
+  lean_object *scb = z3_wrap_solver_callback(d, cb);
+  lean_inc(d->final_fn);
+  lean_object *res = lean_apply_2(d->final_fn, scb, lean_box(0));
+  lean_dec(res);
+}
+
+static void prop_eq_trampoline(void *user_ctx, Z3_solver_callback cb, Z3_ast s, Z3_ast t) {
+  Z3PropagatorData *d = (Z3PropagatorData *)user_ctx;
+  if (!d->eq_fn) return;
+  lean_object *scb = z3_wrap_solver_callback(d, cb);
+  lean_object *s_lean = z3_wrap_ast(d->ctx_obj, d->ctx, s);
+  lean_object *t_lean = z3_wrap_ast(d->ctx_obj, d->ctx, t);
+  lean_inc(d->eq_fn);
+  lean_object *res = lean_apply_4(d->eq_fn, scb, s_lean, t_lean, lean_box(0));
+  lean_dec(res);
+}
+
+static void prop_diseq_trampoline(void *user_ctx, Z3_solver_callback cb, Z3_ast s, Z3_ast t) {
+  Z3PropagatorData *d = (Z3PropagatorData *)user_ctx;
+  if (!d->diseq_fn) return;
+  lean_object *scb = z3_wrap_solver_callback(d, cb);
+  lean_object *s_lean = z3_wrap_ast(d->ctx_obj, d->ctx, s);
+  lean_object *t_lean = z3_wrap_ast(d->ctx_obj, d->ctx, t);
+  lean_inc(d->diseq_fn);
+  lean_object *res = lean_apply_4(d->diseq_fn, scb, s_lean, t_lean, lean_box(0));
+  lean_dec(res);
+}
+
+static void prop_created_trampoline(void *user_ctx, Z3_solver_callback cb, Z3_ast t) {
+  Z3PropagatorData *d = (Z3PropagatorData *)user_ctx;
+  if (!d->created_fn) return;
+  lean_object *scb = z3_wrap_solver_callback(d, cb);
+  lean_object *t_lean = z3_wrap_ast(d->ctx_obj, d->ctx, t);
+  lean_inc(d->created_fn);
+  lean_object *res = lean_apply_3(d->created_fn, scb, t_lean, lean_box(0));
+  lean_dec(res);
+}
+
+static void prop_decide_trampoline(void *user_ctx, Z3_solver_callback cb, Z3_ast t, unsigned idx, bool phase) {
+  Z3PropagatorData *d = (Z3PropagatorData *)user_ctx;
+  if (!d->decide_fn) return;
+  lean_object *scb = z3_wrap_solver_callback(d, cb);
+  lean_object *t_lean = z3_wrap_ast(d->ctx_obj, d->ctx, t);
+  lean_inc(d->decide_fn);
+  lean_object *res = lean_apply_5(d->decide_fn, scb, t_lean, lean_box_uint32(idx), lean_box(phase ? 1 : 0), lean_box(0));
+  lean_dec(res);
+}
+
+/* ── Propagator API functions ──────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Solver_propagateInit(
+    b_lean_obj_arg solver_obj, lean_obj_arg push_fn, lean_obj_arg pop_fn) {
+  Z3SolverWrapper *sw = to_Solver(solver_obj);
+  Z3PropagatorData *d = (Z3PropagatorData *)malloc(sizeof(Z3PropagatorData));
+  if (d == NULL) lean_internal_panic("out of memory");
+  lean_inc(sw->ctx_obj);
+  d->ctx_obj = sw->ctx_obj;
+  lean_inc(solver_obj);
+  d->solver_obj = solver_obj;
+  d->ctx = sw->ctx;
+  d->solver = sw->solver;
+  d->push_fn = push_fn;     /* takes ownership */
+  d->pop_fn = pop_fn;       /* takes ownership */
+  d->fixed_fn = NULL;
+  d->final_fn = NULL;
+  d->eq_fn = NULL;
+  d->diseq_fn = NULL;
+  d->created_fn = NULL;
+  d->decide_fn = NULL;
+
+  Z3_solver_propagate_init(sw->ctx, sw->solver, (void *)d,
+    prop_push_trampoline, prop_pop_trampoline, prop_fresh_trampoline);
+
+  lean_obj_res prop_obj = mk_Propagator(d);
+  /* Anchor the propagator in the solver so it won't be GC'd while Z3 holds user_ctx */
+  lean_inc(prop_obj);
+  if (sw->propagator) lean_dec(sw->propagator);
+  sw->propagator = prop_obj;
+  return prop_obj;
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Propagator_setFixed(b_lean_obj_arg prop, lean_obj_arg fn) {
+  Z3PropagatorData *d = to_Propagator(prop);
+  if (d->fixed_fn) lean_dec(d->fixed_fn);
+  d->fixed_fn = fn; /* takes ownership */
+  Z3_solver_propagate_fixed(d->ctx, d->solver, prop_fixed_trampoline);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Propagator_setFinal(b_lean_obj_arg prop, lean_obj_arg fn) {
+  Z3PropagatorData *d = to_Propagator(prop);
+  if (d->final_fn) lean_dec(d->final_fn);
+  d->final_fn = fn;
+  Z3_solver_propagate_final(d->ctx, d->solver, prop_final_trampoline);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Propagator_setEq(b_lean_obj_arg prop, lean_obj_arg fn) {
+  Z3PropagatorData *d = to_Propagator(prop);
+  if (d->eq_fn) lean_dec(d->eq_fn);
+  d->eq_fn = fn;
+  Z3_solver_propagate_eq(d->ctx, d->solver, prop_eq_trampoline);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Propagator_setDiseq(b_lean_obj_arg prop, lean_obj_arg fn) {
+  Z3PropagatorData *d = to_Propagator(prop);
+  if (d->diseq_fn) lean_dec(d->diseq_fn);
+  d->diseq_fn = fn;
+  Z3_solver_propagate_diseq(d->ctx, d->solver, prop_diseq_trampoline);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Propagator_setCreated(b_lean_obj_arg prop, lean_obj_arg fn) {
+  Z3PropagatorData *d = to_Propagator(prop);
+  if (d->created_fn) lean_dec(d->created_fn);
+  d->created_fn = fn;
+  Z3_solver_propagate_created(d->ctx, d->solver, prop_created_trampoline);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Propagator_setDecide(b_lean_obj_arg prop, lean_obj_arg fn) {
+  Z3PropagatorData *d = to_Propagator(prop);
+  if (d->decide_fn) lean_dec(d->decide_fn);
+  d->decide_fn = fn;
+  Z3_solver_propagate_decide(d->ctx, d->solver, prop_decide_trampoline);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Solver_propagateRegister(b_lean_obj_arg solver_obj, b_lean_obj_arg e) {
+  Z3SolverWrapper *sw = to_Solver(solver_obj);
+  Z3_solver_propagate_register(sw->ctx, sw->solver, to_Ast(e)->ast);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_SolverCallback_propagateRegister(b_lean_obj_arg cb_obj, b_lean_obj_arg e) {
+  Z3SolverCallbackWrapper *w = to_SolverCallback(cb_obj);
+  Z3_solver_propagate_register_cb(w->ctx, w->cb, to_Ast(e)->ast);
+  return lean_box(0);
+}
+
+LEAN_EXPORT uint8_t lean_z3_SolverCallback_propagateConsequence(
+    b_lean_obj_arg cb_obj, b_lean_obj_arg fixed_arr,
+    b_lean_obj_arg eq_lhs_arr, b_lean_obj_arg eq_rhs_arr, b_lean_obj_arg conseq) {
+  Z3SolverCallbackWrapper *w = to_SolverCallback(cb_obj);
+
+  unsigned nf = lean_array_size(fixed_arr);
+  unsigned ne = lean_array_size(eq_lhs_arr);
+  Z3_ast *fixed = (Z3_ast *)malloc(nf * sizeof(Z3_ast));
+  Z3_ast *lhs   = (Z3_ast *)malloc(ne * sizeof(Z3_ast));
+  Z3_ast *rhs   = (Z3_ast *)malloc(ne * sizeof(Z3_ast));
+  if ((nf > 0 && !fixed) || (ne > 0 && (!lhs || !rhs)))
+    lean_internal_panic("out of memory");
+
+  for (unsigned i = 0; i < nf; i++)
+    fixed[i] = to_Ast(lean_array_uget(fixed_arr, i))->ast;
+  for (unsigned i = 0; i < ne; i++) {
+    lhs[i] = to_Ast(lean_array_uget(eq_lhs_arr, i))->ast;
+    rhs[i] = to_Ast(lean_array_uget(eq_rhs_arr, i))->ast;
+  }
+
+  bool ok = Z3_solver_propagate_consequence(w->ctx, w->cb, nf, fixed, ne, lhs, rhs, to_Ast(conseq)->ast);
+  free(fixed); free(lhs); free(rhs);
+  return ok ? 1 : 0;
+}
+
+LEAN_EXPORT uint8_t lean_z3_SolverCallback_nextSplit(
+    b_lean_obj_arg cb_obj, b_lean_obj_arg t, uint32_t idx, uint32_t phase) {
+  Z3SolverCallbackWrapper *w = to_SolverCallback(cb_obj);
+  Z3_lbool z3phase = (Z3_lbool)((int)phase - 1); /* LBool: 0=false→-1, 1=undef→0, 2=true→1 */
+  bool ok = Z3_solver_next_split(w->ctx, w->cb, to_Ast(t)->ast, idx, z3phase);
+  return ok ? 1 : 0;
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Context_propagateDeclare(
+    b_lean_obj_arg ctx, b_lean_obj_arg name, b_lean_obj_arg domain, b_lean_obj_arg range) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(domain);
+  Z3_sort *sorts = (Z3_sort *)malloc(n * sizeof(Z3_sort));
+  if (n > 0 && !sorts) lean_internal_panic("out of memory");
+  for (unsigned i = 0; i < n; i++)
+    sorts[i] = to_Srt(lean_array_uget(domain, i))->sort;
+  Z3_symbol sym = Z3_mk_string_symbol(c->ctx, lean_string_cstr(name));
+  Z3_func_decl fd = Z3_solver_propagate_declare(c->ctx, sym, n, sorts, to_Srt(range)->sort);
+  free(sorts);
+  Z3_inc_ref(c->ctx, Z3_func_decl_to_ast(c->ctx, fd));
+  Z3FuncDeclWrapper *w = (Z3FuncDeclWrapper *)malloc(sizeof(Z3FuncDeclWrapper));
+  if (!w) lean_internal_panic("out of memory");
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = c->ctx;
+  w->func_decl = fd;
+  return mk_FuncDecl(w);
 }

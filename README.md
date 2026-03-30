@@ -48,18 +48,19 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Statistics** — `Stats` opaque type, `size`, `getKey`, `isUInt`, `isDouble`, `getUIntValue`, `getDoubleValue`, `toString`
 - **Fixedpoint (Datalog/CHC)** — `Fixedpoint` opaque type, `new`, `registerRelation`, `addRule`, `addFact`, `assert`, `query`, `queryRelations`, `getAnswer`, `getReasonUnknown`, `updateRule`, `getNumLevels`, `getCoverDelta`, `addCover`, `getStatistics`, `getRules`, `getAssertions`, `getHelp`, `getParamDescrs`, `fromString`, `fromFile`, `setPredicateRepresentation`, `addConstraint`, `setParams`, `toString`
 - **Probes** — `Probe` opaque type, `mk`, `const`, `apply`, comparisons (`lt`, `gt`, `le`, `ge`, `eq`), combinators (`and`, `or`, `not`), `getDescr`, `Context.getNumProbes`, `getProbeName`, tactic integration (`Tactic.when`, `cond`, `failIf`, `failIfNotDecided`)
-- **Test suite** — 279 tests
+- **Solver user propagation** — `Propagator` + `SolverCallback` opaque types, `propagateInit`, `setFixed`, `setFinal`, `setEq`, `setDiseq`, `setCreated`, `setDecide`, `propagateRegister`, `propagateConsequence`, `nextSplit`, `propagateDeclare`
+- **Test suite** — 285 tests
 
 ### Coverage
 
-416 `@[extern]` bindings covering ~57% of the Z3 C API (448 of 766 functions). Run `./scripts/check-ffi-sync.sh` to verify Lean/C declarations stay in sync, or `--coverage /path/to/z3/include` for a full coverage report.
+428 `@[extern]` bindings covering ~59% of the Z3 C API (460 of 766 functions). Run `./scripts/check-ffi-sync.sh` to verify Lean/C declarations stay in sync, or `--coverage /path/to/z3/include` for a full coverage report.
 
 ### TODO
 
 #### Binding gaps (exposed by other major Z3 bindings)
 
 - [x] **Probes** (~13 functions) — tactic guards: `Z3_mk_probe`, `probe_apply`, `probe_const`, comparisons, combinators. Exposed by Python, Rust, C++, OCaml, .NET.
-- [ ] **Solver user propagation** (~26 functions) — custom theory solvers via `Z3_solver_propagate_*` callbacks (`fixed`, `eq`, `diseq`, `final`, `decide`, `created`). Exposed by Python, C++, .NET; actively requested in z3-rs.
+- [x] **Solver user propagation** (~26 functions) — custom theory solvers via `Z3_solver_propagate_*` callbacks (`fixed`, `eq`, `diseq`, `final`, `decide`, `created`). Exposed by Python, C++, .NET; actively requested in z3-rs.
 - [ ] **FPA numeral inspection** (~15 functions) — extract sign/significand/exponent from FP numerals (`Z3_fpa_get_numeral_sign`, `_significand_string`, `_exponent_int64`, etc.). Exposed by all major bindings.
 - [ ] **Simplifier API** (~7 functions) — new simplifier framework replacing `Z3_simplify`: `Z3_mk_simplifier`, `simplifier_and_then`, `using_params`. Exposed by Python, C++, OCaml, .NET.
 - [ ] **Quantifier elimination** (~4 functions) — `Z3_qe_lite`, `Z3_qe_model_project`. Exposed by z3-rs, C++.

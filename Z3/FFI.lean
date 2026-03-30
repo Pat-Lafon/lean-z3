@@ -95,6 +95,16 @@ opaque Probe.Pointed : NonemptyType
 def Probe : Type := Probe.Pointed.type
 instance : Nonempty Probe := Probe.Pointed.property
 
+/-- A user propagator handle. Holds registered callbacks for the solver. -/
+opaque Propagator.Pointed : NonemptyType
+def Propagator : Type := Propagator.Pointed.type
+instance : Nonempty Propagator := Propagator.Pointed.property
+
+/-- An ephemeral solver callback handle, only valid within a propagator callback. -/
+opaque SolverCallback.Pointed : NonemptyType
+def SolverCallback : Type := SolverCallback.Pointed.type
+instance : Nonempty SolverCallback := SolverCallback.Pointed.property
+
 /-! ## Context operations -/
 
 /-- Create a new Z3 context with default configuration. -/
@@ -954,6 +964,71 @@ opaque Solver.getConsequences (s : @& Solver) (assumptions variables : @& Array 
 /-- Get solver statistics. -/
 @[extern "lean_z3_Solver_getStatistics"]
 opaque Solver.getStatistics (s : @& Solver) : BaseIO Stats
+
+/-! ## User Propagation -/
+
+/-- Initialize a user propagator on the solver with push/pop callbacks.
+Returns a `Propagator` handle for registering additional callbacks. -/
+@[extern "lean_z3_Solver_propagateInit"]
+opaque Solver.propagateInit (s : @& Solver)
+    (push : SolverCallback → BaseIO PUnit)
+    (pop : SolverCallback → UInt32 → BaseIO PUnit)
+    : BaseIO Propagator
+
+/-- Register a callback for when a registered expression is assigned a value. -/
+@[extern "lean_z3_Propagator_setFixed"]
+opaque Propagator.setFixed (p : @& Propagator)
+    (f : SolverCallback → Ast → Ast → BaseIO PUnit) : BaseIO PUnit
+
+/-- Register a callback invoked when the solver needs to finalize (check for conflicts). -/
+@[extern "lean_z3_Propagator_setFinal"]
+opaque Propagator.setFinal (p : @& Propagator)
+    (f : SolverCallback → BaseIO PUnit) : BaseIO PUnit
+
+/-- Register a callback for when two registered expressions become equal. -/
+@[extern "lean_z3_Propagator_setEq"]
+opaque Propagator.setEq (p : @& Propagator)
+    (f : SolverCallback → Ast → Ast → BaseIO PUnit) : BaseIO PUnit
+
+/-- Register a callback for when two registered expressions become disequal. -/
+@[extern "lean_z3_Propagator_setDiseq"]
+opaque Propagator.setDiseq (p : @& Propagator)
+    (f : SolverCallback → Ast → Ast → BaseIO PUnit) : BaseIO PUnit
+
+/-- Register a callback for when a new expression is created by the solver. -/
+@[extern "lean_z3_Propagator_setCreated"]
+opaque Propagator.setCreated (p : @& Propagator)
+    (f : SolverCallback → Ast → BaseIO PUnit) : BaseIO PUnit
+
+/-- Register a callback for when the solver is about to make a decision. -/
+@[extern "lean_z3_Propagator_setDecide"]
+opaque Propagator.setDecide (p : @& Propagator)
+    (f : SolverCallback → Ast → UInt32 → Bool → BaseIO PUnit) : BaseIO PUnit
+
+/-- Register an expression for tracking by the user propagator. -/
+@[extern "lean_z3_Solver_propagateRegister"]
+opaque Solver.propagateRegister (s : @& Solver) (e : @& Ast) : BaseIO PUnit
+
+/-- Register an expression within a callback (e.g., inside a created callback). -/
+@[extern "lean_z3_SolverCallback_propagateRegister"]
+opaque SolverCallback.propagateRegister (cb : @& SolverCallback) (e : @& Ast) : BaseIO PUnit
+
+/-- Propagate a consequence from within a callback.
+`fixed` are assigned literals, `eqLhs`/`eqRhs` are equality pairs, `conseq` is the consequence. -/
+@[extern "lean_z3_SolverCallback_propagateConsequence"]
+opaque SolverCallback.propagateConsequence (cb : @& SolverCallback)
+    (fixed : @& Array Ast) (eqLhs eqRhs : @& Array Ast) (conseq : @& Ast)
+    : BaseIO Bool
+
+/-- Suggest a next split decision from within a decide callback. -/
+@[extern "lean_z3_SolverCallback_nextSplit"]
+opaque SolverCallback.nextSplit (cb : @& SolverCallback)
+    (t : @& Ast) (idx : UInt32) (phase : LBool) : BaseIO Bool
+
+/-- Declare a function for use with the user propagator. -/
+@[extern "lean_z3_Context_propagateDeclare"]
+opaque Context.propagateDeclare (ctx : @& Context) (name : @& String)
+    (domain : @& Array Srt) (range : @& Srt) : FuncDecl
 
 /-! ## Statistics -/
 

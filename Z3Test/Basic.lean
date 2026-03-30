@@ -281,11 +281,11 @@ def testEvalSMTLIB2CheckSat : IO TestResult := runTest "evalSMTLIB2 check-sat" d
 
 /-- parseSMTLIB2File: parse from a temporary file -/
 def testParseSMTLIB2File : IO TestResult := runTest "parseSMTLIB2File" do
-  let tmpPath := "/tmp/lean_z3_test.smt2"
+  let tmpPath : System.FilePath := ".lake" / "build" / "lean_z3_test.smt2"
   IO.FS.writeFile tmpPath "(declare-const y Int)\n(assert (> y 100))\n"
   let ctx ← Env.run Context.new
   let solver ← Solver.new ctx
-  let formula ← Env.run (Context.parseSMTLIB2File ctx tmpPath)
+  let formula ← Env.run (Context.parseSMTLIB2File ctx tmpPath.toString)
   Solver.assert solver formula
   let result ← Solver.checkSat solver
   if result != .true then

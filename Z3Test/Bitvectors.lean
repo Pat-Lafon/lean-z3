@@ -165,6 +165,161 @@ def testBvDiv : IO TestResult := runTest "bv division" do
   return check "bv division" (result == .false)
     s!"expected unsat, got {result}"
 
+/-- bvnand: ~(a & b) -/
+def testBvNand : IO TestResult := runTest "bv nand" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let bv8 := Srt.mkBv ctx 8
+  let a := Ast.mkNumeral ctx "255" bv8  -- 0xFF
+  let b := Ast.mkNumeral ctx "15" bv8   -- 0x0F
+  let result := Ast.bvnand ctx a b
+  -- nand(0xFF, 0x0F) = ~(0x0F) = 0xF0 = 240
+  let expected := Ast.mkNumeral ctx "240" bv8
+  Solver.assert solver (Ast.not ctx (Ast.eq ctx result expected))
+  let r ← Solver.checkSat solver
+  return check "bv nand" (r == .false)
+    s!"expected unsat, got {r}"
+
+/-- bvnor: ~(a | b) -/
+def testBvNor : IO TestResult := runTest "bv nor" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let bv8 := Srt.mkBv ctx 8
+  let a := Ast.mkNumeral ctx "240" bv8  -- 0xF0
+  let b := Ast.mkNumeral ctx "15" bv8   -- 0x0F
+  let result := Ast.bvnor ctx a b
+  -- nor(0xF0, 0x0F) = ~(0xFF) = 0x00
+  let expected := Ast.mkNumeral ctx "0" bv8
+  Solver.assert solver (Ast.not ctx (Ast.eq ctx result expected))
+  let r ← Solver.checkSat solver
+  return check "bv nor" (r == .false)
+    s!"expected unsat, got {r}"
+
+/-- bvxnor: ~(a ^ b) -/
+def testBvXnor : IO TestResult := runTest "bv xnor" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let bv8 := Srt.mkBv ctx 8
+  let a := Ast.mkNumeral ctx "170" bv8  -- 0xAA
+  let b := Ast.mkNumeral ctx "170" bv8  -- 0xAA
+  let result := Ast.bvxnor ctx a b
+  -- xnor(x, x) = ~0 = 0xFF = 255
+  let expected := Ast.mkNumeral ctx "255" bv8
+  Solver.assert solver (Ast.not ctx (Ast.eq ctx result expected))
+  let r ← Solver.checkSat solver
+  return check "bv xnor" (r == .false)
+    s!"expected unsat, got {r}"
+
+/-- bvsmod: signed modulus -/
+def testBvSmod : IO TestResult := runTest "bv smod" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let bv8 := Srt.mkBv ctx 8
+  -- -7 mod 3 in signed 8-bit: -7 = 249 unsigned
+  let a := Ast.mkNumeral ctx "249" bv8  -- -7 signed
+  let b := Ast.mkNumeral ctx "3" bv8
+  let result := Ast.bvsmod ctx a b
+  -- smod(-7, 3) = 2 (result has same sign as divisor)
+  let expected := Ast.mkNumeral ctx "2" bv8
+  Solver.assert solver (Ast.not ctx (Ast.eq ctx result expected))
+  let r ← Solver.checkSat solver
+  return check "bv smod" (r == .false)
+    s!"expected unsat, got {r}"
+
+/-- bvredand: AND reduction (all bits 1 → 1) -/
+def testBvRedand : IO TestResult := runTest "bv redand" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let bv8 := Srt.mkBv ctx 8
+  let bv1 := Srt.mkBv ctx 1
+  let allOnes := Ast.mkNumeral ctx "255" bv8
+  let notAll := Ast.mkNumeral ctx "254" bv8
+  let r1 := Ast.bvredand ctx allOnes   -- should be 1
+  let r2 := Ast.bvredand ctx notAll    -- should be 0
+  let one := Ast.mkNumeral ctx "1" bv1
+  let zero := Ast.mkNumeral ctx "0" bv1
+  Solver.assert solver (Ast.eq ctx r1 one)
+  Solver.assert solver (Ast.eq ctx r2 zero)
+  let r ← Solver.checkSat solver
+  return check "bv redand" (r == .true)
+    s!"expected sat, got {r}"
+
+/-- bvredor: OR reduction (any bit 1 → 1) -/
+def testBvRedor : IO TestResult := runTest "bv redor" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let bv8 := Srt.mkBv ctx 8
+  let bv1 := Srt.mkBv ctx 1
+  let allZeros := Ast.mkNumeral ctx "0" bv8
+  let someOne := Ast.mkNumeral ctx "1" bv8
+  let r1 := Ast.bvredor ctx allZeros  -- should be 0
+  let r2 := Ast.bvredor ctx someOne   -- should be 1
+  let zero := Ast.mkNumeral ctx "0" bv1
+  let one := Ast.mkNumeral ctx "1" bv1
+  Solver.assert solver (Ast.eq ctx r1 zero)
+  Solver.assert solver (Ast.eq ctx r2 one)
+  let r ← Solver.checkSat solver
+  return check "bv redor" (r == .true)
+    s!"expected sat, got {r}"
+
+/-- bvrepeat: repeat 4-bit value 2 times to get 8-bit -/
+def testBvRepeat : IO TestResult := runTest "bv repeat" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let bv4 := Srt.mkBv ctx 4
+  let bv8 := Srt.mkBv ctx 8
+  let nibble := Ast.mkNumeral ctx "10" bv4  -- 0xA = 1010
+  let repeated := Ast.bvrepeat ctx 2 nibble -- 0xAA = 10101010
+  let expected := Ast.mkNumeral ctx "170" bv8  -- 0xAA
+  Solver.assert solver (Ast.not ctx (Ast.eq ctx repeated expected))
+  let r ← Solver.checkSat solver
+  return check "bv repeat" (r == .false)
+    s!"expected unsat, got {r}"
+
+/-- bvaddNoOverflow: unsigned overflow detection -/
+def testBvAddNoOverflow : IO TestResult := runTest "bv add no overflow" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let bv8 := Srt.mkBv ctx 8
+  let a := Ast.mkNumeral ctx "200" bv8
+  let b := Ast.mkNumeral ctx "100" bv8
+  -- 200 + 100 = 300 > 255, so this overflows unsigned
+  let noOverflow := Ast.bvaddNoOverflow ctx a b false  -- unsigned
+  Solver.assert solver noOverflow
+  let r ← Solver.checkSat solver
+  return check "bv add no overflow" (r == .false)
+    s!"expected unsat (200+100 overflows u8), got {r}"
+
+/-- bvnegNoOverflow: signed negation overflow (MIN_INT) -/
+def testBvNegNoOverflow : IO TestResult := runTest "bv neg no overflow" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let bv8 := Srt.mkBv ctx 8
+  -- -128 (0x80) signed: negating overflows since 128 > 127
+  let minInt := Ast.mkNumeral ctx "128" bv8
+  let noOverflow := Ast.bvnegNoOverflow ctx minInt
+  Solver.assert solver noOverflow
+  let r ← Solver.checkSat solver
+  return check "bv neg no overflow" (r == .false)
+    s!"expected unsat (-(-128) overflows i8), got {r}"
+
+/-- overflow checks with symbolic values -/
+def testBvOverflowSymbolic : IO TestResult := runTest "bv overflow symbolic" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let x := Ast.mkBvConst ctx "x" 8
+  let y := Ast.mkBvConst ctx "y" 8
+  -- If no unsigned overflow on x+y, then x+y >= x
+  let noOvf := Ast.bvaddNoOverflow ctx x y false
+  let sum := Ast.bvadd ctx x y
+  let geq := Ast.bvuge ctx sum x
+  -- Assert: no overflow AND sum < x → should be unsat
+  Solver.assert solver noOvf
+  Solver.assert solver (Ast.not ctx geq)
+  let r ← Solver.checkSat solver
+  return check "bv overflow symbolic" (r == .false)
+    s!"expected unsat, got {r}"
+
 def bitvectorTests : List (IO TestResult) :=
   [ testBvArith
   , testBvMul
@@ -176,4 +331,14 @@ def bitvectorTests : List (IO TestResult) :=
   , testBvRotate
   , testBvIntConvert
   , testBvDiv
+  , testBvNand
+  , testBvNor
+  , testBvXnor
+  , testBvSmod
+  , testBvRedand
+  , testBvRedor
+  , testBvRepeat
+  , testBvAddNoOverflow
+  , testBvNegNoOverflow
+  , testBvOverflowSymbolic
   ]

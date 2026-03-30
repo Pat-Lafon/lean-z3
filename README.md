@@ -15,7 +15,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Term constructors** — `mkBool`, `mkNumeral`, `mkInt`, `mkInt64`, `mkUInt64`, `mkReal`, `mkRealVal`, `mkIntConst`, `mkBoolConst`, `mkConst`, `mkBvConst`
 - **Boolean ops** — `not`, `and`, `or`, `xor`, `implies`, `iff`, `eq`, `ite`, `getBoolValue`
 - **Arithmetic ops** — `add`, `sub`, `mul`, `div`, `mod`, `rem`, `power`, `abs`, `unaryMinus`, `lt`, `le`, `gt`, `ge`, `int2real`, `real2int`, `isInt`
-- **Bitvector ops** — arithmetic (`bvadd`, `bvsub`, `bvmul`, `bvudiv`, `bvsdiv`, `bvurem`, `bvsrem`, `bvneg`), bitwise (`bvand`, `bvor`, `bvxor`, `bvnot`), shifts (`bvshl`, `bvlshr`, `bvashr`), rotations, comparisons (signed + unsigned), extract/concat/extend, bv2int/int2bv
+- **Bitvector ops** — arithmetic (`bvadd`, `bvsub`, `bvmul`, `bvudiv`, `bvsdiv`, `bvurem`, `bvsrem`, `bvsmod`, `bvneg`), bitwise (`bvand`, `bvor`, `bvxor`, `bvnot`, `bvnand`, `bvnor`, `bvxnor`), reduction (`bvredand`, `bvredor`), shifts (`bvshl`, `bvlshr`, `bvashr`), rotations, comparisons (signed + unsigned), extract/concat/extend/repeat, bv2int/int2bv, overflow checks (`bvaddNoOverflow`, `bvaddNoUnderflow`, `bvsubNoOverflow`, `bvsubNoUnderflow`, `bvmulNoOverflow`, `bvmulNoUnderflow`, `bvsdivNoOverflow`, `bvnegNoOverflow`)
 - **Array ops** — `select`, `store`, `constArray`, `mkArray` sort
 - **Distinct** — `distinct`
 - **Quantifiers** — `mkBound`, `mkForall`, `mkExists`, `mkForallConst`, `mkExistsConst`, `mkQuantifierEx`, `mkPattern`, `mkLambda`, `mkLambdaConst`
@@ -32,7 +32,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **SMT-LIB parsing** — `parseSMTLIB2String`, `parseSMTLIB2File`, `evalSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 127 tests
+- **Test suite** — 137 tests
 
 ### Unbound — Coverage Gaps
 
@@ -170,9 +170,9 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [ ] `Z3_fixedpoint_assert` / `Z3_fixedpoint_get_answer`
 
 #### Bitvector (remaining ops)
-- [ ] `Z3_mk_bvnand` / `Z3_mk_bvnor` / `Z3_mk_bvxnor` / `Z3_mk_bvsmod`
-- [ ] `Z3_mk_bvredand` / `Z3_mk_bvredor` / `Z3_mk_repeat`
-- [ ] `Z3_mk_bvadd_no_overflow` / `Z3_mk_bvsub_no_overflow` / etc. — overflow checks
+- [x] `Z3_mk_bvnand` / `Z3_mk_bvnor` / `Z3_mk_bvxnor` / `Z3_mk_bvsmod`
+- [x] `Z3_mk_bvredand` / `Z3_mk_bvredor` / `Z3_mk_repeat`
+- [x] `Z3_mk_bvadd_no_overflow` / `Z3_mk_bvadd_no_underflow` / `Z3_mk_bvsub_no_overflow` / `Z3_mk_bvsub_no_underflow` / `Z3_mk_bvmul_no_overflow` / `Z3_mk_bvmul_no_underflow` / `Z3_mk_bvsdiv_no_overflow` / `Z3_mk_bvneg_no_overflow` — overflow checks
 
 #### Statistics
 - [ ] `Z3_stats_to_string` / `Z3_stats_size` / `Z3_stats_get_key`

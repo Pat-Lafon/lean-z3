@@ -749,6 +749,83 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_int2bv(b_lean_obj_arg ctx, uint32_t n, b_le
   return z3_wrap_ast(ctx, c->ctx, Z3_mk_int2bv(c->ctx, n, to_Ast(a)->ast));
 }
 
+/* ── Bitvector (remaining ops) ─────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvnand(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvnand(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvnor(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvnor(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvxnor(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvxnor(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsmod(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsmod(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvredand(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvredand(c->ctx, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvredor(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvredor(c->ctx, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvrepeat(b_lean_obj_arg ctx, uint32_t n, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_repeat(c->ctx, n, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvaddNoOverflow(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b, uint8_t isSigned) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvadd_no_overflow(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast, isSigned));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvaddNoUnderflow(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvadd_no_underflow(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsubNoOverflow(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsub_no_overflow(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsubNoUnderflow(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b, uint8_t isSigned) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsub_no_underflow(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast, isSigned));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvmulNoOverflow(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b, uint8_t isSigned) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvmul_no_overflow(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast, isSigned));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvmulNoUnderflow(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvmul_no_underflow(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvsdivNoOverflow(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvsdiv_no_overflow(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_bvnegNoOverflow(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvneg_no_overflow(c->ctx, to_Ast(a)->ast));
+}
+
 /* ── Array operations (pure) ───────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_select(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg i) {

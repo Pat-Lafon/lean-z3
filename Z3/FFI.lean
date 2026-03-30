@@ -408,6 +408,66 @@ opaque Ast.bv2int (ctx : @& Context) (a : @& Ast) (isSigned : Bool) : Ast
 @[extern "lean_z3_Ast_int2bv"]
 opaque Ast.int2bv (ctx : @& Context) (n : UInt32) (a : @& Ast) : Ast
 
+/-- Bitwise NAND. -/
+@[extern "lean_z3_Ast_bvnand"]
+opaque Ast.bvnand (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Bitwise NOR. -/
+@[extern "lean_z3_Ast_bvnor"]
+opaque Ast.bvnor (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Bitwise XNOR. -/
+@[extern "lean_z3_Ast_bvxnor"]
+opaque Ast.bvxnor (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Signed modulus (two's complement). -/
+@[extern "lean_z3_Ast_bvsmod"]
+opaque Ast.bvsmod (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Bitwise AND reduction (1-bit result: 1 iff all bits are 1). -/
+@[extern "lean_z3_Ast_bvredand"]
+opaque Ast.bvredand (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Bitwise OR reduction (1-bit result: 1 iff any bit is 1). -/
+@[extern "lean_z3_Ast_bvredor"]
+opaque Ast.bvredor (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Repeat bitvector `n` times. -/
+@[extern "lean_z3_Ast_bvrepeat"]
+opaque Ast.bvrepeat (ctx : @& Context) (n : UInt32) (a : @& Ast) : Ast
+
+/-- Check that addition does not overflow. -/
+@[extern "lean_z3_Ast_bvaddNoOverflow"]
+opaque Ast.bvaddNoOverflow (ctx : @& Context) (a b : @& Ast) (isSigned : Bool) : Ast
+
+/-- Check that signed addition does not underflow. -/
+@[extern "lean_z3_Ast_bvaddNoUnderflow"]
+opaque Ast.bvaddNoUnderflow (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Check that signed subtraction does not overflow. -/
+@[extern "lean_z3_Ast_bvsubNoOverflow"]
+opaque Ast.bvsubNoOverflow (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Check that subtraction does not underflow. -/
+@[extern "lean_z3_Ast_bvsubNoUnderflow"]
+opaque Ast.bvsubNoUnderflow (ctx : @& Context) (a b : @& Ast) (isSigned : Bool) : Ast
+
+/-- Check that multiplication does not overflow. -/
+@[extern "lean_z3_Ast_bvmulNoOverflow"]
+opaque Ast.bvmulNoOverflow (ctx : @& Context) (a b : @& Ast) (isSigned : Bool) : Ast
+
+/-- Check that signed multiplication does not underflow. -/
+@[extern "lean_z3_Ast_bvmulNoUnderflow"]
+opaque Ast.bvmulNoUnderflow (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Check that signed division does not overflow. -/
+@[extern "lean_z3_Ast_bvsdivNoOverflow"]
+opaque Ast.bvsdivNoOverflow (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Check that negation does not overflow. -/
+@[extern "lean_z3_Ast_bvnegNoOverflow"]
+opaque Ast.bvnegNoOverflow (ctx : @& Context) (a : @& Ast) : Ast
+
 /-! ## Array operations -/
 
 /-- Select (read) from an array: `a[i]`. -/

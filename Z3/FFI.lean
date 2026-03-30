@@ -1857,6 +1857,23 @@ opaque Ast.fpaGetNumeralSignificandBv (ctx : @& Context) (t : @& Ast) : Ast
 @[extern "lean_z3_Ast_fpaGetNumeralExponentBv"]
 opaque Ast.fpaGetNumeralExponentBv (ctx : @& Context) (t : @& Ast) (biased : Bool) : Ast
 
+/-! ## Quantifier elimination -/
+
+/-- Best-effort quantifier elimination. Returns `(result, remainingVars)` where
+    `remainingVars` are the variables that could not be eliminated. -/
+@[extern "lean_z3_qeLite"]
+opaque Ast.qeLite (ctx : @& Context) (vars : @& Array Ast) (body : @& Ast) : BaseIO (Ast × Array Ast)
+
+/-- Project variables from a formula given a model.
+    `bounds` are the variables to project out. -/
+@[extern "lean_z3_qeModelProject"]
+opaque Ast.qeModelProject (ctx : @& Context) (model : @& Model) (bounds : @& Array Ast) (body : @& Ast) : BaseIO Ast
+
+/-- Extrapolate a model of a formula: produce a ground formula consistent with the model
+    that is weaker than the formula but does not use quantified variables. -/
+@[extern "lean_z3_modelExtrapolate"]
+opaque Ast.modelExtrapolate (ctx : @& Context) (model : @& Model) (fml : @& Ast) : BaseIO Ast
+
 /-! ## Additional sorts -/
 
 /-- Create a finite domain sort with the given name and size. -/

@@ -26,6 +26,7 @@ import Z3Test.Probes
 import Z3Test.UserProp
 import Z3Test.Simplifier
 import Z3Test.FpaInspect
+import Z3Test.QuantElim
 
 def main : IO UInt32 :=
   runTests (basicTests ++ z3rsTests ++ arrayTests ++ proofTests
@@ -35,4 +36,4 @@ def main : IO UInt32 :=
     ++ tacticTests ++ stringTests ++ floatingPointTests ++ setTests
     ++ additionalSortTests ++ sortInspectTests ++ solverExtTests
     ++ fixedpointTests ++ probeTests ++ userPropTests ++ simplifierTests
-    ++ fpaInspectTests)
+    ++ fpaInspectTests ++ quantElimTests)

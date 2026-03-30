@@ -2788,10 +2788,10 @@ LEAN_EXPORT uint8_t lean_z3_Ast_fpaIsNumeralNegative(b_lean_obj_arg ctx, b_lean_
 
 /* Returns 0 for positive, 1 for negative, UINT32_MAX on failure */
 LEAN_EXPORT uint32_t lean_z3_Ast_fpaGetNumeralSign_raw(b_lean_obj_arg ctx, b_lean_obj_arg t) {
-  int sgn = 0;
+  bool sgn = false;
   bool ok = Z3_fpa_get_numeral_sign(to_Context(ctx)->ctx, to_Ast(t)->ast, &sgn);
   if (!ok) return UINT32_MAX;
-  return (uint32_t)(sgn != 0);
+  return (uint32_t)sgn;
 }
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_fpaGetNumeralSignificandString(b_lean_obj_arg ctx, b_lean_obj_arg t) {
@@ -2833,6 +2833,57 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_fpaGetNumeralSignificandBv(b_lean_obj_arg c
 LEAN_EXPORT lean_obj_res lean_z3_Ast_fpaGetNumeralExponentBv(b_lean_obj_arg ctx, b_lean_obj_arg t, uint8_t biased) {
   Z3Ctx *c = to_Context(ctx);
   return z3_wrap_ast(ctx, c->ctx, Z3_fpa_get_numeral_exponent_bv(c->ctx, to_Ast(t)->ast, biased));
+}
+
+/* ── Quantifier elimination ───────────────────────────────────────────── */
+
+/* qeLite: best-effort QE.  vars is modified in-place by Z3 (remaining vars). */
+LEAN_EXPORT lean_obj_res lean_z3_qeLite(b_lean_obj_arg ctx, b_lean_obj_arg vars, b_lean_obj_arg body) {
+  Z3Ctx *c = to_Context(ctx);
+  /* build Z3_ast_vector from Lean Array Ast */
+  Z3_ast_vector vv = Z3_mk_ast_vector(c->ctx);
+  Z3_ast_vector_inc_ref(c->ctx, vv);
+  unsigned n = lean_array_size(vars);
+  for (unsigned i = 0; i < n; i++) {
+    Z3_ast_vector_push(c->ctx, vv, to_Ast(lean_array_get_core(vars, i))->ast);
+  }
+  Z3_ast result = Z3_qe_lite(c->ctx, vv, to_Ast(body)->ast);
+  /* read back remaining vars */
+  unsigned remaining = Z3_ast_vector_size(c->ctx, vv);
+  lean_object *arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < remaining; i++) {
+    Z3_ast a = Z3_ast_vector_get(c->ctx, vv, i);
+    arr = lean_array_push(arr, z3_wrap_ast(ctx, c->ctx, a));
+  }
+  Z3_ast_vector_dec_ref(c->ctx, vv);
+  /* return (result, remaining_vars) */
+  lean_object *pair = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(pair, 0, z3_wrap_ast(ctx, c->ctx, result));
+  lean_ctor_set(pair, 1, arr);
+  return pair;
+}
+
+/* qeModelProject: project variables given a model */
+LEAN_EXPORT lean_obj_res lean_z3_qeModelProject(b_lean_obj_arg ctx, b_lean_obj_arg model,
+                                                  b_lean_obj_arg bounds, b_lean_obj_arg body) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(bounds);
+  Z3_app *apps = (Z3_app *)malloc(n * sizeof(Z3_app));
+  if (!apps) return z3_wrap_ast(ctx, c->ctx, Z3_mk_false(c->ctx)); /* fallback */
+  for (unsigned i = 0; i < n; i++) {
+    apps[i] = (Z3_app)to_Ast(lean_array_get_core(bounds, i))->ast;
+  }
+  Z3_ast result = Z3_qe_model_project(c->ctx, to_Model(model)->model, n, apps, to_Ast(body)->ast);
+  free(apps);
+  return z3_wrap_ast(ctx, c->ctx, result);
+}
+
+/* modelExtrapolate: extrapolate a model to a formula */
+LEAN_EXPORT lean_obj_res lean_z3_modelExtrapolate(b_lean_obj_arg ctx, b_lean_obj_arg model,
+                                                    b_lean_obj_arg fml) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_ast result = Z3_model_extrapolate(c->ctx, to_Model(model)->model, to_Ast(fml)->ast);
+  return z3_wrap_ast(ctx, c->ctx, result);
 }
 
 /* ── Additional sorts ─────────────────────────────────────────────────── */

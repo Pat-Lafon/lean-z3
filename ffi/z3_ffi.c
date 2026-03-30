@@ -1362,6 +1362,184 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_mkExists(b_lean_obj_arg ctx, b_lean_obj_arg
   return z3_env_val(z3_wrap_ast(ctx, c->ctx, q));
 }
 
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkQuantifierEx(b_lean_obj_arg ctx,
+    uint8_t is_forall, uint32_t weight,
+    b_lean_obj_arg quantifier_id, b_lean_obj_arg skolem_id,
+    b_lean_obj_arg patterns, b_lean_obj_arg no_patterns,
+    b_lean_obj_arg sorts, b_lean_obj_arg names,
+    b_lean_obj_arg body) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3AstWrapper *bw = to_Ast(body);
+  unsigned n = lean_array_size(sorts);
+  if (n != lean_array_size(names)) {
+    return z3_env_error("sorts and names must have the same length");
+  }
+  if (n == 0) {
+    return z3_env_error("quantifier must bind at least one variable");
+  }
+  unsigned np = lean_array_size(patterns);
+  unsigned nnp = lean_array_size(no_patterns);
+
+  Z3_sort *z3_sorts = (Z3_sort *)malloc(n * sizeof(Z3_sort));
+  Z3_symbol *z3_names = (Z3_symbol *)malloc(n * sizeof(Z3_symbol));
+  Z3_pattern *z3_pats = np > 0 ? (Z3_pattern *)malloc(np * sizeof(Z3_pattern)) : NULL;
+  Z3_ast *z3_nopats = nnp > 0 ? (Z3_ast *)malloc(nnp * sizeof(Z3_ast)) : NULL;
+  if (z3_sorts == NULL || z3_names == NULL ||
+      (np > 0 && z3_pats == NULL) || (nnp > 0 && z3_nopats == NULL)) {
+    free(z3_sorts); free(z3_names); free(z3_pats); free(z3_nopats);
+    return z3_env_error("out of memory");
+  }
+
+  for (unsigned i = 0; i < n; i++) {
+    z3_sorts[i] = to_Srt(lean_array_get_core(sorts, i))->sort;
+    z3_names[i] = Z3_mk_string_symbol(c->ctx,
+      lean_string_cstr(lean_array_get_core(names, i)));
+  }
+  for (unsigned i = 0; i < np; i++) {
+    z3_pats[i] = (Z3_pattern)to_Ast(lean_array_get_core(patterns, i))->ast;
+  }
+  for (unsigned i = 0; i < nnp; i++) {
+    z3_nopats[i] = to_Ast(lean_array_get_core(no_patterns, i))->ast;
+  }
+
+  Z3_symbol qid = Z3_mk_string_symbol(c->ctx, lean_string_cstr(quantifier_id));
+  Z3_symbol sid = Z3_mk_string_symbol(c->ctx, lean_string_cstr(skolem_id));
+
+  Z3_ast q = Z3_mk_quantifier_ex(c->ctx, is_forall, weight, qid, sid,
+    np, z3_pats, nnp, z3_nopats, n, z3_sorts, z3_names, bw->ast);
+  free(z3_sorts); free(z3_names); free(z3_pats); free(z3_nopats);
+  return z3_env_val(z3_wrap_ast(ctx, c->ctx, q));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkForallConst(b_lean_obj_arg ctx,
+    uint32_t weight, b_lean_obj_arg bound, b_lean_obj_arg patterns,
+    b_lean_obj_arg body) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3AstWrapper *bw = to_Ast(body);
+  unsigned nb = lean_array_size(bound);
+  unsigned np = lean_array_size(patterns);
+  if (nb == 0) {
+    return z3_env_error("quantifier must bind at least one variable");
+  }
+
+  Z3_app *z3_bound = (Z3_app *)malloc(nb * sizeof(Z3_app));
+  Z3_pattern *z3_pats = np > 0 ? (Z3_pattern *)malloc(np * sizeof(Z3_pattern)) : NULL;
+  if (z3_bound == NULL || (np > 0 && z3_pats == NULL)) {
+    free(z3_bound); free(z3_pats);
+    return z3_env_error("out of memory");
+  }
+
+  for (unsigned i = 0; i < nb; i++) {
+    z3_bound[i] = (Z3_app)to_Ast(lean_array_get_core(bound, i))->ast;
+  }
+  for (unsigned i = 0; i < np; i++) {
+    z3_pats[i] = (Z3_pattern)to_Ast(lean_array_get_core(patterns, i))->ast;
+  }
+
+  Z3_ast q = Z3_mk_forall_const(c->ctx, weight, nb, z3_bound, np, z3_pats, bw->ast);
+  free(z3_bound); free(z3_pats);
+  return z3_env_val(z3_wrap_ast(ctx, c->ctx, q));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkExistsConst(b_lean_obj_arg ctx,
+    uint32_t weight, b_lean_obj_arg bound, b_lean_obj_arg patterns,
+    b_lean_obj_arg body) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3AstWrapper *bw = to_Ast(body);
+  unsigned nb = lean_array_size(bound);
+  unsigned np = lean_array_size(patterns);
+  if (nb == 0) {
+    return z3_env_error("quantifier must bind at least one variable");
+  }
+
+  Z3_app *z3_bound = (Z3_app *)malloc(nb * sizeof(Z3_app));
+  Z3_pattern *z3_pats = np > 0 ? (Z3_pattern *)malloc(np * sizeof(Z3_pattern)) : NULL;
+  if (z3_bound == NULL || (np > 0 && z3_pats == NULL)) {
+    free(z3_bound); free(z3_pats);
+    return z3_env_error("out of memory");
+  }
+
+  for (unsigned i = 0; i < nb; i++) {
+    z3_bound[i] = (Z3_app)to_Ast(lean_array_get_core(bound, i))->ast;
+  }
+  for (unsigned i = 0; i < np; i++) {
+    z3_pats[i] = (Z3_pattern)to_Ast(lean_array_get_core(patterns, i))->ast;
+  }
+
+  Z3_ast q = Z3_mk_exists_const(c->ctx, weight, nb, z3_bound, np, z3_pats, bw->ast);
+  free(z3_bound); free(z3_pats);
+  return z3_env_val(z3_wrap_ast(ctx, c->ctx, q));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkLambda(b_lean_obj_arg ctx,
+    b_lean_obj_arg sorts, b_lean_obj_arg names, b_lean_obj_arg body) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3AstWrapper *bw = to_Ast(body);
+  unsigned n = lean_array_size(sorts);
+  if (n != lean_array_size(names)) {
+    return z3_env_error("sorts and names must have the same length");
+  }
+  if (n == 0) {
+    return z3_env_error("lambda must bind at least one variable");
+  }
+  Z3_sort *z3_sorts = (Z3_sort *)malloc(n * sizeof(Z3_sort));
+  Z3_symbol *z3_names = (Z3_symbol *)malloc(n * sizeof(Z3_symbol));
+  if (z3_sorts == NULL || z3_names == NULL) {
+    free(z3_sorts); free(z3_names);
+    return z3_env_error("out of memory");
+  }
+  for (unsigned i = 0; i < n; i++) {
+    z3_sorts[i] = to_Srt(lean_array_get_core(sorts, i))->sort;
+    z3_names[i] = Z3_mk_string_symbol(c->ctx,
+      lean_string_cstr(lean_array_get_core(names, i)));
+  }
+  Z3_ast lam = Z3_mk_lambda(c->ctx, n, z3_sorts, z3_names, bw->ast);
+  free(z3_sorts); free(z3_names);
+  return z3_env_val(z3_wrap_ast(ctx, c->ctx, lam));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkLambdaConst(b_lean_obj_arg ctx,
+    b_lean_obj_arg bound, b_lean_obj_arg body) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3AstWrapper *bw = to_Ast(body);
+  unsigned nb = lean_array_size(bound);
+  if (nb == 0) {
+    return z3_env_error("lambda must bind at least one variable");
+  }
+  Z3_app *z3_bound = (Z3_app *)malloc(nb * sizeof(Z3_app));
+  if (z3_bound == NULL) { return z3_env_error("out of memory"); }
+  for (unsigned i = 0; i < nb; i++) {
+    z3_bound[i] = (Z3_app)to_Ast(lean_array_get_core(bound, i))->ast;
+  }
+  Z3_ast lam = Z3_mk_lambda_const(c->ctx, nb, z3_bound, bw->ast);
+  free(z3_bound);
+  return z3_env_val(z3_wrap_ast(ctx, c->ctx, lam));
+}
+
+/* ── Params (extended) ─────────────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Params_setDouble(b_lean_obj_arg p, b_lean_obj_arg name, double val) {
+  Z3ParamsWrapper *w = to_Params(p);
+  Z3_symbol sym = Z3_mk_string_symbol(w->ctx, lean_string_cstr(name));
+  Z3_params_set_double(w->ctx, w->params, sym, val);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Params_setSymbol(b_lean_obj_arg p, b_lean_obj_arg name, b_lean_obj_arg val) {
+  Z3ParamsWrapper *w = to_Params(p);
+  Z3_symbol key = Z3_mk_string_symbol(w->ctx, lean_string_cstr(name));
+  Z3_symbol value = Z3_mk_string_symbol(w->ctx, lean_string_cstr(val));
+  Z3_params_set_symbol(w->ctx, w->params, key, value);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Params_toString(b_lean_obj_arg p) {
+  Z3ParamsWrapper *w = to_Params(p);
+  const char *s = Z3_params_to_string(w->ctx, w->params);
+  if (s == NULL) { lean_internal_panic("Z3_params_to_string returned NULL"); }
+  return lean_mk_string(s);
+}
+
 /* ── Datatype operations ───────────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Constructor_mk(b_lean_obj_arg ctx, b_lean_obj_arg name,

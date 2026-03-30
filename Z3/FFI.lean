@@ -599,6 +599,20 @@ opaque Params.setBool (p : @& Params) (name : @& String) (val : Bool) : BaseIO P
 @[extern "lean_z3_Params_setUInt"]
 opaque Params.setUInt (p : @& Params) (name : @& String) (val : UInt32) : BaseIO PUnit
 
+/-- Set a double/float parameter. -/
+@[extern "lean_z3_Params_setDouble"]
+opaque Params.setDouble (p : @& Params) (name : @& String) (val : Float) : BaseIO PUnit
+
+/-- Set a symbol parameter. -/
+@[extern "lean_z3_Params_setSymbol"]
+opaque Params.setSymbol (p : @& Params) (name : @& String) (val : @& String) : BaseIO PUnit
+
+/-- Get a string representation of the parameter set. -/
+@[extern "lean_z3_Params_toString"]
+opaque Params.toString' (p : @& Params) : String
+
+instance : ToString Params := ⟨fun p => Params.toString' p⟩
+
 /-! ## Solver operations -/
 
 /-- Create a new solver. -/
@@ -737,6 +751,47 @@ opaque Ast.mkForall (ctx : @& Context) (sorts : @& Array Srt)
 @[extern "lean_z3_Ast_mkExists"]
 opaque Ast.mkExists (ctx : @& Context) (sorts : @& Array Srt)
     (names : @& Array String) (body : @& Ast) (weight : UInt32) : Env Ast
+
+/-- Create a quantifier with patterns, no-patterns, quantifier id, and skolem id.
+  `isForall` — `true` for ∀, `false` for ∃.
+  `patterns` — trigger patterns (created via `mkPattern`).
+  `noPatterns` — terms to exclude from pattern inference.
+  `quantifierId` / `skolemId` — identifiers for the quantifier. -/
+@[extern "lean_z3_Ast_mkQuantifierEx"]
+opaque Ast.mkQuantifierEx (ctx : @& Context) (isForall : Bool) (weight : UInt32)
+    (quantifierId : @& String) (skolemId : @& String)
+    (patterns : @& Array Ast) (noPatterns : @& Array Ast)
+    (sorts : @& Array Srt) (names : @& Array String)
+    (body : @& Ast) : Env Ast
+
+/-- Create a universal quantifier over constants (no de Bruijn indices needed).
+  `bound` — array of constants to quantify over.
+  `patterns` — trigger patterns (can be empty). -/
+@[extern "lean_z3_Ast_mkForallConst"]
+opaque Ast.mkForallConst (ctx : @& Context) (weight : UInt32)
+    (bound : @& Array Ast) (patterns : @& Array Ast)
+    (body : @& Ast) : Env Ast
+
+/-- Create an existential quantifier over constants (no de Bruijn indices needed).
+  `bound` — array of constants to quantify over.
+  `patterns` — trigger patterns (can be empty). -/
+@[extern "lean_z3_Ast_mkExistsConst"]
+opaque Ast.mkExistsConst (ctx : @& Context) (weight : UInt32)
+    (bound : @& Array Ast) (patterns : @& Array Ast)
+    (body : @& Ast) : Env Ast
+
+/-- Create a lambda expression.
+  `sorts` and `names` specify the bound variables (like `mkForall`).
+  `body` is the lambda body (using `mkBound` for bound variable references). -/
+@[extern "lean_z3_Ast_mkLambda"]
+opaque Ast.mkLambda (ctx : @& Context) (sorts : @& Array Srt)
+    (names : @& Array String) (body : @& Ast) : Env Ast
+
+/-- Create a lambda expression over constants (no de Bruijn indices needed).
+  `bound` — array of constants to bind. -/
+@[extern "lean_z3_Ast_mkLambdaConst"]
+opaque Ast.mkLambdaConst (ctx : @& Context) (bound : @& Array Ast)
+    (body : @& Ast) : Env Ast
 
 /-! ## Datatype operations -/
 

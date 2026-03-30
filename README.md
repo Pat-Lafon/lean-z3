@@ -18,19 +18,19 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Bitvector ops** — arithmetic (`bvadd`, `bvsub`, `bvmul`, `bvudiv`, `bvsdiv`, `bvurem`, `bvsrem`, `bvneg`), bitwise (`bvand`, `bvor`, `bvxor`, `bvnot`), shifts (`bvshl`, `bvlshr`, `bvashr`), rotations, comparisons (signed + unsigned), extract/concat/extend, bv2int/int2bv
 - **Array ops** — `select`, `store`, `constArray`, `mkArray` sort
 - **Distinct** — `distinct`
-- **Quantifiers** — `mkBound`, `mkForall`, `mkExists`
+- **Quantifiers** — `mkBound`, `mkForall`, `mkExists`, `mkForallConst`, `mkExistsConst`, `mkQuantifierEx`, `mkPattern`, `mkLambda`, `mkLambdaConst`
 - **Datatypes** — `Constructor.mk`, `Srt.mkDatatype`, `Constructor.query`
 - **Term inspection** — `getSort`, `getAstKind`, `getNumArgs`, `getArg`, `getFuncDecl`, `getNumeralString`, `getNumeralDecimalString`, `getNumeralBinaryString`, `getNumeralInt64`, `getNumeralUInt64`, `getNumeralDouble`, `getNumerator`, `getDenominator`, `getVarIndex`, `toString`
 - **Quantifier inspection** — `isQuantifierForall`, `isQuantifierExists`, `getQuantifierBody`, `getQuantifierNumBound`, `getQuantifierBoundName`, `getQuantifierBoundSort`
 - **Uninterpreted functions** — `FuncDecl.mk`, `Ast.mkApp`, `Ast.mkFreshConst`, `FuncDecl.mkFresh`
 - **FuncDecl** — `getDeclKindRaw`, `getName`, `getArity`, `getDomain`, `getRange`, `toString`
-- **Params** — `new`, `setBool`, `setUInt`
+- **Params** — `new`, `setBool`, `setUInt`, `setDouble`, `setSymbol`, `toString`
 - **Solver** — `new`, `setParams`, `assert`, `assertAndTrack`, `push`, `pop`, `reset`, `checkSat`, `checkAssumptions`, `getReasonUnknown`, `getProof`, `getUnsatCore`, `getAssertions`, `registerOnClause`, `toString`
 - **Model** — `eval`, `getNumConsts`, `getConstDecl`, `getConstInterp`, `toString`
 - **SMT-LIB parsing** — `parseSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 99 tests
+- **Test suite** — 110 tests
 
 ### Unbound — Coverage Gaps
 
@@ -150,14 +150,15 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_get_quantifier_body` — get quantifier body
 - [x] `Z3_get_quantifier_num_bound` / `Z3_get_quantifier_bound_name` / `Z3_get_quantifier_bound_sort` — bound variable info
 - [x] `Z3_get_index_value` — de Bruijn index for variable ASTs
-- [ ] `Z3_mk_pattern` — quantifier triggers/patterns
-- [ ] `Z3_mk_quantifier_ex` — quantifier with patterns/weight/id
-- [ ] `Z3_mk_forall_const` / `Z3_mk_exists_const` — quantifier over constants
-- [ ] `Z3_mk_lambda` / `Z3_mk_lambda_const` — lambda expressions
+- [x] `Z3_mk_pattern` — quantifier triggers/patterns
+- [x] `Z3_mk_quantifier_ex` — quantifier with patterns/weight/id
+- [x] `Z3_mk_forall_const` / `Z3_mk_exists_const` — quantifier over constants
+- [x] `Z3_mk_lambda` / `Z3_mk_lambda_const` — lambda expressions
 
 #### Params (extended)
-- [ ] `Z3_params_set_double` / `Z3_params_set_symbol`
-- [ ] `Z3_params_to_string` / `Z3_params_validate`
+- [x] `Z3_params_set_double` / `Z3_params_set_symbol`
+- [x] `Z3_params_to_string` — string representation
+- [ ] `Z3_params_validate` — validate params against param descriptors (requires `Z3_param_descrs` type)
 
 #### Fixedpoint (Datalog/CHC)
 - [ ] `Z3_mk_fixedpoint` / `Z3_fixedpoint_add_rule` / `Z3_fixedpoint_query`

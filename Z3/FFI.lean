@@ -153,6 +153,26 @@ opaque Ast.eq (ctx : @& Context) (a b : @& Ast) : Ast
 @[extern "lean_z3_Ast_ite"]
 opaque Ast.ite (ctx : @& Context) (cond t e : @& Ast) : Ast
 
+/-- Exclusive or. -/
+@[extern "lean_z3_Ast_xor"]
+opaque Ast.xor (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Biconditional (if and only if). -/
+@[extern "lean_z3_Ast_iff"]
+opaque Ast.iff (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Extract the Boolean value of a constant AST.
+Returns `.true`, `.false`, or `.undef` if the value cannot be determined. -/
+@[extern "lean_z3_Ast_getBoolValue"]
+private opaque Ast.getBoolValueRaw (a : @& Ast) : UInt32
+
+/-- Extract the Boolean value of a constant AST. -/
+def Ast.getBoolValue (a : @& Ast) : LBool :=
+  match Ast.getBoolValueRaw a with
+  | 0 => .false
+  | 2 => .true
+  | _ => .undef
+
 /-! ## Arithmetic operations -/
 
 /-- Addition. -/

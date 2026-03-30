@@ -222,6 +222,44 @@ def testSolverTimeout : IO TestResult := runTest "solver timeout / unknown" do
     return check "solver timeout / unknown" true
       s!"solver returned {result} (no timeout)"
 
+/-- xor: p xor p is unsat -/
+def testXor : IO TestResult := runTest "xor (p xor p is unsat)" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let p := Ast.mkBoolConst ctx "p"
+  Solver.assert solver (Ast.xor ctx p p)
+  let result ← Solver.checkSat solver
+  return check "xor (p xor p is unsat)" (result == .false)
+    s!"expected unsat, got {result}"
+
+/-- iff: (p iff q) and p and not q is unsat -/
+def testIff : IO TestResult := runTest "iff (p <-> q, p, not q is unsat)" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let p := Ast.mkBoolConst ctx "p"
+  let q := Ast.mkBoolConst ctx "q"
+  Solver.assert solver (Ast.iff ctx p q)
+  Solver.assert solver p
+  Solver.assert solver (Ast.not ctx q)
+  let result ← Solver.checkSat solver
+  return check "iff (p <-> q, p, not q is unsat)" (result == .false)
+    s!"expected unsat, got {result}"
+
+/-- getBoolValue: extract true/false from model -/
+def testGetBoolValue : IO TestResult := runTest "getBoolValue" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let p := Ast.mkBoolConst ctx "p"
+  Solver.assert solver p
+  let result ← Solver.checkSat solver
+  if result != .true then
+    return check "getBoolValue" false s!"expected sat, got {result}"
+  let model ← Env.run (Solver.getModel solver)
+  let pVal ← Env.run (Model.eval model p true)
+  let bv := Ast.getBoolValue pVal
+  return check "getBoolValue" (bv == .true)
+    s!"expected LBool.true, got {bv}"
+
 def basicTests : List (IO TestResult) :=
   [ testContextCreation
   , testIntSat
@@ -238,4 +276,7 @@ def basicTests : List (IO TestResult) :=
   , testParseSMTLIB2
   , testMultipleContexts
   , testSolverTimeout
+  , testXor
+  , testIff
+  , testGetBoolValue
   ]

@@ -13,7 +13,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Context** — `new`, `newWithProofs`
 - **Sorts** — Bool, Int, Real, BV, Uninterpreted, Array + inspection (`getKindRaw`, `getName`, `getBvSize`)
 - **Term constructors** — `mkBool`, `mkNumeral`, `mkIntConst`, `mkBoolConst`, `mkConst`, `mkBvConst`
-- **Boolean ops** — `not`, `and`, `or`, `implies`, `eq`, `ite`
+- **Boolean ops** — `not`, `and`, `or`, `xor`, `implies`, `iff`, `eq`, `ite`, `getBoolValue`
 - **Arithmetic ops** — `add`, `sub`, `mul`, `div`, `mod`, `rem`, `power`, `abs`, `unaryMinus`, `lt`, `le`, `gt`, `ge`, `int2real`, `real2int`, `isInt`
 - **Bitvector ops** — arithmetic (`bvadd`, `bvsub`, `bvmul`, `bvudiv`, `bvsdiv`, `bvurem`, `bvsrem`, `bvneg`), bitwise (`bvand`, `bvor`, `bvxor`, `bvnot`), shifts (`bvshl`, `bvlshr`, `bvashr`), rotations, comparisons (signed + unsigned), extract/concat/extend, bv2int/int2bv
 - **Array ops** — `select`, `store`, `constArray`, `mkArray` sort
@@ -30,7 +30,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **SMT-LIB parsing** — `parseSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 83 tests
+- **Test suite** — 86 tests
 
 ### Unbound — Coverage Gaps
 
@@ -52,10 +52,10 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_fresh_func_decl` — fresh function decl with prefix
 - [ ] `Z3_mk_rec_func_decl` / `Z3_add_rec_def` — recursive functions
 
-#### Bool / propositional (high priority)
-- [ ] `Z3_mk_xor` — exclusive or
-- [ ] `Z3_mk_iff` — biconditional
-- [ ] `Z3_get_bool_value` — extract bool from model AST
+#### Bool / propositional
+- [x] `Z3_mk_xor` — exclusive or
+- [x] `Z3_mk_iff` — biconditional
+- [x] `Z3_get_bool_value` — extract bool from model AST
 
 #### Numeral constructors & extraction
 - [ ] `Z3_mk_int` / `Z3_mk_int64` / `Z3_mk_unsigned_int64` — numeric convenience constructors

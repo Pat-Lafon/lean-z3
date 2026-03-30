@@ -411,6 +411,23 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_ite(b_lean_obj_arg ctx, b_lean_obj_arg cond
   return z3_wrap_ast(ctx, c->ctx, Z3_mk_ite(c->ctx, to_Ast(cond)->ast, to_Ast(t)->ast, to_Ast(e)->ast));
 }
 
+LEAN_EXPORT lean_obj_res lean_z3_Ast_xor(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_xor(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_iff(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_iff(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+/* Z3_get_bool_value returns Z3_lbool: Z3_L_FALSE=-1, Z3_L_UNDEF=0, Z3_L_TRUE=1.
+   We shift by +1 to get 0/1/2 matching LBool encoding. */
+LEAN_EXPORT uint32_t lean_z3_Ast_getBoolValue(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return (uint32_t)(Z3_get_bool_value(aw->ctx, aw->ast) + 1);
+}
+
 /* ── Arithmetic operations (pure) ──────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_add(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {

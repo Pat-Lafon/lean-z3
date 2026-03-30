@@ -1201,6 +1201,204 @@ instance : ToString ApplyResult := ⟨fun r => ApplyResult.toString' r⟩
 @[extern "lean_z3_Solver_fromTactic"]
 opaque Solver.fromTactic (ctx : @& Context) (t : @& Tactic) : Env Solver
 
+/-! ## Floating point theory -/
+
+/-- Create a floating point sort with `ebits` exponent bits and `sbits` significand bits. -/
+@[extern "lean_z3_Srt_mkFpa"]
+opaque Srt.mkFpa (ctx : @& Context) (ebits sbits : UInt32) : Srt
+
+/-- Create a 32-bit (single precision) floating point sort. -/
+@[extern "lean_z3_Srt_mkFpa32"]
+opaque Srt.mkFpa32 (ctx : @& Context) : Srt
+
+/-- Create a 64-bit (double precision) floating point sort. -/
+@[extern "lean_z3_Srt_mkFpa64"]
+opaque Srt.mkFpa64 (ctx : @& Context) : Srt
+
+/-- Create a 16-bit (half precision) floating point sort. -/
+@[extern "lean_z3_Srt_mkFpa16"]
+opaque Srt.mkFpa16 (ctx : @& Context) : Srt
+
+/-- Create a 128-bit (quadruple precision) floating point sort. -/
+@[extern "lean_z3_Srt_mkFpa128"]
+opaque Srt.mkFpa128 (ctx : @& Context) : Srt
+
+/-- Create the rounding mode sort. -/
+@[extern "lean_z3_Srt_mkFpaRoundingMode"]
+opaque Srt.mkFpaRoundingMode (ctx : @& Context) : Srt
+
+/-- Rounding mode: round nearest ties to even. -/
+@[extern "lean_z3_Ast_mkFpaRne"]
+opaque Ast.mkFpaRne (ctx : @& Context) : Ast
+
+/-- Rounding mode: round nearest ties to away. -/
+@[extern "lean_z3_Ast_mkFpaRna"]
+opaque Ast.mkFpaRna (ctx : @& Context) : Ast
+
+/-- Rounding mode: round toward positive. -/
+@[extern "lean_z3_Ast_mkFpaRtp"]
+opaque Ast.mkFpaRtp (ctx : @& Context) : Ast
+
+/-- Rounding mode: round toward negative. -/
+@[extern "lean_z3_Ast_mkFpaRtn"]
+opaque Ast.mkFpaRtn (ctx : @& Context) : Ast
+
+/-- Rounding mode: round toward zero. -/
+@[extern "lean_z3_Ast_mkFpaRtz"]
+opaque Ast.mkFpaRtz (ctx : @& Context) : Ast
+
+/-- Create a FP NaN of given sort. -/
+@[extern "lean_z3_Ast_mkFpaNan"]
+opaque Ast.mkFpaNan (ctx : @& Context) (s : @& Srt) : Ast
+
+/-- Create a FP infinity of given sort. `negative` controls sign. -/
+@[extern "lean_z3_Ast_mkFpaInf"]
+opaque Ast.mkFpaInf (ctx : @& Context) (s : @& Srt) (negative : Bool) : Ast
+
+/-- Create a FP zero of given sort. `negative` controls sign. -/
+@[extern "lean_z3_Ast_mkFpaZero"]
+opaque Ast.mkFpaZero (ctx : @& Context) (s : @& Srt) (negative : Bool) : Ast
+
+/-- Create a FP numeral from a double value. -/
+@[extern "lean_z3_Ast_mkFpaNumeralDouble"]
+opaque Ast.mkFpaNumeralDouble (ctx : @& Context) (v : Float) (s : @& Srt) : Ast
+
+/-- Create a FP numeral from an integer value. -/
+@[extern "lean_z3_Ast_mkFpaNumeralInt"]
+opaque Ast.mkFpaNumeralInt (ctx : @& Context) (v : Int32) (s : @& Srt) : Ast
+
+/-- FP addition with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaAdd"]
+opaque Ast.mkFpaAdd (ctx : @& Context) (rm t1 t2 : @& Ast) : Ast
+
+/-- FP subtraction with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaSub"]
+opaque Ast.mkFpaSub (ctx : @& Context) (rm t1 t2 : @& Ast) : Ast
+
+/-- FP multiplication with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaMul"]
+opaque Ast.mkFpaMul (ctx : @& Context) (rm t1 t2 : @& Ast) : Ast
+
+/-- FP division with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaDiv"]
+opaque Ast.mkFpaDiv (ctx : @& Context) (rm t1 t2 : @& Ast) : Ast
+
+/-- FP fused multiply-add: `t1 * t2 + t3` with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaFma"]
+opaque Ast.mkFpaFma (ctx : @& Context) (rm t1 t2 t3 : @& Ast) : Ast
+
+/-- FP square root with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaSqrt"]
+opaque Ast.mkFpaSqrt (ctx : @& Context) (rm t : @& Ast) : Ast
+
+/-- FP remainder. -/
+@[extern "lean_z3_Ast_mkFpaRem"]
+opaque Ast.mkFpaRem (ctx : @& Context) (t1 t2 : @& Ast) : Ast
+
+/-- FP absolute value. -/
+@[extern "lean_z3_Ast_mkFpaAbs"]
+opaque Ast.mkFpaAbs (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- FP negation. -/
+@[extern "lean_z3_Ast_mkFpaNeg"]
+opaque Ast.mkFpaNeg (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- FP min. -/
+@[extern "lean_z3_Ast_mkFpaMin"]
+opaque Ast.mkFpaMin (ctx : @& Context) (t1 t2 : @& Ast) : Ast
+
+/-- FP max. -/
+@[extern "lean_z3_Ast_mkFpaMax"]
+opaque Ast.mkFpaMax (ctx : @& Context) (t1 t2 : @& Ast) : Ast
+
+/-- FP round to integral with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaRoundToIntegral"]
+opaque Ast.mkFpaRoundToIntegral (ctx : @& Context) (rm t : @& Ast) : Ast
+
+/-- FP less than. -/
+@[extern "lean_z3_Ast_mkFpaLt"]
+opaque Ast.mkFpaLt (ctx : @& Context) (t1 t2 : @& Ast) : Ast
+
+/-- FP less than or equal. -/
+@[extern "lean_z3_Ast_mkFpaLeq"]
+opaque Ast.mkFpaLeq (ctx : @& Context) (t1 t2 : @& Ast) : Ast
+
+/-- FP greater than. -/
+@[extern "lean_z3_Ast_mkFpaGt"]
+opaque Ast.mkFpaGt (ctx : @& Context) (t1 t2 : @& Ast) : Ast
+
+/-- FP greater than or equal. -/
+@[extern "lean_z3_Ast_mkFpaGeq"]
+opaque Ast.mkFpaGeq (ctx : @& Context) (t1 t2 : @& Ast) : Ast
+
+/-- FP equality (IEEE semantics: NaN ≠ NaN). -/
+@[extern "lean_z3_Ast_mkFpaEq"]
+opaque Ast.mkFpaEq (ctx : @& Context) (t1 t2 : @& Ast) : Ast
+
+/-- Check if FP value is NaN. -/
+@[extern "lean_z3_Ast_mkFpaIsNan"]
+opaque Ast.mkFpaIsNan (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Check if FP value is infinite. -/
+@[extern "lean_z3_Ast_mkFpaIsInf"]
+opaque Ast.mkFpaIsInf (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Check if FP value is zero. -/
+@[extern "lean_z3_Ast_mkFpaIsZero"]
+opaque Ast.mkFpaIsZero (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Check if FP value is normal. -/
+@[extern "lean_z3_Ast_mkFpaIsNormal"]
+opaque Ast.mkFpaIsNormal (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Check if FP value is subnormal. -/
+@[extern "lean_z3_Ast_mkFpaIsSubnormal"]
+opaque Ast.mkFpaIsSubnormal (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Check if FP value is negative. -/
+@[extern "lean_z3_Ast_mkFpaIsNegative"]
+opaque Ast.mkFpaIsNegative (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Check if FP value is positive. -/
+@[extern "lean_z3_Ast_mkFpaIsPositive"]
+opaque Ast.mkFpaIsPositive (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Convert bitvector to FP. -/
+@[extern "lean_z3_Ast_mkFpaToFpBv"]
+opaque Ast.mkFpaToFpBv (ctx : @& Context) (bv : @& Ast) (s : @& Srt) : Ast
+
+/-- Convert FP to FP with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaToFpFloat"]
+opaque Ast.mkFpaToFpFloat (ctx : @& Context) (rm t : @& Ast) (s : @& Srt) : Ast
+
+/-- Convert real to FP with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaToFpReal"]
+opaque Ast.mkFpaToFpReal (ctx : @& Context) (rm t : @& Ast) (s : @& Srt) : Ast
+
+/-- Convert signed bitvector to FP with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaToFpSigned"]
+opaque Ast.mkFpaToFpSigned (ctx : @& Context) (rm t : @& Ast) (s : @& Srt) : Ast
+
+/-- Convert unsigned bitvector to FP with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaToFpUnsigned"]
+opaque Ast.mkFpaToFpUnsigned (ctx : @& Context) (rm t : @& Ast) (s : @& Srt) : Ast
+
+/-- Convert FP to unsigned bitvector with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaToUbv"]
+opaque Ast.mkFpaToUbv (ctx : @& Context) (rm t : @& Ast) (sz : UInt32) : Ast
+
+/-- Convert FP to signed bitvector with rounding mode. -/
+@[extern "lean_z3_Ast_mkFpaToSbv"]
+opaque Ast.mkFpaToSbv (ctx : @& Context) (rm t : @& Ast) (sz : UInt32) : Ast
+
+/-- Convert FP to real. -/
+@[extern "lean_z3_Ast_mkFpaToReal"]
+opaque Ast.mkFpaToReal (ctx : @& Context) (t : @& Ast) : Ast
+
+/-- Convert FP to IEEE bitvector. -/
+@[extern "lean_z3_Ast_mkFpaToIeeeBv"]
+opaque Ast.mkFpaToIeeeBv (ctx : @& Context) (t : @& Ast) : Ast
+
 /-! ## String / Sequence theory -/
 
 /-- Create the string sort. -/

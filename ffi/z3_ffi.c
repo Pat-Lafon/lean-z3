@@ -1933,6 +1933,253 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_fromTactic(b_lean_obj_arg ctx, b_lean_ob
   return z3_env_val(mk_Solver(w));
 }
 
+/* ── Floating point theory ────────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkFpa(b_lean_obj_arg ctx, uint32_t ebits, uint32_t sbits) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_fpa_sort(c->ctx, ebits, sbits));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkFpa32(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_fpa_sort_32(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkFpa64(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_fpa_sort_64(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkFpa16(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_fpa_sort_16(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkFpa128(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_fpa_sort_128(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkFpaRoundingMode(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_fpa_rounding_mode_sort(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaRne(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_rne(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaRna(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_rna(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaRtp(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_rtp(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaRtn(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_rtn(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaRtz(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_rtz(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaNan(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_nan(c->ctx, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaInf(b_lean_obj_arg ctx, b_lean_obj_arg s, uint8_t negative) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_inf(c->ctx, to_Srt(s)->sort, negative));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaZero(b_lean_obj_arg ctx, b_lean_obj_arg s, uint8_t negative) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_zero(c->ctx, to_Srt(s)->sort, negative));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaNumeralDouble(b_lean_obj_arg ctx, double v, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_numeral_double(c->ctx, v, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaNumeralInt(b_lean_obj_arg ctx, uint32_t v, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_numeral_int(c->ctx, (signed)v, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaAdd(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_add(c->ctx, to_Ast(rm)->ast, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaSub(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_sub(c->ctx, to_Ast(rm)->ast, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaMul(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_mul(c->ctx, to_Ast(rm)->ast, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaDiv(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_div(c->ctx, to_Ast(rm)->ast, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaFma(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t1, b_lean_obj_arg t2, b_lean_obj_arg t3) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_fma(c->ctx, to_Ast(rm)->ast, to_Ast(t1)->ast, to_Ast(t2)->ast, to_Ast(t3)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaSqrt(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_sqrt(c->ctx, to_Ast(rm)->ast, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaRem(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_rem(c->ctx, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaAbs(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_abs(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaNeg(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_neg(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaMin(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_min(c->ctx, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaMax(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_max(c->ctx, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaRoundToIntegral(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_round_to_integral(c->ctx, to_Ast(rm)->ast, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaLt(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_lt(c->ctx, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaLeq(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_leq(c->ctx, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaGt(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_gt(c->ctx, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaGeq(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_geq(c->ctx, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaEq(b_lean_obj_arg ctx, b_lean_obj_arg t1, b_lean_obj_arg t2) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_eq(c->ctx, to_Ast(t1)->ast, to_Ast(t2)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaIsNan(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_is_nan(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaIsInf(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_is_infinite(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaIsZero(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_is_zero(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaIsNormal(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_is_normal(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaIsSubnormal(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_is_subnormal(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaIsNegative(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_is_negative(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaIsPositive(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_is_positive(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToFpBv(b_lean_obj_arg ctx, b_lean_obj_arg bv, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_fp_bv(c->ctx, to_Ast(bv)->ast, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToFpFloat(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_fp_float(c->ctx, to_Ast(rm)->ast, to_Ast(t)->ast, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToFpReal(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_fp_real(c->ctx, to_Ast(rm)->ast, to_Ast(t)->ast, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToFpSigned(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_fp_signed(c->ctx, to_Ast(rm)->ast, to_Ast(t)->ast, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToFpUnsigned(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_fp_unsigned(c->ctx, to_Ast(rm)->ast, to_Ast(t)->ast, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToUbv(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t, uint32_t sz) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_ubv(c->ctx, to_Ast(rm)->ast, to_Ast(t)->ast, sz));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToSbv(b_lean_obj_arg ctx, b_lean_obj_arg rm, b_lean_obj_arg t, uint32_t sz) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_sbv(c->ctx, to_Ast(rm)->ast, to_Ast(t)->ast, sz));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToReal(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_real(c->ctx, to_Ast(t)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToIeeeBv(b_lean_obj_arg ctx, b_lean_obj_arg t) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_ieee_bv(c->ctx, to_Ast(t)->ast));
+}
+
 /* ── String / Sequence theory ─────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Srt_mkString(b_lean_obj_arg ctx) {

@@ -40,7 +40,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Optimize** — `new`, `assert`, `assertSoft`, `maximize`, `minimize`, `check`, `getModel`, `getLower`, `getUpper`, `push`, `pop`, `setParams`, `getReasonUnknown`, `toString`
 - **Tactic / Goal** — `Tactic.mk`, `andThen`, `orElse`, `repeat`, `skip`, `fail`, `getHelp`, `Goal.mk`, `assert`, `formula`, `size`, `reset`, `toString`, `Tactic.apply`, `ApplyResult.getNumSubgoals`, `getSubgoal`, `toString`, `Solver.fromTactic`, `Context.getNumTactics`, `getTacticName`, `getTacticDescription`
 - **String / Sequence** — `Srt.mkString`, `Srt.mkSeq`, `Srt.mkRe`, `Ast.mkString`, `getString`, `mkSeqConcat`, `mkSeqLength`, `mkSeqContains`, `mkSeqPrefix`, `mkSeqSuffix`, `mkSeqExtract`, `mkSeqAt`, `mkSeqIndex`, `mkStrToInt`, `mkIntToStr`, `mkSeqToRe`, `mkSeqInRe`, `mkReStar`, `mkRePlus`, `mkReOption`, `mkReUnion`, `mkReConcat`, `mkReRange`, `mkReComplement`, `mkReIntersect`
-- **Test suite** — 204 tests
+- **Floating point** — `Srt.mkFpa`, `mkFpa32`, `mkFpa64`, `mkFpa16`, `mkFpa128`, `mkFpaRoundingMode`, rounding modes (`mkFpaRne/Rna/Rtp/Rtn/Rtz`), special values (`mkFpaNan/Inf/Zero`), numerals (`mkFpaNumeralDouble/Int`), arithmetic (`mkFpaAdd/Sub/Mul/Div/Fma/Sqrt/Rem/Abs/Neg/Min/Max`), comparisons (`mkFpaLt/Leq/Gt/Geq/Eq`), classification (`mkFpaIsNan/Inf/Zero/Normal/Subnormal/Negative/Positive`), rounding (`mkFpaRoundToIntegral`), conversions (`mkFpaToFpBv/Float/Real/Signed/Unsigned`, `mkFpaToUbv/Sbv/Real/IeeeBv`)
+- **Test suite** — 222 tests
 
 ### Unbound — Coverage Gaps
 
@@ -122,13 +123,13 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_re_range` / `Z3_mk_seq_to_re`
 
 #### Floating point theory
-- [ ] `Z3_mk_fpa_sort` / `Z3_mk_fpa_sort_32` / `Z3_mk_fpa_sort_64` — FP sorts
-- [ ] `Z3_mk_fpa_rne` / `Z3_mk_fpa_rna` / `Z3_mk_fpa_rtp` / `Z3_mk_fpa_rtn` / `Z3_mk_fpa_rtz` — rounding modes
-- [ ] `Z3_mk_fpa_add` / `Z3_mk_fpa_sub` / `Z3_mk_fpa_mul` / `Z3_mk_fpa_div` — arithmetic
-- [ ] `Z3_mk_fpa_sqrt` / `Z3_mk_fpa_rem` / `Z3_mk_fpa_abs` / `Z3_mk_fpa_neg` / `Z3_mk_fpa_fma`
-- [ ] `Z3_mk_fpa_lt` / `Z3_mk_fpa_leq` / `Z3_mk_fpa_gt` / `Z3_mk_fpa_geq` / `Z3_mk_fpa_eq` — comparisons
-- [ ] `Z3_mk_fpa_is_nan` / `Z3_mk_fpa_is_inf` / `Z3_mk_fpa_is_zero` — classification predicates
-- [ ] `Z3_mk_fpa_to_fp_*` / `Z3_mk_fpa_to_ubv` / `Z3_mk_fpa_to_sbv` — conversions
+- [x] `Z3_mk_fpa_sort` / `Z3_mk_fpa_sort_32` / `Z3_mk_fpa_sort_64` — FP sorts
+- [x] `Z3_mk_fpa_rne` / `Z3_mk_fpa_rna` / `Z3_mk_fpa_rtp` / `Z3_mk_fpa_rtn` / `Z3_mk_fpa_rtz` — rounding modes
+- [x] `Z3_mk_fpa_add` / `Z3_mk_fpa_sub` / `Z3_mk_fpa_mul` / `Z3_mk_fpa_div` — arithmetic
+- [x] `Z3_mk_fpa_sqrt` / `Z3_mk_fpa_rem` / `Z3_mk_fpa_abs` / `Z3_mk_fpa_neg` / `Z3_mk_fpa_fma`
+- [x] `Z3_mk_fpa_lt` / `Z3_mk_fpa_leq` / `Z3_mk_fpa_gt` / `Z3_mk_fpa_geq` / `Z3_mk_fpa_eq` — comparisons
+- [x] `Z3_mk_fpa_is_nan` / `Z3_mk_fpa_is_inf` / `Z3_mk_fpa_is_zero` — classification predicates
+- [x] `Z3_mk_fpa_to_fp_*` / `Z3_mk_fpa_to_ubv` / `Z3_mk_fpa_to_sbv` — conversions
 
 #### Sets
 - [ ] `Z3_mk_set_sort` / `Z3_mk_empty_set` / `Z3_mk_full_set`

@@ -127,6 +127,12 @@ typedef struct {
   Z3_probe     probe;
 } Z3ProbeWrapper;
 
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
+  Z3_simplifier simplifier;
+} Z3SimplifierWrapper;
+
 /* ── User propagator ────────────────────────────────────────────────────── */
 
 typedef struct {

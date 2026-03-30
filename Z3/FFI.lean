@@ -105,6 +105,11 @@ opaque SolverCallback.Pointed : NonemptyType
 def SolverCallback : Type := SolverCallback.Pointed.type
 instance : Nonempty SolverCallback := SolverCallback.Pointed.property
 
+/-- A Z3 simplifier (`Z3_simplifier`). Building block for custom pre-processing pipelines. -/
+opaque Simplifier.Pointed : NonemptyType
+def Simplifier : Type := Simplifier.Pointed.type
+instance : Nonempty Simplifier := Simplifier.Pointed.property
+
 /-! ## Context operations -/
 
 /-- Create a new Z3 context with default configuration. -/
@@ -1029,6 +1034,44 @@ opaque SolverCallback.nextSplit (cb : @& SolverCallback)
 @[extern "lean_z3_Context_propagateDeclare"]
 opaque Context.propagateDeclare (ctx : @& Context) (name : @& String)
     (domain : @& Array Srt) (range : @& Srt) : FuncDecl
+
+/-! ## Simplifier API -/
+
+/-- Create a simplifier by name. -/
+@[extern "lean_z3_Simplifier_mk"]
+opaque Simplifier.mk (ctx : @& Context) (name : @& String) : Env Simplifier
+
+/-- Compose two simplifiers sequentially (`and_then`). -/
+@[extern "lean_z3_Simplifier_andThen"]
+opaque Simplifier.andThen (ctx : @& Context) (s1 : @& Simplifier) (s2 : @& Simplifier) : Env Simplifier
+
+/-- Apply parameters to a simplifier. -/
+@[extern "lean_z3_Simplifier_usingParams"]
+opaque Simplifier.usingParams (ctx : @& Context) (s : @& Simplifier) (p : @& Params) : Env Simplifier
+
+/-- Get the help string for a simplifier. -/
+@[extern "lean_z3_Simplifier_getHelp"]
+opaque Simplifier.getHelp (ctx : @& Context) (s : @& Simplifier) : String
+
+/-- Get parameter descriptions for a simplifier. -/
+@[extern "lean_z3_Simplifier_getParamDescrs"]
+opaque Simplifier.getParamDescrs (ctx : @& Context) (s : @& Simplifier) : BaseIO ParamDescrs
+
+/-- Get the description of a simplifier by name. -/
+@[extern "lean_z3_Simplifier_getDescr"]
+opaque Simplifier.getDescr (ctx : @& Context) (name : @& String) : String
+
+/-- Get the number of available simplifiers. -/
+@[extern "lean_z3_Context_getNumSimplifiers"]
+opaque Context.getNumSimplifiers (ctx : @& Context) : UInt32
+
+/-- Get the name of the `i`-th simplifier. -/
+@[extern "lean_z3_Context_getSimplifierName"]
+opaque Context.getSimplifierName (ctx : @& Context) (i : UInt32) : String
+
+/-- Add a simplifier to a solver. Returns a new solver with the simplifier applied. -/
+@[extern "lean_z3_Solver_addSimplifier"]
+opaque Solver.addSimplifier (ctx : @& Context) (s : @& Solver) (simp : @& Simplifier) : Env Solver
 
 /-! ## Statistics -/
 

@@ -3932,6 +3932,103 @@ LEAN_EXPORT lean_obj_res lean_z3_OnClauseHandle_clear(b_lean_obj_arg handle_obj)
   return lean_box(0);
 }
 
+/* ── Simplifier ────────────────────────────────────────────────────────── */
+
+static void Simplifier_finalize(void *p) {
+  Z3SimplifierWrapper *w = (Z3SimplifierWrapper *)p;
+  Z3_simplifier_dec_ref(w->ctx, w->simplifier);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
+static lean_external_class *g_Simplifier_class = NULL;
+static inline lean_external_class *get_Simplifier_class(void) {
+  if (g_Simplifier_class == NULL)
+    g_Simplifier_class = lean_register_external_class(Simplifier_finalize, noop_foreach);
+  return g_Simplifier_class;
+}
+static inline lean_obj_res mk_Simplifier(Z3SimplifierWrapper *w) {
+  return lean_alloc_external(get_Simplifier_class(), w);
+}
+static inline Z3SimplifierWrapper *to_Simplifier(b_lean_obj_arg o) {
+  return (Z3SimplifierWrapper *)lean_get_external_data(o);
+}
+
+static inline lean_obj_res z3_wrap_simplifier(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_simplifier s) {
+  Z3_simplifier_inc_ref(raw_ctx, s);
+  Z3SimplifierWrapper *w = (Z3SimplifierWrapper *)malloc(sizeof(Z3SimplifierWrapper));
+  lean_inc(ctx);
+  w->ctx_obj = ctx; w->ctx = raw_ctx; w->simplifier = s;
+  return mk_Simplifier(w);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Simplifier_mk(b_lean_obj_arg ctx, b_lean_obj_arg name) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_simplifier s = Z3_mk_simplifier(c->ctx, lean_string_cstr(name));
+  if (s == NULL) return z3_env_error("unknown simplifier");
+  return z3_env_val(z3_wrap_simplifier(ctx, c->ctx, s));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Simplifier_andThen(b_lean_obj_arg ctx, b_lean_obj_arg s1, b_lean_obj_arg s2) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_simplifier r = Z3_simplifier_and_then(c->ctx, to_Simplifier(s1)->simplifier, to_Simplifier(s2)->simplifier);
+  if (r == NULL) return z3_env_error("simplifier and_then failed");
+  return z3_env_val(z3_wrap_simplifier(ctx, c->ctx, r));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Simplifier_usingParams(b_lean_obj_arg ctx, b_lean_obj_arg s, b_lean_obj_arg p) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_simplifier r = Z3_simplifier_using_params(c->ctx, to_Simplifier(s)->simplifier, to_Params(p)->params);
+  if (r == NULL) return z3_env_error("simplifier using_params failed");
+  return z3_env_val(z3_wrap_simplifier(ctx, c->ctx, r));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Simplifier_getHelp(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_string help = Z3_simplifier_get_help(c->ctx, to_Simplifier(s)->simplifier);
+  return lean_mk_string(help);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Simplifier_getParamDescrs(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_param_descrs pd = Z3_simplifier_get_param_descrs(c->ctx, to_Simplifier(s)->simplifier);
+  Z3_param_descrs_inc_ref(c->ctx, pd);
+  Z3ParamDescrsWrapper *w = (Z3ParamDescrsWrapper *)malloc(sizeof(Z3ParamDescrsWrapper));
+  lean_inc(ctx);
+  w->ctx_obj = ctx; w->ctx = c->ctx; w->param_descrs = pd;
+  return mk_ParamDescrs(w);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Simplifier_getDescr(b_lean_obj_arg ctx, b_lean_obj_arg name) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_string descr = Z3_simplifier_get_descr(c->ctx, lean_string_cstr(name));
+  return lean_mk_string(descr);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Context_getNumSimplifiers(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return Z3_get_num_simplifiers(c->ctx);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Context_getSimplifierName(b_lean_obj_arg ctx, uint32_t i) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_string name = Z3_get_simplifier_name(c->ctx, i);
+  return lean_mk_string(name);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Solver_addSimplifier(b_lean_obj_arg ctx, b_lean_obj_arg solver, b_lean_obj_arg simp) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3SolverWrapper *sw = to_Solver(solver);
+  Z3_solver r = Z3_solver_add_simplifier(c->ctx, sw->solver, to_Simplifier(simp)->simplifier);
+  if (r == NULL) return z3_env_error("solver add_simplifier failed");
+  Z3_solver_inc_ref(c->ctx, r);
+  Z3SolverWrapper *w = (Z3SolverWrapper *)malloc(sizeof(Z3SolverWrapper));
+  if (w == NULL) { Z3_solver_dec_ref(c->ctx, r); return z3_env_error("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx; w->ctx = c->ctx; w->solver = r; w->propagator = NULL;
+  return z3_env_val(mk_Solver(w));
+}
+
 /* ── User Propagator ───────────────────────────────────────────────────── */
 
 static void Propagator_finalize(void *p) {

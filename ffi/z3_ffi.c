@@ -250,6 +250,17 @@ static inline lean_obj_res z3_wrap_func_decl(b_lean_obj_arg ctx, Z3_context raw_
   return mk_FuncDecl(w);
 }
 
+static inline lean_obj_res z3_wrap_param_descrs(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_param_descrs pd) {
+  Z3_param_descrs_inc_ref(raw_ctx, pd);
+  Z3ParamDescrsWrapper *w = (Z3ParamDescrsWrapper *)malloc(sizeof(Z3ParamDescrsWrapper));
+  if (w == NULL) { Z3_param_descrs_dec_ref(raw_ctx, pd); lean_internal_panic("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = raw_ctx;
+  w->param_descrs = pd;
+  return mk_ParamDescrs(w);
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
  * Env-returning functions (Env α = BaseIO (Except Error α))
  *
@@ -1556,18 +1567,73 @@ LEAN_EXPORT lean_obj_res lean_z3_Params_toString(b_lean_obj_arg p) {
   return lean_mk_string(s);
 }
 
-/* ── ParamDescrs operations ────────────────────────────────────────────── */
+/* ── Substitution & simplification ─────────────────────────────────────── */
 
-static inline lean_obj_res z3_wrap_param_descrs(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_param_descrs pd) {
-  Z3_param_descrs_inc_ref(raw_ctx, pd);
-  Z3ParamDescrsWrapper *w = (Z3ParamDescrsWrapper *)malloc(sizeof(Z3ParamDescrsWrapper));
-  if (w == NULL) { Z3_param_descrs_dec_ref(raw_ctx, pd); lean_internal_panic("out of memory"); }
-  lean_inc(ctx);
-  w->ctx_obj = ctx;
-  w->ctx = raw_ctx;
-  w->param_descrs = pd;
-  return mk_ParamDescrs(w);
+LEAN_EXPORT lean_obj_res lean_z3_Ast_substitute(b_lean_obj_arg ctx,
+    b_lean_obj_arg a, b_lean_obj_arg from_arr, b_lean_obj_arg to_arr) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3AstWrapper *aw = to_Ast(a);
+  unsigned n = lean_array_size(from_arr);
+  if (n != lean_array_size(to_arr)) {
+    return z3_env_error("substitute: from and to arrays must have the same length");
+  }
+  Z3_ast *from_asts = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+  Z3_ast *to_asts = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+  if ((n > 0 && from_asts == NULL) || (n > 0 && to_asts == NULL)) {
+    free(from_asts); free(to_asts);
+    return z3_env_error("out of memory");
+  }
+  for (unsigned i = 0; i < n; i++) {
+    from_asts[i] = to_Ast(lean_array_get_core(from_arr, i))->ast;
+    to_asts[i] = to_Ast(lean_array_get_core(to_arr, i))->ast;
+  }
+  Z3_ast result = Z3_substitute(c->ctx, aw->ast, n, from_asts, to_asts);
+  free(from_asts); free(to_asts);
+  if (result == NULL) { return z3_env_error("Z3_substitute failed"); }
+  return z3_env_val(z3_wrap_ast(ctx, c->ctx, result));
 }
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_substituteVars(b_lean_obj_arg ctx,
+    b_lean_obj_arg a, b_lean_obj_arg to_arr) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3AstWrapper *aw = to_Ast(a);
+  unsigned n = lean_array_size(to_arr);
+  Z3_ast *to_asts = n > 0 ? (Z3_ast *)malloc(n * sizeof(Z3_ast)) : NULL;
+  if (n > 0 && to_asts == NULL) { return z3_env_error("out of memory"); }
+  for (unsigned i = 0; i < n; i++) {
+    to_asts[i] = to_Ast(lean_array_get_core(to_arr, i))->ast;
+  }
+  Z3_ast result = Z3_substitute_vars(c->ctx, aw->ast, n, to_asts);
+  free(to_asts);
+  if (result == NULL) { return z3_env_error("Z3_substitute_vars failed"); }
+  return z3_env_val(z3_wrap_ast(ctx, c->ctx, result));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_simplify(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3AstWrapper *aw = to_Ast(a);
+  Z3_ast result = Z3_simplify(c->ctx, aw->ast);
+  if (result == NULL) { lean_internal_panic("Z3_simplify returned NULL"); }
+  return z3_wrap_ast(ctx, c->ctx, result);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_simplifyEx(b_lean_obj_arg ctx,
+    b_lean_obj_arg a, b_lean_obj_arg p) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3AstWrapper *aw = to_Ast(a);
+  Z3ParamsWrapper *pw = to_Params(p);
+  Z3_ast result = Z3_simplify_ex(c->ctx, aw->ast, pw->params);
+  if (result == NULL) { lean_internal_panic("Z3_simplify_ex returned NULL"); }
+  return z3_wrap_ast(ctx, c->ctx, result);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Context_simplifyGetParamDescrs(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_param_descrs pd = Z3_simplify_get_param_descrs(c->ctx);
+  return z3_wrap_param_descrs(ctx, c->ctx, pd);
+}
+
+/* ── ParamDescrs operations ────────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Params_validate(b_lean_obj_arg p, b_lean_obj_arg d) {
   Z3ParamsWrapper *pw = to_Params(p);

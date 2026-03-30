@@ -539,6 +539,30 @@ opaque Ast.mkPattern (ctx : @& Context) (terms : @& Array Ast) : Ast
 @[extern "lean_z3_Ast_getVarIndex"]
 opaque Ast.getVarIndex (a : @& Ast) : UInt32
 
+/-! ## Substitution & simplification -/
+
+/-- Substitute `from[i]` with `to[i]` in expression `a`. -/
+@[extern "lean_z3_Ast_substitute"]
+opaque Ast.substitute (ctx : @& Context) (a : @& Ast)
+    (from_ : @& Array Ast) (to : @& Array Ast) : Env Ast
+
+/-- Substitute bound variables (de Bruijn index `i`) with `to[i]` in expression `a`. -/
+@[extern "lean_z3_Ast_substituteVars"]
+opaque Ast.substituteVars (ctx : @& Context) (a : @& Ast)
+    (to : @& Array Ast) : Env Ast
+
+/-- Simplify an expression using Z3's built-in simplifier. -/
+@[extern "lean_z3_Ast_simplify"]
+opaque Ast.simplify (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Simplify an expression with custom parameters. -/
+@[extern "lean_z3_Ast_simplifyEx"]
+opaque Ast.simplifyEx (ctx : @& Context) (a : @& Ast) (p : @& Params) : Ast
+
+/-- Get parameter descriptions for the simplifier. -/
+@[extern "lean_z3_Context_simplifyGetParamDescrs"]
+opaque Context.simplifyGetParamDescrs (ctx : @& Context) : BaseIO ParamDescrs
+
 /-! ## FuncDecl operations -/
 
 /-- Get the decl kind as a raw `UInt32`. -/

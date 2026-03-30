@@ -22,6 +22,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Datatypes** — `Constructor.mk`, `Srt.mkDatatype`, `Constructor.query`
 - **Term inspection** — `getSort`, `getAstKind`, `getNumArgs`, `getArg`, `getFuncDecl`, `getNumeralString`, `getNumeralDecimalString`, `getNumeralBinaryString`, `getNumeralInt64`, `getNumeralUInt64`, `getNumeralDouble`, `getNumerator`, `getDenominator`, `getVarIndex`, `toString`
 - **Quantifier inspection** — `isQuantifierForall`, `isQuantifierExists`, `getQuantifierBody`, `getQuantifierNumBound`, `getQuantifierBoundName`, `getQuantifierBoundSort`
+- **Substitution & simplification** — `substitute`, `substituteVars`, `simplify`, `simplifyEx`, `simplifyGetParamDescrs`
 - **Uninterpreted functions** — `FuncDecl.mk`, `Ast.mkApp`, `Ast.mkFreshConst`, `FuncDecl.mkFresh`
 - **FuncDecl** — `getDeclKindRaw`, `getName`, `getArity`, `getDomain`, `getRange`, `toString`
 - **Params** — `new`, `setBool`, `setUInt`, `setDouble`, `setSymbol`, `validate`, `toString`
@@ -31,7 +32,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **SMT-LIB parsing** — `parseSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 115 tests
+- **Test suite** — 124 tests
 
 ### Unbound — Coverage Gaps
 
@@ -66,9 +67,10 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_get_numerator` / `Z3_get_denominator` — rational decomposition
 
 #### Substitution & simplification
-- [ ] `Z3_substitute` — substitute ASTs in an expression
-- [ ] `Z3_substitute_vars` — substitute bound variables
-- [ ] `Z3_simplify` / `Z3_simplify_ex` — simplify expression
+- [x] `Z3_substitute` — substitute ASTs in an expression
+- [x] `Z3_substitute_vars` — substitute bound variables
+- [x] `Z3_simplify` / `Z3_simplify_ex` — simplify expression
+- [x] `Z3_simplify_get_param_descrs` — simplifier parameter descriptions
 
 #### AST utilities
 - [ ] `Z3_is_app` / `Z3_is_numeral_ast` / `Z3_is_well_sorted` — AST predicates

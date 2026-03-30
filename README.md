@@ -44,7 +44,9 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Sets** — `Srt.mkSet`, `mkEmptySet`, `mkFullSet`, `mkSetAdd`, `mkSetDel`, `mkSetUnion`, `mkSetIntersect`, `mkSetDifference`, `mkSetComplement`, `mkSetMember`, `mkSetSubset`
 - **Additional sorts** — `Srt.mkFiniteDomain`, `mkChar`, `mkEnumeration`, `mkList`, `mkTuple`, `mkDatatypes` (mutually recursive)
 - **Sort inspection (extended)** — `getArraySortDomain`, `getArraySortDomainN`, `getArraySortRange`, `getDatatypeSortNumConstructors`, `getDatatypeSortConstructor`, `getDatatypeSortRecognizer`, `getDatatypeSortConstructorAccessor`
-- **Test suite** — 245 tests
+- **Solver (extended)** — `mkSimple`, `mkForLogic`, `fromString`, `fromFile`, `getNumScopes`, `interrupt`, `translate`, `getTrail`, `getConsequences`, `getStatistics`
+- **Statistics** — `Stats` opaque type, `size`, `getKey`, `isUInt`, `isDouble`, `getUIntValue`, `getDoubleValue`, `toString`
+- **Test suite** — 255 tests
 
 ### Unbound — Coverage Gaps
 
@@ -154,11 +156,11 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_func_interp_*` / `Z3_func_entry_*` — function interpretation API
 
 #### Solver (extended)
-- [ ] `Z3_mk_simple_solver` / `Z3_mk_solver_for_logic`
-- [ ] `Z3_solver_from_string` / `Z3_solver_from_file`
-- [ ] `Z3_solver_get_statistics` / `Z3_solver_get_num_scopes`
-- [ ] `Z3_solver_interrupt` / `Z3_solver_translate`
-- [ ] `Z3_solver_get_consequences` / `Z3_solver_get_trail`
+- [x] `Z3_mk_simple_solver` / `Z3_mk_solver_for_logic`
+- [x] `Z3_solver_from_string` / `Z3_solver_from_file`
+- [x] `Z3_solver_get_statistics` / `Z3_solver_get_num_scopes`
+- [x] `Z3_solver_interrupt` / `Z3_solver_translate`
+- [x] `Z3_solver_get_consequences` / `Z3_solver_get_trail`
 
 #### Quantifiers (extended)
 - [x] `Z3_is_quantifier_forall` / `Z3_is_quantifier_exists` — quantifier kind checks
@@ -187,8 +189,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_bvadd_no_overflow` / `Z3_mk_bvadd_no_underflow` / `Z3_mk_bvsub_no_overflow` / `Z3_mk_bvsub_no_underflow` / `Z3_mk_bvmul_no_overflow` / `Z3_mk_bvmul_no_underflow` / `Z3_mk_bvsdiv_no_overflow` / `Z3_mk_bvneg_no_overflow` — overflow checks
 
 #### Statistics
-- [ ] `Z3_stats_to_string` / `Z3_stats_size` / `Z3_stats_get_key`
-- [ ] `Z3_stats_get_uint_value` / `Z3_stats_get_double_value`
+- [x] `Z3_stats_to_string` / `Z3_stats_size` / `Z3_stats_get_key`
+- [x] `Z3_stats_get_uint_value` / `Z3_stats_get_double_value`
 
 #### Parser (extended)
 - [x] `Z3_parse_smtlib2_file`

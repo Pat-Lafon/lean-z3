@@ -80,6 +80,11 @@ opaque Optimize.Pointed : NonemptyType
 def Optimize : Type := Optimize.Pointed.type
 instance : Nonempty Optimize := Optimize.Pointed.property
 
+/-- Z3 statistics (`Z3_stats`). -/
+opaque Stats.Pointed : NonemptyType
+def Stats : Type := Stats.Pointed.type
+instance : Nonempty Stats := Stats.Pointed.property
+
 /-! ## Context operations -/
 
 /-- Create a new Z3 context with default configuration. -/
@@ -895,6 +900,82 @@ opaque Solver.getProof (s : @& Solver) : Env Ast
 opaque Solver.toString' (s : @& Solver) : String
 
 instance : ToString Solver := ⟨fun s => Solver.toString' s⟩
+
+/-! ## Solver (extended) -/
+
+/-- Create a simple solver (no tactics, basic features). -/
+@[extern "lean_z3_Solver_mkSimple"]
+opaque Solver.mkSimple (ctx : @& Context) : Env Solver
+
+/-- Create a solver for a specific logic (e.g., "QF_LIA", "QF_BV"). -/
+@[extern "lean_z3_Solver_mkForLogic"]
+opaque Solver.mkForLogic (ctx : @& Context) (logic : @& String) : Env Solver
+
+/-- Load solver assertions from a string (SMT-LIB2 format). -/
+@[extern "lean_z3_Solver_fromString"]
+opaque Solver.fromString (s : @& Solver) (str : @& String) : BaseIO PUnit
+
+/-- Load solver assertions from a file (SMT-LIB2 format). -/
+@[extern "lean_z3_Solver_fromFile"]
+opaque Solver.fromFile (s : @& Solver) (filename : @& String) : BaseIO PUnit
+
+/-- Get the number of backtracking scopes. -/
+@[extern "lean_z3_Solver_getNumScopes"]
+opaque Solver.getNumScopes (s : @& Solver) : BaseIO UInt32
+
+/-- Interrupt the solver (can be called from another thread). -/
+@[extern "lean_z3_Solver_interrupt"]
+opaque Solver.interrupt (s : @& Solver) : BaseIO PUnit
+
+/-- Translate a solver to another context. -/
+@[extern "lean_z3_Solver_translate"]
+opaque Solver.translate (s : @& Solver) (target : @& Context) : Env Solver
+
+/-- Get the trail (assigned literals after solving). -/
+@[extern "lean_z3_Solver_getTrail"]
+opaque Solver.getTrail (s : @& Solver) : BaseIO (Array Ast)
+
+/-- Get consequences: given assumptions and variables, compute implied equalities.
+  Returns `(result, consequences)` where result is the satisfiability check. -/
+@[extern "lean_z3_Solver_getConsequences"]
+opaque Solver.getConsequences (s : @& Solver) (assumptions variables : @& Array Ast)
+    : BaseIO (LBool × Array Ast)
+
+/-- Get solver statistics. -/
+@[extern "lean_z3_Solver_getStatistics"]
+opaque Solver.getStatistics (s : @& Solver) : BaseIO Stats
+
+/-! ## Statistics -/
+
+/-- Number of statistical data entries. -/
+@[extern "lean_z3_Stats_size"]
+opaque Stats.size (s : @& Stats) : UInt32
+
+/-- Key name at index `i`. -/
+@[extern "lean_z3_Stats_getKey"]
+opaque Stats.getKey (s : @& Stats) (i : UInt32) : String
+
+/-- Is the value at index `i` a UInt? -/
+@[extern "lean_z3_Stats_isUInt"]
+opaque Stats.isUInt (s : @& Stats) (i : UInt32) : Bool
+
+/-- Is the value at index `i` a Double? -/
+@[extern "lean_z3_Stats_isDouble"]
+opaque Stats.isDouble (s : @& Stats) (i : UInt32) : Bool
+
+/-- Get the UInt value at index `i`. -/
+@[extern "lean_z3_Stats_getUIntValue"]
+opaque Stats.getUIntValue (s : @& Stats) (i : UInt32) : UInt32
+
+/-- Get the Double value at index `i`. -/
+@[extern "lean_z3_Stats_getDoubleValue"]
+opaque Stats.getDoubleValue (s : @& Stats) (i : UInt32) : Float
+
+/-- String representation. -/
+@[extern "lean_z3_Stats_toString"]
+opaque Stats.toString' (s : @& Stats) : String
+
+instance : ToString Stats := ⟨fun s => Stats.toString' s⟩
 
 /-! ## Unsat cores and assumptions -/
 

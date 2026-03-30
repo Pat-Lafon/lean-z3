@@ -108,6 +108,12 @@ typedef struct {
   Z3_func_entry func_entry;
 } Z3FuncEntryWrapper;
 
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
+  Z3_stats     stats;
+} Z3StatsWrapper;
+
 /* ── On-clause collector ─────────────────────────────────────────────────── */
 
 typedef struct {

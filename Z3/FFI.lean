@@ -1399,6 +1399,52 @@ opaque Ast.mkFpaToReal (ctx : @& Context) (t : @& Ast) : Ast
 @[extern "lean_z3_Ast_mkFpaToIeeeBv"]
 opaque Ast.mkFpaToIeeeBv (ctx : @& Context) (t : @& Ast) : Ast
 
+/-! ## Sets -/
+
+/-- Create a set sort over element sort `ty`. -/
+@[extern "lean_z3_Srt_mkSet"]
+opaque Srt.mkSet (ctx : @& Context) (ty : @& Srt) : Srt
+
+/-- Create an empty set of the given `domain` sort. -/
+@[extern "lean_z3_Ast_mkEmptySet"]
+opaque Ast.mkEmptySet (ctx : @& Context) (domain : @& Srt) : Ast
+
+/-- Create a full (universal) set of the given `domain` sort. -/
+@[extern "lean_z3_Ast_mkFullSet"]
+opaque Ast.mkFullSet (ctx : @& Context) (domain : @& Srt) : Ast
+
+/-- Add an element to a set. -/
+@[extern "lean_z3_Ast_mkSetAdd"]
+opaque Ast.mkSetAdd (ctx : @& Context) (set elem : @& Ast) : Ast
+
+/-- Remove an element from a set. -/
+@[extern "lean_z3_Ast_mkSetDel"]
+opaque Ast.mkSetDel (ctx : @& Context) (set elem : @& Ast) : Ast
+
+/-- Union of sets. -/
+@[extern "lean_z3_Ast_mkSetUnion"]
+opaque Ast.mkSetUnion (ctx : @& Context) (args : @& Array Ast) : Ast
+
+/-- Intersection of sets. -/
+@[extern "lean_z3_Ast_mkSetIntersect"]
+opaque Ast.mkSetIntersect (ctx : @& Context) (args : @& Array Ast) : Ast
+
+/-- Set difference. -/
+@[extern "lean_z3_Ast_mkSetDifference"]
+opaque Ast.mkSetDifference (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Set complement. -/
+@[extern "lean_z3_Ast_mkSetComplement"]
+opaque Ast.mkSetComplement (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Set membership test. -/
+@[extern "lean_z3_Ast_mkSetMember"]
+opaque Ast.mkSetMember (ctx : @& Context) (elem set : @& Ast) : Ast
+
+/-- Subset test. -/
+@[extern "lean_z3_Ast_mkSetSubset"]
+opaque Ast.mkSetSubset (ctx : @& Context) (a b : @& Ast) : Ast
+
 /-! ## String / Sequence theory -/
 
 /-- Create the string sort. -/

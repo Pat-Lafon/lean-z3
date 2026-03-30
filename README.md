@@ -41,7 +41,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Tactic / Goal** — `Tactic.mk`, `andThen`, `orElse`, `repeat`, `skip`, `fail`, `getHelp`, `Goal.mk`, `assert`, `formula`, `size`, `reset`, `toString`, `Tactic.apply`, `ApplyResult.getNumSubgoals`, `getSubgoal`, `toString`, `Solver.fromTactic`, `Context.getNumTactics`, `getTacticName`, `getTacticDescription`
 - **String / Sequence** — `Srt.mkString`, `Srt.mkSeq`, `Srt.mkRe`, `Ast.mkString`, `getString`, `mkSeqConcat`, `mkSeqLength`, `mkSeqContains`, `mkSeqPrefix`, `mkSeqSuffix`, `mkSeqExtract`, `mkSeqAt`, `mkSeqIndex`, `mkStrToInt`, `mkIntToStr`, `mkSeqToRe`, `mkSeqInRe`, `mkReStar`, `mkRePlus`, `mkReOption`, `mkReUnion`, `mkReConcat`, `mkReRange`, `mkReComplement`, `mkReIntersect`
 - **Floating point** — `Srt.mkFpa`, `mkFpa32`, `mkFpa64`, `mkFpa16`, `mkFpa128`, `mkFpaRoundingMode`, rounding modes (`mkFpaRne/Rna/Rtp/Rtn/Rtz`), special values (`mkFpaNan/Inf/Zero`), numerals (`mkFpaNumeralDouble/Int`), arithmetic (`mkFpaAdd/Sub/Mul/Div/Fma/Sqrt/Rem/Abs/Neg/Min/Max`), comparisons (`mkFpaLt/Leq/Gt/Geq/Eq`), classification (`mkFpaIsNan/Inf/Zero/Normal/Subnormal/Negative/Positive`), rounding (`mkFpaRoundToIntegral`), conversions (`mkFpaToFpBv/Float/Real/Signed/Unsigned`, `mkFpaToUbv/Sbv/Real/IeeeBv`)
-- **Test suite** — 222 tests
+- **Sets** — `Srt.mkSet`, `mkEmptySet`, `mkFullSet`, `mkSetAdd`, `mkSetDel`, `mkSetUnion`, `mkSetIntersect`, `mkSetDifference`, `mkSetComplement`, `mkSetMember`, `mkSetSubset`
+- **Test suite** — 232 tests
 
 ### Unbound — Coverage Gaps
 
@@ -132,9 +133,9 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_fpa_to_fp_*` / `Z3_mk_fpa_to_ubv` / `Z3_mk_fpa_to_sbv` — conversions
 
 #### Sets
-- [ ] `Z3_mk_set_sort` / `Z3_mk_empty_set` / `Z3_mk_full_set`
-- [ ] `Z3_mk_set_add` / `Z3_mk_set_del` / `Z3_mk_set_union` / `Z3_mk_set_intersect` / `Z3_mk_set_difference`
-- [ ] `Z3_mk_set_complement` / `Z3_mk_set_member` / `Z3_mk_set_subset`
+- [x] `Z3_mk_set_sort` / `Z3_mk_empty_set` / `Z3_mk_full_set`
+- [x] `Z3_mk_set_add` / `Z3_mk_set_del` / `Z3_mk_set_union` / `Z3_mk_set_intersect` / `Z3_mk_set_difference`
+- [x] `Z3_mk_set_complement` / `Z3_mk_set_member` / `Z3_mk_set_subset`
 
 #### Additional sorts
 - [ ] `Z3_mk_enumeration_sort` / `Z3_mk_list_sort` / `Z3_mk_tuple_sort`

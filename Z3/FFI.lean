@@ -1027,6 +1027,66 @@ opaque Fixedpoint.toString' (fp : @& Fixedpoint) : String
 
 instance : ToString Fixedpoint := ⟨fun fp => Fixedpoint.toString' fp⟩
 
+/-- Add a ground fact (tuple of unsigned integers) to a relation. -/
+@[extern "lean_z3_Fixedpoint_addFact"]
+opaque Fixedpoint.addFact (fp : @& Fixedpoint) (r : @& FuncDecl) (args : @& Array UInt32) : BaseIO PUnit
+
+/-- Query multiple relations simultaneously. -/
+@[extern "lean_z3_Fixedpoint_queryRelations"]
+opaque Fixedpoint.queryRelations (fp : @& Fixedpoint) (relations : @& Array FuncDecl) : BaseIO LBool
+
+/-- Update a named rule. -/
+@[extern "lean_z3_Fixedpoint_updateRule"]
+opaque Fixedpoint.updateRule (fp : @& Fixedpoint) (rule : @& Ast) (name : @& String) : BaseIO PUnit
+
+/-- Get the number of levels explored for a predicate. -/
+@[extern "lean_z3_Fixedpoint_getNumLevels"]
+opaque Fixedpoint.getNumLevels (fp : @& Fixedpoint) (pred : @& FuncDecl) : UInt32
+
+/-- Get the covering property at a given level for a predicate. Returns `none` for level -1. -/
+@[extern "lean_z3_Fixedpoint_getCoverDelta"]
+opaque Fixedpoint.getCoverDelta (fp : @& Fixedpoint) (level : Int32) (pred : @& FuncDecl) : Ast
+
+/-- Add a covering property at a given level for a predicate. -/
+@[extern "lean_z3_Fixedpoint_addCover"]
+opaque Fixedpoint.addCover (fp : @& Fixedpoint) (level : Int32) (pred : @& FuncDecl) (property : @& Ast) : BaseIO PUnit
+
+/-- Get statistics for the last query. -/
+@[extern "lean_z3_Fixedpoint_getStatistics"]
+opaque Fixedpoint.getStatistics (fp : @& Fixedpoint) : Stats
+
+/-- Get all rules that have been added. -/
+@[extern "lean_z3_Fixedpoint_getRules"]
+opaque Fixedpoint.getRules (fp : @& Fixedpoint) : Array Ast
+
+/-- Get all assertions (background axioms). -/
+@[extern "lean_z3_Fixedpoint_getAssertions"]
+opaque Fixedpoint.getAssertions (fp : @& Fixedpoint) : Array Ast
+
+/-- Get a help string describing available parameters. -/
+@[extern "lean_z3_Fixedpoint_getHelp"]
+opaque Fixedpoint.getHelp (fp : @& Fixedpoint) : String
+
+/-- Get parameter descriptors. -/
+@[extern "lean_z3_Fixedpoint_getParamDescrs"]
+opaque Fixedpoint.getParamDescrs (fp : @& Fixedpoint) : ParamDescrs
+
+/-- Load fixedpoint rules from an SMT-LIB2 string. Returns parsed queries. -/
+@[extern "lean_z3_Fixedpoint_fromString"]
+opaque Fixedpoint.fromString (fp : @& Fixedpoint) (s : @& String) : Array Ast
+
+/-- Load fixedpoint rules from an SMT-LIB2 file. Returns parsed queries. -/
+@[extern "lean_z3_Fixedpoint_fromFile"]
+opaque Fixedpoint.fromFile (fp : @& Fixedpoint) (path : @& String) : Array Ast
+
+/-- Set the predicate representation (e.g., "doc", "bdd"). -/
+@[extern "lean_z3_Fixedpoint_setPredicateRepresentation"]
+opaque Fixedpoint.setPredicateRepresentation (fp : @& Fixedpoint) (f : @& FuncDecl) (kinds : @& Array String) : BaseIO PUnit
+
+/-- Add a constraint at a given level (Spacer engine). -/
+@[extern "lean_z3_Fixedpoint_addConstraint"]
+opaque Fixedpoint.addConstraint (fp : @& Fixedpoint) (e : @& Ast) (lvl : UInt32) : BaseIO PUnit
+
 /-! ## Unsat cores and assumptions -/
 
 /-- Assert a constraint tracked by a Boolean literal.

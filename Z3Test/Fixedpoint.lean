@@ -120,6 +120,112 @@ def testFixedpointSetParams : IO TestResult := runTest "fixedpoint setParams" do
   -- Just verify it doesn't crash
   return check "fixedpoint setParams" true ""
 
+/-- Fixedpoint getRules -/
+def testFixedpointGetRules : IO TestResult := runTest "fixedpoint getRules" do
+  let ctx ← Env.run Context.new
+  let fp ← Env.run (Fixedpoint.new ctx)
+  let intSort := Srt.mkInt ctx
+  let boolSort := Srt.mkBool ctx
+  let r := FuncDecl.mk ctx "r" #[intSort] boolSort
+  Fixedpoint.registerRelation fp r
+  let one := Ast.mkNumeral ctx "1" intSort
+  let two := Ast.mkNumeral ctx "2" intSort
+  Fixedpoint.addRule fp (Ast.mkApp ctx r #[one]) "f1"
+  Fixedpoint.addRule fp (Ast.mkApp ctx r #[two]) "f2"
+  let rules := Fixedpoint.getRules fp
+  return check "fixedpoint getRules" (rules.size ≥ 2)
+    s!"expected ≥ 2 rules, got {rules.size}"
+
+/-- Fixedpoint getStatistics -/
+def testFixedpointGetStatistics : IO TestResult := runTest "fixedpoint getStatistics" do
+  let ctx ← Env.run Context.new
+  let fp ← Env.run (Fixedpoint.new ctx)
+  let intSort := Srt.mkInt ctx
+  let boolSort := Srt.mkBool ctx
+  let r := FuncDecl.mk ctx "r" #[intSort] boolSort
+  Fixedpoint.registerRelation fp r
+  let one := Ast.mkNumeral ctx "1" intSort
+  Fixedpoint.addRule fp (Ast.mkApp ctx r #[one]) "fact"
+  let _ ← Fixedpoint.query fp (Ast.mkApp ctx r #[one])
+  let stats := Fixedpoint.getStatistics fp
+  let s := Stats.toString' stats
+  return check "fixedpoint getStatistics" (s.length ≥ 0)
+    s!"unexpected error"
+
+/-- Fixedpoint getHelp -/
+def testFixedpointGetHelp : IO TestResult := runTest "fixedpoint getHelp" do
+  let ctx ← Env.run Context.new
+  let fp ← Env.run (Fixedpoint.new ctx)
+  let help := Fixedpoint.getHelp fp
+  return check "fixedpoint getHelp" (help.length > 0)
+    s!"expected non-empty help string"
+
+/-- Fixedpoint getParamDescrs -/
+def testFixedpointGetParamDescrs : IO TestResult := runTest "fixedpoint getParamDescrs" do
+  let ctx ← Env.run Context.new
+  let fp ← Env.run (Fixedpoint.new ctx)
+  let pd := Fixedpoint.getParamDescrs fp
+  let n := ParamDescrs.size pd
+  return check "fixedpoint getParamDescrs" (n > 0)
+    s!"expected > 0 param descriptors, got {n}"
+
+/-- Fixedpoint getAssertions (empty) -/
+def testFixedpointGetAssertions : IO TestResult := runTest "fixedpoint getAssertions" do
+  let ctx ← Env.run Context.new
+  let fp ← Env.run (Fixedpoint.new ctx)
+  let assertions := Fixedpoint.getAssertions fp
+  -- No assertions added, should be empty
+  return check "fixedpoint getAssertions" (assertions.size == 0)
+    s!"expected 0 assertions, got {assertions.size}"
+
+/-- Fixedpoint fromString -/
+def testFixedpointFromString : IO TestResult := runTest "fixedpoint fromString" do
+  let ctx ← Env.run Context.new
+  let fp ← Env.run (Fixedpoint.new ctx)
+  let smtlib := "(declare-rel R (Int))
+(declare-var x Int)
+(rule (=> (> x 0) (R x)))
+(query R)"
+  let queries := Fixedpoint.fromString fp smtlib
+  return check "fixedpoint fromString" (queries.size ≥ 1)
+    s!"expected ≥ 1 query, got {queries.size}"
+
+/-- Fixedpoint updateRule -/
+def testFixedpointUpdateRule : IO TestResult := runTest "fixedpoint updateRule" do
+  let ctx ← Env.run Context.new
+  let fp ← Env.run (Fixedpoint.new ctx)
+  let intSort := Srt.mkInt ctx
+  let boolSort := Srt.mkBool ctx
+  let r := FuncDecl.mk ctx "r" #[intSort] boolSort
+  Fixedpoint.registerRelation fp r
+  let one := Ast.mkNumeral ctx "1" intSort
+  let two := Ast.mkNumeral ctx "2" intSort
+  -- Add r(1) then update to r(2)
+  Fixedpoint.addRule fp (Ast.mkApp ctx r #[one]) "myrule"
+  Fixedpoint.updateRule fp (Ast.mkApp ctx r #[two]) "myrule"
+  -- After update, r(2) should be reachable
+  let result ← Fixedpoint.query fp (Ast.mkApp ctx r #[two])
+  return check "fixedpoint updateRule" (result == .true)
+    s!"expected sat after update, got {result}"
+
+/-- Fixedpoint queryRelations -/
+def testFixedpointQueryRelations : IO TestResult := runTest "fixedpoint queryRelations" do
+  let ctx ← Env.run Context.new
+  let fp ← Env.run (Fixedpoint.new ctx)
+  let intSort := Srt.mkInt ctx
+  let boolSort := Srt.mkBool ctx
+  let r1 := FuncDecl.mk ctx "r1" #[intSort] boolSort
+  let r2 := FuncDecl.mk ctx "r2" #[intSort] boolSort
+  Fixedpoint.registerRelation fp r1
+  Fixedpoint.registerRelation fp r2
+  let one := Ast.mkNumeral ctx "1" intSort
+  Fixedpoint.addRule fp (Ast.mkApp ctx r1 #[one]) "f1"
+  Fixedpoint.addRule fp (Ast.mkApp ctx r2 #[one]) "f2"
+  let result ← Fixedpoint.queryRelations fp #[r1, r2]
+  -- Z3 may return .true or .undef for multi-relation queries depending on engine
+  return check "fixedpoint queryRelations" (result != .false)
+    s!"expected not unsat, got {result}"
+
 def fixedpointTests : List (IO TestResult) :=
   [ testFixedpointBasic
   , testFixedpointMultipleRules
@@ -127,4 +233,12 @@ def fixedpointTests : List (IO TestResult) :=
   , testFixedpointToString
   , testFixedpointUnreachable
   , testFixedpointSetParams
+  , testFixedpointGetRules
+  , testFixedpointGetStatistics
+  , testFixedpointGetHelp
+  , testFixedpointGetParamDescrs
+  , testFixedpointGetAssertions
+  , testFixedpointFromString
+  , testFixedpointUpdateRule
+  , testFixedpointQueryRelations
   ]

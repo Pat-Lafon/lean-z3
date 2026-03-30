@@ -46,13 +46,13 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Sort inspection (extended)** — `getArraySortDomain`, `getArraySortDomainN`, `getArraySortRange`, `getDatatypeSortNumConstructors`, `getDatatypeSortConstructor`, `getDatatypeSortRecognizer`, `getDatatypeSortConstructorAccessor`
 - **Solver (extended)** — `mkSimple`, `mkForLogic`, `fromString`, `fromFile`, `getNumScopes`, `interrupt`, `translate`, `getTrail`, `getConsequences`, `getStatistics`
 - **Statistics** — `Stats` opaque type, `size`, `getKey`, `isUInt`, `isDouble`, `getUIntValue`, `getDoubleValue`, `toString`
-- **Fixedpoint (Datalog/CHC)** — `Fixedpoint` opaque type, `new`, `registerRelation`, `addRule`, `assert`, `query`, `getAnswer`, `getReasonUnknown`, `setParams`, `toString`
+- **Fixedpoint (Datalog/CHC)** — `Fixedpoint` opaque type, `new`, `registerRelation`, `addRule`, `addFact`, `assert`, `query`, `queryRelations`, `getAnswer`, `getReasonUnknown`, `updateRule`, `getNumLevels`, `getCoverDelta`, `addCover`, `getStatistics`, `getRules`, `getAssertions`, `getHelp`, `getParamDescrs`, `fromString`, `fromFile`, `setPredicateRepresentation`, `addConstraint`, `setParams`, `toString`
 - **Probes** — `Probe` opaque type, `mk`, `const`, `apply`, comparisons (`lt`, `gt`, `le`, `ge`, `eq`), combinators (`and`, `or`, `not`), `getDescr`, `Context.getNumProbes`, `getProbeName`, tactic integration (`Tactic.when`, `cond`, `failIf`, `failIfNotDecided`)
-- **Test suite** — 271 tests
+- **Test suite** — 279 tests
 
 ### Coverage
 
-401 `@[extern]` bindings covering ~56% of the Z3 C API (433 of 766 functions). Run `./scripts/check-ffi-sync.sh` to verify Lean/C declarations stay in sync, or `--coverage /path/to/z3/include` for a full coverage report.
+416 `@[extern]` bindings covering ~57% of the Z3 C API (448 of 766 functions). Run `./scripts/check-ffi-sync.sh` to verify Lean/C declarations stay in sync, or `--coverage /path/to/z3/include` for a full coverage report.
 
 ### TODO
 
@@ -63,7 +63,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [ ] **FPA numeral inspection** (~15 functions) — extract sign/significand/exponent from FP numerals (`Z3_fpa_get_numeral_sign`, `_significand_string`, `_exponent_int64`, etc.). Exposed by all major bindings.
 - [ ] **Simplifier API** (~7 functions) — new simplifier framework replacing `Z3_simplify`: `Z3_mk_simplifier`, `simplifier_and_then`, `using_params`. Exposed by Python, C++, OCaml, .NET.
 - [ ] **Quantifier elimination** (~4 functions) — `Z3_qe_lite`, `Z3_qe_model_project`. Exposed by z3-rs, C++.
-- [ ] **Fixedpoint extended** (~25 functions) — fill remaining methods on existing `Fixedpoint` type: `from_string`, `from_file`, `get_rules`, `get_statistics`, `get_cover_delta`, `add_cover`, etc.
+- [x] **Fixedpoint extended** (~25 functions) — fill remaining methods on existing `Fixedpoint` type: `from_string`, `from_file`, `get_rules`, `get_statistics`, `get_cover_delta`, `add_cover`, etc.
 - [ ] **Optimize extended** (~13 functions) — fill remaining methods on existing `Optimize` type: `from_string`, `from_file`, `get_objectives`, `get_statistics`, `assert_and_track`, etc.
 
 #### Ergonomics

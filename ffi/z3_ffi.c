@@ -2012,6 +2012,41 @@ LEAN_EXPORT lean_obj_res lean_z3_OnClauseHandle_getClauses(b_lean_obj_arg handle
 }
 
 /*
+ * DeclKind validation: return the actual Z3 C enum value for each DeclKind variant.
+ * Index matches the order in Z3/Types.lean DeclKind inductive.
+ * Returns 0xFFFFFFFF for out-of-range indices.
+ */
+LEAN_EXPORT uint32_t lean_z3_DeclKind_expectedRaw(uint32_t idx) {
+  static const uint32_t table[] = {
+    Z3_OP_TRUE, Z3_OP_FALSE, Z3_OP_EQ, Z3_OP_DISTINCT, Z3_OP_ITE,
+    Z3_OP_AND, Z3_OP_OR, Z3_OP_IFF, Z3_OP_XOR, Z3_OP_NOT, Z3_OP_IMPLIES,
+    Z3_OP_ANUM, Z3_OP_AGNUM,
+    Z3_OP_LE, Z3_OP_GE, Z3_OP_LT, Z3_OP_GT,
+    Z3_OP_ADD, Z3_OP_SUB, Z3_OP_UMINUS, Z3_OP_MUL,
+    Z3_OP_DIV, Z3_OP_IDIV, Z3_OP_REM, Z3_OP_MOD,
+    Z3_OP_TO_REAL, Z3_OP_TO_INT, Z3_OP_IS_INT, Z3_OP_POWER,
+    Z3_OP_STORE, Z3_OP_SELECT, Z3_OP_CONST_ARRAY,
+    Z3_OP_ARRAY_MAP, Z3_OP_ARRAY_DEFAULT,
+    Z3_OP_SET_UNION, Z3_OP_SET_INTERSECT, Z3_OP_SET_DIFFERENCE,
+    Z3_OP_SET_COMPLEMENT, Z3_OP_SET_SUBSET, Z3_OP_AS_ARRAY,
+    Z3_OP_BNUM, Z3_OP_BNEG, Z3_OP_BADD, Z3_OP_BSUB, Z3_OP_BMUL,
+    Z3_OP_BSDIV, Z3_OP_BUDIV, Z3_OP_BSREM, Z3_OP_BUREM, Z3_OP_BSMOD,
+    Z3_OP_BNOT, Z3_OP_BAND, Z3_OP_BOR, Z3_OP_BXOR,
+    Z3_OP_BNAND, Z3_OP_BNOR, Z3_OP_BXNOR,
+    Z3_OP_CONCAT, Z3_OP_SIGN_EXT, Z3_OP_ZERO_EXT,
+    Z3_OP_EXTRACT, Z3_OP_REPEAT, Z3_OP_BREDAND, Z3_OP_BREDOR,
+    Z3_OP_BSHL, Z3_OP_BLSHR, Z3_OP_BASHR,
+    Z3_OP_ROTATE_LEFT, Z3_OP_ROTATE_RIGHT,
+    Z3_OP_ULEQ, Z3_OP_SLEQ, Z3_OP_UGEQ, Z3_OP_SGEQ,
+    Z3_OP_ULT, Z3_OP_SLT, Z3_OP_UGT, Z3_OP_SGT,
+    Z3_OP_BV2INT, Z3_OP_INT2BV,
+    Z3_OP_UNINTERPRETED,
+  };
+  if (idx >= sizeof(table) / sizeof(table[0])) return 0xFFFFFFFF;
+  return table[idx];
+}
+
+/*
  * Clear the collected clause events.
  */
 LEAN_EXPORT lean_obj_res lean_z3_OnClauseHandle_clear(b_lean_obj_arg handle_obj) {

@@ -86,6 +86,207 @@ instance : ToString AstKind where
     | .funcDecl   => "FuncDecl"
     | .unknown    => "Unknown"
 
+/-- Z3 declaration kinds (`Z3_decl_kind`). Identifies the kind of function in a Z3 application node. -/
+inductive DeclKind where
+  | true_
+  | false_
+  | eq
+  | distinct
+  | ite
+  | and
+  | or
+  | iff
+  | xor
+  | not
+  | implies
+  | anum
+  | agnum
+  | le
+  | ge
+  | lt
+  | gt
+  | add
+  | sub
+  | uminus
+  | mul
+  | div
+  | idiv
+  | rem
+  | mod
+  | toReal
+  | toInt
+  | isInt
+  | power
+  | store
+  | select
+  | constArray
+  | map
+  | arrayDefault
+  | asArray
+  | setUnion
+  | setIntersect
+  | setDifference
+  | setComplement
+  | setSubset
+  | bnum
+  | bneg
+  | badd
+  | bsub
+  | bmul
+  | bsdiv
+  | budiv
+  | bsrem
+  | burem
+  | bsmod
+  | bnot
+  | band
+  | bor
+  | bxor
+  | bnand
+  | bnor
+  | bxnor
+  | bconcat
+  | bsignExt
+  | bzeroExt
+  | bextract
+  | brepeat
+  | bredand
+  | bredor
+  | bshl
+  | blshr
+  | bashr
+  | brotateLeft
+  | brotateRight
+  | bule
+  | bsle
+  | buge
+  | bsge
+  | bult
+  | bslt
+  | bugt
+  | bsgt
+  | bv2int
+  | int2bv
+  | uninterpreted
+  | other (raw : UInt32)
+deriving Inhabited, Repr, BEq
+
+/-- Convert a raw `UInt32` Z3_decl_kind to `DeclKind`. -/
+def DeclKind.ofRaw : UInt32 → DeclKind
+  | 0x100 => .true_    | 0x101 => .false_  | 0x102 => .eq       | 0x103 => .distinct
+  | 0x104 => .ite      | 0x105 => .and     | 0x106 => .or       | 0x107 => .iff
+  | 0x108 => .xor      | 0x109 => .not     | 0x10a => .implies
+  | 0x200 => .anum     | 0x201 => .agnum
+  | 0x202 => .le       | 0x203 => .ge      | 0x204 => .lt       | 0x205 => .gt
+  | 0x206 => .add      | 0x207 => .sub     | 0x208 => .uminus   | 0x209 => .mul
+  | 0x20a => .div      | 0x20b => .idiv    | 0x20c => .rem      | 0x20d => .mod
+  | 0x20e => .toReal   | 0x20f => .toInt   | 0x210 => .isInt    | 0x211 => .power
+  | 0x300 => .store    | 0x301 => .select  | 0x302 => .constArray
+  | 0x303 => .map      | 0x304 => .arrayDefault
+  | 0x305 => .setUnion | 0x306 => .setIntersect | 0x307 => .setDifference
+  | 0x308 => .setComplement | 0x309 => .setSubset | 0x30a => .asArray
+  | 0x400 => .bnum     | 0x403 => .bneg    | 0x404 => .badd     | 0x405 => .bsub
+  | 0x406 => .bmul     | 0x407 => .bsdiv   | 0x408 => .budiv    | 0x409 => .bsrem
+  | 0x40a => .burem    | 0x40b => .bsmod
+  | 0x411 => .bule     | 0x412 => .bsle    | 0x413 => .buge     | 0x414 => .bsge
+  | 0x415 => .bult     | 0x416 => .bslt    | 0x417 => .bugt     | 0x418 => .bsgt
+  | 0x419 => .band     | 0x41a => .bor     | 0x41b => .bnot     | 0x41c => .bxor
+  | 0x41d => .bnand    | 0x41e => .bnor    | 0x41f => .bxnor
+  | 0x420 => .bconcat  | 0x421 => .bsignExt | 0x422 => .bzeroExt
+  | 0x423 => .bextract | 0x424 => .brepeat | 0x425 => .bredor   | 0x426 => .bredand
+  | 0x428 => .bshl     | 0x429 => .blshr   | 0x42a => .bashr
+  | 0x42b => .brotateLeft | 0x42c => .brotateRight
+  | 0x430 => .int2bv   | 0x431 => .bv2int
+  | 0xb02e => .uninterpreted
+  | r     => .other r
+
+/-- Convert `DeclKind` back to a raw `UInt32`. -/
+def DeclKind.toRaw : DeclKind → UInt32
+  | .true_  => 0x100 | .false_ => 0x101 | .eq      => 0x102 | .distinct => 0x103
+  | .ite    => 0x104 | .and    => 0x105 | .or      => 0x106 | .iff      => 0x107
+  | .xor    => 0x108 | .not    => 0x109 | .implies => 0x10a
+  | .anum   => 0x200 | .agnum  => 0x201
+  | .le     => 0x202 | .ge     => 0x203 | .lt      => 0x204 | .gt       => 0x205
+  | .add    => 0x206 | .sub    => 0x207 | .uminus  => 0x208 | .mul      => 0x209
+  | .div    => 0x20a | .idiv   => 0x20b | .rem     => 0x20c | .mod      => 0x20d
+  | .toReal => 0x20e | .toInt  => 0x20f | .isInt   => 0x210 | .power    => 0x211
+  | .store  => 0x300 | .select => 0x301 | .constArray => 0x302
+  | .map    => 0x303 | .arrayDefault => 0x304
+  | .setUnion => 0x305 | .setIntersect => 0x306 | .setDifference => 0x307
+  | .setComplement => 0x308 | .setSubset => 0x309 | .asArray => 0x30a
+  | .bnum   => 0x400 | .bneg   => 0x403 | .badd    => 0x404 | .bsub     => 0x405
+  | .bmul   => 0x406 | .bsdiv  => 0x407 | .budiv   => 0x408 | .bsrem    => 0x409
+  | .burem  => 0x40a | .bsmod  => 0x40b
+  | .bule   => 0x411 | .bsle   => 0x412 | .buge    => 0x413 | .bsge     => 0x414
+  | .bult   => 0x415 | .bslt   => 0x416 | .bugt    => 0x417 | .bsgt     => 0x418
+  | .band   => 0x419 | .bor    => 0x41a | .bnot    => 0x41b | .bxor     => 0x41c
+  | .bnand  => 0x41d | .bnor   => 0x41e | .bxnor   => 0x41f
+  | .bconcat => 0x420 | .bsignExt => 0x421 | .bzeroExt => 0x422
+  | .bextract => 0x423 | .brepeat => 0x424 | .bredor => 0x425 | .bredand => 0x426
+  | .bshl   => 0x428 | .blshr  => 0x429 | .bashr   => 0x42a
+  | .brotateLeft => 0x42b | .brotateRight => 0x42c
+  | .int2bv => 0x430 | .bv2int => 0x431
+  | .uninterpreted => 0xb02e
+  | .other r => r
+
+instance : ToString DeclKind where
+  toString
+    | .true_    => "True"     | .false_   => "False"     | .eq       => "Eq"
+    | .distinct => "Distinct" | .ite      => "ITE"       | .and      => "And"
+    | .or       => "Or"       | .iff      => "Iff"       | .xor      => "Xor"
+    | .not      => "Not"      | .implies  => "Implies"
+    | .anum     => "ANum"     | .agnum    => "AGNum"
+    | .le       => "LE"       | .ge       => "GE"        | .lt       => "LT"
+    | .gt       => "GT"       | .add      => "Add"       | .sub      => "Sub"
+    | .uminus   => "UMinus"   | .mul      => "Mul"       | .div      => "Div"
+    | .idiv     => "IDiv"     | .rem      => "Rem"       | .mod      => "Mod"
+    | .toReal   => "ToReal"   | .toInt    => "ToInt"     | .isInt    => "IsInt"
+    | .power    => "Power"
+    | .store    => "Store"    | .select   => "Select"    | .constArray => "ConstArray"
+    | .map      => "Map"      | .arrayDefault => "ArrayDefault" | .asArray => "AsArray"
+    | .setUnion => "SetUnion" | .setIntersect => "SetIntersect"
+    | .setDifference => "SetDifference"
+    | .setComplement => "SetComplement" | .setSubset => "SetSubset"
+    | .bnum     => "BNum"     | .bneg     => "BNeg"      | .badd     => "BAdd"
+    | .bsub     => "BSub"     | .bmul     => "BMul"      | .bsdiv    => "BSDiv"
+    | .budiv    => "BUDiv"    | .bsrem    => "BSRem"     | .burem    => "BURem"
+    | .bsmod    => "BSMod"
+    | .bnot     => "BNot"     | .band     => "BAnd"      | .bor      => "BOr"
+    | .bxor     => "BXor"     | .bnand    => "BNand"     | .bnor     => "BNor"
+    | .bxnor    => "BXnor"
+    | .bconcat  => "BConcat"  | .bsignExt => "BSignExt"  | .bzeroExt => "BZeroExt"
+    | .bextract => "BExtract" | .brepeat  => "BRepeat"   | .bredand  => "BRedAnd"
+    | .bredor   => "BRedOr"
+    | .bshl     => "BShl"     | .blshr    => "BLshr"     | .bashr    => "BAshr"
+    | .brotateLeft => "BRotateLeft" | .brotateRight => "BRotateRight"
+    | .bule     => "BUle"     | .bsle     => "BSle"      | .buge     => "BUge"
+    | .bsge     => "BSge"     | .bult     => "BUlt"      | .bslt     => "BSlt"
+    | .bugt     => "BUgt"     | .bsgt     => "BSgt"
+    | .bv2int   => "BV2Int"   | .int2bv   => "Int2BV"
+    | .uninterpreted => "Uninterpreted"
+    | .other r  => s!"Other({r})"
+
+/-- All known DeclKind variants (excluding `other`), in declaration order.
+    Must match the index order used by `DeclKind.expectedRaw` in C. -/
+def DeclKind.allKnown : Array DeclKind :=
+  #[ .true_, .false_, .eq, .distinct, .ite
+   , .and, .or, .iff, .xor, .not, .implies
+   , .anum, .agnum
+   , .le, .ge, .lt, .gt, .add, .sub, .uminus, .mul
+   , .div, .idiv, .rem, .mod, .toReal, .toInt, .isInt, .power
+   , .store, .select, .constArray
+   , .map, .arrayDefault
+   , .setUnion, .setIntersect, .setDifference, .setComplement, .setSubset, .asArray
+   , .bnum, .bneg, .badd, .bsub, .bmul
+   , .bsdiv, .budiv, .bsrem, .burem, .bsmod
+   , .bnot, .band, .bor, .bxor, .bnand, .bnor, .bxnor
+   , .bconcat, .bsignExt, .bzeroExt, .bextract, .brepeat, .bredand, .bredor
+   , .bshl, .blshr, .bashr, .brotateLeft, .brotateRight
+   , .bule, .bsle, .buge, .bsge, .bult, .bslt, .bugt, .bsgt
+   , .bv2int, .int2bv
+   , .uninterpreted
+   ]
+
 /-- Z3 proof rules (`Z3_OP_PR_*`). Used to identify proof steps in proof trees. -/
 inductive ProofRule where
   | undef

@@ -629,6 +629,15 @@ opaque Context.simplifyGetParamDescrs (ctx : @& Context) : BaseIO ParamDescrs
 @[extern "lean_z3_FuncDecl_getDeclKindRaw"]
 opaque FuncDecl.getDeclKindRaw (fd : @& FuncDecl) : UInt32
 
+/-- Get the declaration kind as a typed `DeclKind`. -/
+def FuncDecl.getDeclKind (fd : @& FuncDecl) : DeclKind :=
+  DeclKind.ofRaw (FuncDecl.getDeclKindRaw fd)
+
+/-- Return the actual Z3 C enum value for DeclKind variant at the given index.
+    Used by tests to validate that our Lean `toRaw` values match the Z3 header. -/
+@[extern "lean_z3_DeclKind_expectedRaw"]
+opaque DeclKind.expectedRaw (idx : UInt32) : UInt32
+
 /-- Get the name of a function declaration. -/
 @[extern "lean_z3_FuncDecl_getName"]
 opaque FuncDecl.getName (fd : @& FuncDecl) : String

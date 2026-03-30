@@ -451,6 +451,51 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_ge(b_lean_obj_arg ctx, b_lean_obj_arg a, b_
   return z3_wrap_ast(ctx, c->ctx, Z3_mk_ge(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
 }
 
+LEAN_EXPORT lean_obj_res lean_z3_Ast_div(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_div(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mod(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_mod(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_rem(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_rem(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_power(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg b) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_power(c->ctx, to_Ast(a)->ast, to_Ast(b)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_abs(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_abs(c->ctx, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_unaryMinus(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_unary_minus(c->ctx, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_int2real(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_int2real(c->ctx, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_real2int(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_real2int(c->ctx, to_Ast(a)->ast));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_isInt(b_lean_obj_arg ctx, b_lean_obj_arg a) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_is_int(c->ctx, to_Ast(a)->ast));
+}
+
 LEAN_EXPORT lean_obj_res lean_z3_Ast_distinct(b_lean_obj_arg ctx, b_lean_obj_arg args) {
   Z3Ctx *c = to_Context(ctx);
   unsigned n = lean_array_size(args);

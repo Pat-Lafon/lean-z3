@@ -183,6 +183,42 @@ opaque Ast.gt (ctx : @& Context) (a b : @& Ast) : Ast
 @[extern "lean_z3_Ast_ge"]
 opaque Ast.ge (ctx : @& Context) (a b : @& Ast) : Ast
 
+/-- Integer/real division. -/
+@[extern "lean_z3_Ast_div"]
+opaque Ast.div (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Integer modulus (Euclidean). -/
+@[extern "lean_z3_Ast_mod"]
+opaque Ast.mod (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Integer remainder (Euclidean, always non-negative). -/
+@[extern "lean_z3_Ast_rem"]
+opaque Ast.rem (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Exponentiation. -/
+@[extern "lean_z3_Ast_power"]
+opaque Ast.power (ctx : @& Context) (a b : @& Ast) : Ast
+
+/-- Absolute value. -/
+@[extern "lean_z3_Ast_abs"]
+opaque Ast.abs (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Unary negation. -/
+@[extern "lean_z3_Ast_unaryMinus"]
+opaque Ast.unaryMinus (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Coerce an integer to a real. -/
+@[extern "lean_z3_Ast_int2real"]
+opaque Ast.int2real (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Floor: coerce a real to an integer (rounds toward negative infinity). -/
+@[extern "lean_z3_Ast_real2int"]
+opaque Ast.real2int (ctx : @& Context) (a : @& Ast) : Ast
+
+/-- Test whether a real value is an integer. -/
+@[extern "lean_z3_Ast_isInt"]
+opaque Ast.isInt (ctx : @& Context) (a : @& Ast) : Ast
+
 /-- Distinct — all arguments are pairwise different. -/
 @[extern "lean_z3_Ast_distinct"]
 opaque Ast.distinct (ctx : @& Context) (args : @& Array Ast) : Ast

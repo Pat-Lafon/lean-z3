@@ -2370,6 +2370,43 @@ LEAN_EXPORT lean_obj_res lean_z3_Srt_mkDatatypes(b_lean_obj_arg ctx,
   return z3_env_val(result_arr);
 }
 
+/* ── Sort inspection (extended) ───────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_getArraySortDomain(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_get_array_sort_domain(c->ctx, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_getArraySortDomainN(b_lean_obj_arg ctx, b_lean_obj_arg s, uint32_t idx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_get_array_sort_domain_n(c->ctx, to_Srt(s)->sort, idx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_getArraySortRange(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_get_array_sort_range(c->ctx, to_Srt(s)->sort));
+}
+
+LEAN_EXPORT uint32_t lean_z3_Srt_getDatatypeSortNumConstructors(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  return Z3_get_datatype_sort_num_constructors(c->ctx, to_Srt(s)->sort);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_getDatatypeSortConstructor(b_lean_obj_arg ctx, b_lean_obj_arg s, uint32_t idx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_func_decl(ctx, c->ctx, Z3_get_datatype_sort_constructor(c->ctx, to_Srt(s)->sort, idx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_getDatatypeSortRecognizer(b_lean_obj_arg ctx, b_lean_obj_arg s, uint32_t idx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_func_decl(ctx, c->ctx, Z3_get_datatype_sort_recognizer(c->ctx, to_Srt(s)->sort, idx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_getDatatypeSortConstructorAccessor(b_lean_obj_arg ctx, b_lean_obj_arg s, uint32_t idxC, uint32_t idxA) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_func_decl(ctx, c->ctx, Z3_get_datatype_sort_constructor_accessor(c->ctx, to_Srt(s)->sort, idxC, idxA));
+}
+
 /* ── Sets ─────────────────────────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Srt_mkSet(b_lean_obj_arg ctx, b_lean_obj_arg ty) {

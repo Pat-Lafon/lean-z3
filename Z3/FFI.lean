@@ -1438,6 +1438,37 @@ opaque Srt.mkDatatypes (ctx : @& Context)
     (constructorGroups : @& Array (Array Constructor))
     : Env (Array Srt)
 
+/-! ## Sort inspection (extended) -/
+
+/-- Get the domain sort of an array sort. -/
+@[extern "lean_z3_Srt_getArraySortDomain"]
+opaque Srt.getArraySortDomain (ctx : @& Context) (s : @& Srt) : Srt
+
+/-- Get the domain sort at index `idx` for a multi-dimensional array sort. -/
+@[extern "lean_z3_Srt_getArraySortDomainN"]
+opaque Srt.getArraySortDomainN (ctx : @& Context) (s : @& Srt) (idx : UInt32) : Srt
+
+/-- Get the range sort of an array sort. -/
+@[extern "lean_z3_Srt_getArraySortRange"]
+opaque Srt.getArraySortRange (ctx : @& Context) (s : @& Srt) : Srt
+
+/-- Get the number of constructors of a datatype sort. -/
+@[extern "lean_z3_Srt_getDatatypeSortNumConstructors"]
+opaque Srt.getDatatypeSortNumConstructors (ctx : @& Context) (s : @& Srt) : UInt32
+
+/-- Get the constructor at index `idx` of a datatype sort. -/
+@[extern "lean_z3_Srt_getDatatypeSortConstructor"]
+opaque Srt.getDatatypeSortConstructor (ctx : @& Context) (s : @& Srt) (idx : UInt32) : FuncDecl
+
+/-- Get the recognizer (tester) at index `idx` of a datatype sort. -/
+@[extern "lean_z3_Srt_getDatatypeSortRecognizer"]
+opaque Srt.getDatatypeSortRecognizer (ctx : @& Context) (s : @& Srt) (idx : UInt32) : FuncDecl
+
+/-- Get the accessor at constructor index `idxC`, accessor index `idxA` of a datatype sort. -/
+@[extern "lean_z3_Srt_getDatatypeSortConstructorAccessor"]
+opaque Srt.getDatatypeSortConstructorAccessor (ctx : @& Context) (s : @& Srt)
+    (idxC idxA : UInt32) : FuncDecl
+
 /-! ## Sets -/
 
 /-- Create a set sort over element sort `ty`. -/

@@ -43,7 +43,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Floating point** — `Srt.mkFpa`, `mkFpa32`, `mkFpa64`, `mkFpa16`, `mkFpa128`, `mkFpaRoundingMode`, rounding modes (`mkFpaRne/Rna/Rtp/Rtn/Rtz`), special values (`mkFpaNan/Inf/Zero`), numerals (`mkFpaNumeralDouble/Int`), arithmetic (`mkFpaAdd/Sub/Mul/Div/Fma/Sqrt/Rem/Abs/Neg/Min/Max`), comparisons (`mkFpaLt/Leq/Gt/Geq/Eq`), classification (`mkFpaIsNan/Inf/Zero/Normal/Subnormal/Negative/Positive`), rounding (`mkFpaRoundToIntegral`), conversions (`mkFpaToFpBv/Float/Real/Signed/Unsigned`, `mkFpaToUbv/Sbv/Real/IeeeBv`)
 - **Sets** — `Srt.mkSet`, `mkEmptySet`, `mkFullSet`, `mkSetAdd`, `mkSetDel`, `mkSetUnion`, `mkSetIntersect`, `mkSetDifference`, `mkSetComplement`, `mkSetMember`, `mkSetSubset`
 - **Additional sorts** — `Srt.mkFiniteDomain`, `mkChar`, `mkEnumeration`, `mkList`, `mkTuple`, `mkDatatypes` (mutually recursive)
-- **Test suite** — 239 tests
+- **Sort inspection (extended)** — `getArraySortDomain`, `getArraySortDomainN`, `getArraySortRange`, `getDatatypeSortNumConstructors`, `getDatatypeSortConstructor`, `getDatatypeSortRecognizer`, `getDatatypeSortConstructorAccessor`
+- **Test suite** — 245 tests
 
 ### Unbound — Coverage Gaps
 
@@ -144,8 +145,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_datatypes` — mutually recursive datatypes
 
 #### Sort inspection (extended)
-- [ ] `Z3_get_array_sort_domain` / `Z3_get_array_sort_range`
-- [ ] `Z3_get_datatype_sort_*` — datatype sort inspection
+- [x] `Z3_get_array_sort_domain` / `Z3_get_array_sort_range`
+- [x] `Z3_get_datatype_sort_*` — datatype sort inspection
 
 #### Model (extended)
 - [x] `Z3_model_get_num_funcs` / `Z3_model_get_func_decl` / `Z3_model_get_func_interp`

@@ -22,14 +22,15 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Datatypes** — `Constructor.mk`, `Srt.mkDatatype`, `Constructor.query`
 - **Term inspection** — `getSort`, `getAstKind`, `getNumArgs`, `getArg`, `getFuncDecl`, `getNumeralString`, `getVarIndex`, `toString`
 - **Quantifier inspection** — `isQuantifierForall`, `isQuantifierExists`, `getQuantifierBody`, `getQuantifierNumBound`, `getQuantifierBoundName`, `getQuantifierBoundSort`
-- **FuncDecl** — `getDeclKindRaw`, `getName`, `toString`
+- **Uninterpreted functions** — `FuncDecl.mk`, `Ast.mkApp`, `Ast.mkFreshConst`, `FuncDecl.mkFresh`
+- **FuncDecl** — `getDeclKindRaw`, `getName`, `getArity`, `getDomain`, `getRange`, `toString`
 - **Params** — `new`, `setBool`, `setUInt`
 - **Solver** — `new`, `setParams`, `assert`, `assertAndTrack`, `push`, `pop`, `reset`, `checkSat`, `checkAssumptions`, `getReasonUnknown`, `getProof`, `getUnsatCore`, `getAssertions`, `registerOnClause`, `toString`
 - **Model** — `eval`, `getNumConsts`, `getConstDecl`, `getConstInterp`, `toString`
 - **SMT-LIB parsing** — `parseSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 75 tests
+- **Test suite** — 83 tests
 
 ### Unbound — Coverage Gaps
 
@@ -44,11 +45,11 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_real2int` — real to integer (floor)
 - [x] `Z3_mk_is_int` — test if real value is an integer
 
-#### Uninterpreted functions (high priority)
-- [ ] `Z3_mk_func_decl` — declare uninterpreted function
-- [ ] `Z3_mk_app` — apply function declaration to arguments
-- [ ] `Z3_mk_fresh_const` — fresh constant with prefix
-- [ ] `Z3_mk_fresh_func_decl` — fresh function decl with prefix
+#### Uninterpreted functions
+- [x] `Z3_mk_func_decl` — declare uninterpreted function
+- [x] `Z3_mk_app` — apply function declaration to arguments
+- [x] `Z3_mk_fresh_const` — fresh constant with prefix
+- [x] `Z3_mk_fresh_func_decl` — fresh function decl with prefix
 - [ ] `Z3_mk_rec_func_decl` / `Z3_add_rec_def` — recursive functions
 
 #### Bool / propositional (high priority)
@@ -75,7 +76,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [ ] `Z3_translate` — translate AST across contexts
 
 #### Function declaration inspection
-- [ ] `Z3_get_arity` / `Z3_get_domain_size` / `Z3_get_domain` / `Z3_get_range` — signature inspection
+- [x] `Z3_get_arity` / `Z3_get_domain_size` / `Z3_get_domain` / `Z3_get_range` — signature inspection
 
 #### Pseudo-boolean constraints
 - [ ] `Z3_mk_atmost` / `Z3_mk_atleast` — cardinality constraints

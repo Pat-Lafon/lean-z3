@@ -480,6 +480,41 @@ opaque FuncDecl.toString' (fd : @& FuncDecl) : String
 
 instance : ToString FuncDecl := ⟨fun fd => FuncDecl.toString' fd⟩
 
+/-! ## FuncDecl inspection -/
+
+/-- Get the arity (number of domain sorts) of a function declaration. -/
+@[extern "lean_z3_FuncDecl_getArity"]
+opaque FuncDecl.getArity (fd : @& FuncDecl) : UInt32
+
+/-- Get the i-th domain sort of a function declaration. -/
+@[extern "lean_z3_FuncDecl_getDomain"]
+opaque FuncDecl.getDomain (fd : @& FuncDecl) (i : UInt32) : Srt
+
+/-- Get the range (return) sort of a function declaration. -/
+@[extern "lean_z3_FuncDecl_getRange"]
+opaque FuncDecl.getRange (fd : @& FuncDecl) : Srt
+
+/-! ## Uninterpreted functions -/
+
+/-- Declare an uninterpreted function with the given name, domain sorts, and range sort.
+For constants (arity 0), pass an empty domain array. -/
+@[extern "lean_z3_FuncDecl_mk"]
+opaque FuncDecl.mk (ctx : @& Context) (name : @& String)
+    (domain : @& Array Srt) (range : @& Srt) : FuncDecl
+
+/-- Apply a function declaration to arguments. For constants (arity 0), pass an empty array. -/
+@[extern "lean_z3_Ast_mkApp"]
+opaque Ast.mkApp (ctx : @& Context) (fd : @& FuncDecl) (args : @& Array Ast) : Ast
+
+/-- Create a fresh constant with a unique name based on the given prefix. -/
+@[extern "lean_z3_Ast_mkFreshConst"]
+opaque Ast.mkFreshConst (ctx : @& Context) (pfx : @& String) (sort : @& Srt) : BaseIO Ast
+
+/-- Declare a fresh uninterpreted function with a unique name based on the given prefix. -/
+@[extern "lean_z3_FuncDecl_mkFresh"]
+opaque FuncDecl.mkFresh (ctx : @& Context) (pfx : @& String)
+    (domain : @& Array Srt) (range : @& Srt) : BaseIO FuncDecl
+
 /-! ## Params operations -/
 
 /-- Create a new empty parameter set. -/

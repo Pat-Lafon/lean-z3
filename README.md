@@ -24,13 +24,14 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Quantifier inspection** — `isQuantifierForall`, `isQuantifierExists`, `getQuantifierBody`, `getQuantifierNumBound`, `getQuantifierBoundName`, `getQuantifierBoundSort`
 - **Uninterpreted functions** — `FuncDecl.mk`, `Ast.mkApp`, `Ast.mkFreshConst`, `FuncDecl.mkFresh`
 - **FuncDecl** — `getDeclKindRaw`, `getName`, `getArity`, `getDomain`, `getRange`, `toString`
-- **Params** — `new`, `setBool`, `setUInt`, `setDouble`, `setSymbol`, `toString`
+- **Params** — `new`, `setBool`, `setUInt`, `setDouble`, `setSymbol`, `validate`, `toString`
+- **ParamDescrs** — `size`, `getName`, `getKindRaw`, `getDocumentation`, `toString`; obtained via `Solver.getParamDescrs`, `Context.getGlobalParamDescrs`
 - **Solver** — `new`, `setParams`, `assert`, `assertAndTrack`, `push`, `pop`, `reset`, `checkSat`, `checkAssumptions`, `getReasonUnknown`, `getProof`, `getUnsatCore`, `getAssertions`, `registerOnClause`, `toString`
 - **Model** — `eval`, `getNumConsts`, `getConstDecl`, `getConstInterp`, `toString`
 - **SMT-LIB parsing** — `parseSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 110 tests
+- **Test suite** — 115 tests
 
 ### Unbound — Coverage Gaps
 
@@ -158,7 +159,9 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 #### Params (extended)
 - [x] `Z3_params_set_double` / `Z3_params_set_symbol`
 - [x] `Z3_params_to_string` — string representation
-- [ ] `Z3_params_validate` — validate params against param descriptors (requires `Z3_param_descrs` type)
+- [x] `Z3_params_validate` — validate params against param descriptors
+- [x] `Z3_param_descrs_*` — full param descriptors API (`size`, `get_name`, `get_kind`, `get_documentation`, `to_string`)
+- [x] `Z3_solver_get_param_descrs` / `Z3_get_global_param_descrs` — obtain param descriptors
 
 #### Fixedpoint (Datalog/CHC)
 - [ ] `Z3_mk_fixedpoint` / `Z3_fixedpoint_add_rule` / `Z3_fixedpoint_query`

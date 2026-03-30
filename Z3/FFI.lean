@@ -29,6 +29,11 @@ opaque Params.Pointed : NonemptyType
 def Params : Type := Params.Pointed.type
 instance : Nonempty Params := Params.Pointed.property
 
+/-- Z3 parameter descriptions (`Z3_param_descrs`). -/
+opaque ParamDescrs.Pointed : NonemptyType
+def ParamDescrs : Type := ParamDescrs.Pointed.type
+instance : Nonempty ParamDescrs := ParamDescrs.Pointed.property
+
 /-- A Z3 solver (`Z3_solver`). -/
 opaque Solver.Pointed : NonemptyType
 def Solver : Type := Solver.Pointed.type
@@ -612,6 +617,43 @@ opaque Params.setSymbol (p : @& Params) (name : @& String) (val : @& String) : B
 opaque Params.toString' (p : @& Params) : String
 
 instance : ToString Params := ⟨fun p => Params.toString' p⟩
+
+/-- Validate params against a parameter description set. -/
+@[extern "lean_z3_Params_validate"]
+opaque Params.validate (p : @& Params) (d : @& ParamDescrs) : BaseIO PUnit
+
+/-! ## ParamDescrs operations -/
+
+/-- Get the solver's parameter descriptions. -/
+@[extern "lean_z3_Solver_getParamDescrs"]
+opaque Solver.getParamDescrs (ctx : @& Context) (s : @& Solver) : BaseIO ParamDescrs
+
+/-- Get global parameter descriptions. -/
+@[extern "lean_z3_Context_getGlobalParamDescrs"]
+opaque Context.getGlobalParamDescrs (ctx : @& Context) : BaseIO ParamDescrs
+
+/-- Get the number of parameters in the description set. -/
+@[extern "lean_z3_ParamDescrs_size"]
+opaque ParamDescrs.size (d : @& ParamDescrs) : UInt32
+
+/-- Get the name of the parameter at index `i`. -/
+@[extern "lean_z3_ParamDescrs_getName"]
+opaque ParamDescrs.getName (d : @& ParamDescrs) (i : UInt32) : String
+
+/-- Get the kind of a named parameter as a raw `UInt32`.
+  Values: 0=uint, 1=bool, 2=double, 3=symbol, 4=string, 5=other, 6=invalid. -/
+@[extern "lean_z3_ParamDescrs_getKind"]
+opaque ParamDescrs.getKindRaw (d : @& ParamDescrs) (name : @& String) : UInt32
+
+/-- Get the documentation string for a named parameter. -/
+@[extern "lean_z3_ParamDescrs_getDocumentation"]
+opaque ParamDescrs.getDocumentation (d : @& ParamDescrs) (name : @& String) : String
+
+/-- Get a string representation of the parameter description set. -/
+@[extern "lean_z3_ParamDescrs_toString"]
+opaque ParamDescrs.toString' (d : @& ParamDescrs) : String
+
+instance : ToString ParamDescrs := ⟨fun d => ParamDescrs.toString' d⟩
 
 /-! ## Solver operations -/
 

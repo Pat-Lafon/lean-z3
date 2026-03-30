@@ -66,6 +66,12 @@ typedef struct {
   Z3_constructor constructor;
 } Z3ConstructorWrapper;
 
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
+  Z3_param_descrs param_descrs;
+} Z3ParamDescrsWrapper;
+
 /* ── On-clause collector ─────────────────────────────────────────────────── */
 
 typedef struct {

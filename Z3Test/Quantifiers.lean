@@ -158,6 +158,55 @@ def testForallConstMultiVar : IO TestResult := runTest "forallConst multi-var" d
   return check "forallConst multi-var" (result == .false)
     s!"expected unsat, got {result}"
 
+/-- ParamDescrs from solver: size > 0 and can enumerate names -/
+def testParamDescrs : IO TestResult := runTest "ParamDescrs (solver)" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let descrs ← ParamDescrs.size <$> Solver.getParamDescrs ctx solver
+  return check "ParamDescrs (solver)" (descrs > 0)
+    s!"expected param descrs size > 0, got {descrs}"
+
+/-- ParamDescrs.getName and getKindRaw -/
+def testParamDescrsInspection : IO TestResult := runTest "ParamDescrs inspection" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let pd ← Solver.getParamDescrs ctx solver
+  let sz := ParamDescrs.size pd
+  if sz == 0 then
+    return check "ParamDescrs inspection" false "no parameters"
+  let name := ParamDescrs.getName pd 0
+  let kind := ParamDescrs.getKindRaw pd name
+  -- kind should be a valid Z3_param_kind (0-6)
+  return check "ParamDescrs inspection" (name.length > 0 && kind <= 6)
+    s!"name={name}, kind={kind}"
+
+/-- ParamDescrs.toString -/
+def testParamDescrsToString : IO TestResult := runTest "ParamDescrs toString" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let pd ← Solver.getParamDescrs ctx solver
+  let s := toString pd
+  return check "ParamDescrs toString" (s.length > 0)
+    s!"expected non-empty string"
+
+/-- Global param descrs -/
+def testGlobalParamDescrs : IO TestResult := runTest "global ParamDescrs" do
+  let ctx ← Env.run Context.new
+  let pd ← Context.getGlobalParamDescrs ctx
+  let sz := ParamDescrs.size pd
+  return check "global ParamDescrs" (sz > 0)
+    s!"expected global param descrs size > 0, got {sz}"
+
+/-- Params.validate against solver param descrs -/
+def testParamsValidate : IO TestResult := runTest "Params.validate" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let pd ← Solver.getParamDescrs ctx solver
+  let params ← Params.new ctx
+  Params.setUInt params "timeout" 1000
+  Params.validate params pd
+  return check "Params.validate" true
+
 def quantifierTests : List (IO TestResult) :=
   [ testForallConst
   , testExistsConst
@@ -170,4 +219,9 @@ def quantifierTests : List (IO TestResult) :=
   , testParamsSetSymbol
   , testParamsToString
   , testForallConstMultiVar
+  , testParamDescrs
+  , testParamDescrsInspection
+  , testParamDescrsToString
+  , testGlobalParamDescrs
+  , testParamsValidate
   ]

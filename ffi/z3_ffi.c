@@ -29,6 +29,7 @@ static lean_external_class *g_Params_class  = NULL;
 static lean_external_class *g_Solver_class  = NULL;
 static lean_external_class *g_Model_class   = NULL;
 static lean_external_class *g_Constructor_class = NULL;
+static lean_external_class *g_ParamDescrs_class = NULL;
 static lean_external_class *g_OnClauseHandle_class = NULL;
 
 /* ── Finalizers ─────────────────────────────────────────────────────────── */
@@ -88,6 +89,12 @@ static void Constructor_finalize(void *p) {
   free(c);
 }
 
+static void ParamDescrs_finalize(void *p) {
+  Z3ParamDescrsWrapper *w = (Z3ParamDescrsWrapper *)p;
+  Z3_param_descrs_dec_ref(w->ctx, w->param_descrs);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
 static void OnClauseHandle_finalize(void *p) {
   Z3OnClauseHandleData *h = (Z3OnClauseHandleData *)p;
   lean_dec(h->events);
@@ -137,6 +144,9 @@ static inline lean_external_class *get_Model_class(void) {
 static inline lean_external_class *get_Constructor_class(void) {
   return ensure_class(&g_Constructor_class, Constructor_finalize, noop_foreach);
 }
+static inline lean_external_class *get_ParamDescrs_class(void) {
+  return ensure_class(&g_ParamDescrs_class, ParamDescrs_finalize, noop_foreach);
+}
 static inline lean_external_class *get_OnClauseHandle_class(void) {
   return ensure_class(&g_OnClauseHandle_class, OnClauseHandle_finalize, noop_foreach);
 }
@@ -167,6 +177,9 @@ static inline Z3ModelWrapper *to_Model(b_lean_obj_arg o) {
 static inline Z3ConstructorWrapper *to_Constructor(b_lean_obj_arg o) {
   return (Z3ConstructorWrapper *)lean_get_external_data(o);
 }
+static inline Z3ParamDescrsWrapper *to_ParamDescrs(b_lean_obj_arg o) {
+  return (Z3ParamDescrsWrapper *)lean_get_external_data(o);
+}
 static inline Z3OnClauseHandleData *to_OnClauseHandle(b_lean_obj_arg o) {
   return (Z3OnClauseHandleData *)lean_get_external_data(o);
 }
@@ -194,6 +207,9 @@ static inline lean_obj_res mk_Model(Z3ModelWrapper *p) {
 }
 static inline lean_obj_res mk_Constructor(Z3ConstructorWrapper *p) {
   return lean_alloc_external(get_Constructor_class(), p);
+}
+static inline lean_obj_res mk_ParamDescrs(Z3ParamDescrsWrapper *p) {
+  return lean_alloc_external(get_ParamDescrs_class(), p);
 }
 static inline lean_obj_res mk_OnClauseHandle(Z3OnClauseHandleData *p) {
   return lean_alloc_external(get_OnClauseHandle_class(), p);
@@ -1537,6 +1553,75 @@ LEAN_EXPORT lean_obj_res lean_z3_Params_toString(b_lean_obj_arg p) {
   Z3ParamsWrapper *w = to_Params(p);
   const char *s = Z3_params_to_string(w->ctx, w->params);
   if (s == NULL) { lean_internal_panic("Z3_params_to_string returned NULL"); }
+  return lean_mk_string(s);
+}
+
+/* ── ParamDescrs operations ────────────────────────────────────────────── */
+
+static inline lean_obj_res z3_wrap_param_descrs(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_param_descrs pd) {
+  Z3_param_descrs_inc_ref(raw_ctx, pd);
+  Z3ParamDescrsWrapper *w = (Z3ParamDescrsWrapper *)malloc(sizeof(Z3ParamDescrsWrapper));
+  if (w == NULL) { Z3_param_descrs_dec_ref(raw_ctx, pd); lean_internal_panic("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx;
+  w->ctx = raw_ctx;
+  w->param_descrs = pd;
+  return mk_ParamDescrs(w);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Params_validate(b_lean_obj_arg p, b_lean_obj_arg d) {
+  Z3ParamsWrapper *pw = to_Params(p);
+  Z3ParamDescrsWrapper *dw = to_ParamDescrs(d);
+  Z3_params_validate(pw->ctx, pw->params, dw->param_descrs);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Solver_getParamDescrs(b_lean_obj_arg ctx, b_lean_obj_arg s) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3SolverWrapper *sw = to_Solver(s);
+  Z3_param_descrs pd = Z3_solver_get_param_descrs(c->ctx, sw->solver);
+  return z3_wrap_param_descrs(ctx, c->ctx, pd);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Context_getGlobalParamDescrs(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_param_descrs pd = Z3_get_global_param_descrs(c->ctx);
+  return z3_wrap_param_descrs(ctx, c->ctx, pd);
+}
+
+LEAN_EXPORT uint32_t lean_z3_ParamDescrs_size(b_lean_obj_arg d) {
+  Z3ParamDescrsWrapper *w = to_ParamDescrs(d);
+  return Z3_param_descrs_size(w->ctx, w->param_descrs);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_ParamDescrs_getName(b_lean_obj_arg d, uint32_t i) {
+  Z3ParamDescrsWrapper *w = to_ParamDescrs(d);
+  unsigned sz = Z3_param_descrs_size(w->ctx, w->param_descrs);
+  if (i >= sz) { lean_internal_panic("ParamDescrs.getName: index out of bounds"); }
+  Z3_symbol sym = Z3_param_descrs_get_name(w->ctx, w->param_descrs, i);
+  const char *s = Z3_get_symbol_string(w->ctx, sym);
+  if (s == NULL) { lean_internal_panic("Z3_get_symbol_string returned NULL"); }
+  return lean_mk_string(s);
+}
+
+LEAN_EXPORT uint32_t lean_z3_ParamDescrs_getKind(b_lean_obj_arg d, b_lean_obj_arg name) {
+  Z3ParamDescrsWrapper *w = to_ParamDescrs(d);
+  Z3_symbol sym = Z3_mk_string_symbol(w->ctx, lean_string_cstr(name));
+  return (uint32_t)Z3_param_descrs_get_kind(w->ctx, w->param_descrs, sym);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_ParamDescrs_getDocumentation(b_lean_obj_arg d, b_lean_obj_arg name) {
+  Z3ParamDescrsWrapper *w = to_ParamDescrs(d);
+  Z3_symbol sym = Z3_mk_string_symbol(w->ctx, lean_string_cstr(name));
+  const char *s = Z3_param_descrs_get_documentation(w->ctx, w->param_descrs, sym);
+  if (s == NULL) { return lean_mk_string(""); }
+  return lean_mk_string(s);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_ParamDescrs_toString(b_lean_obj_arg d) {
+  Z3ParamDescrsWrapper *w = to_ParamDescrs(d);
+  const char *s = Z3_param_descrs_to_string(w->ctx, w->param_descrs);
+  if (s == NULL) { lean_internal_panic("Z3_param_descrs_to_string returned NULL"); }
   return lean_mk_string(s);
 }
 

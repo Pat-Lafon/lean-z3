@@ -20,7 +20,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Distinct** — `distinct`
 - **Quantifiers** — `mkBound`, `mkForall`, `mkExists`
 - **Datatypes** — `Constructor.mk`, `Srt.mkDatatype`, `Constructor.query`
-- **Term inspection** — `getSort`, `getAstKind`, `getNumArgs`, `getArg`, `getFuncDecl`, `getNumeralString`, `toString`
+- **Term inspection** — `getSort`, `getAstKind`, `getNumArgs`, `getArg`, `getFuncDecl`, `getNumeralString`, `getVarIndex`, `toString`
+- **Quantifier inspection** — `isQuantifierForall`, `isQuantifierExists`, `getQuantifierBody`, `getQuantifierNumBound`, `getQuantifierBoundName`, `getQuantifierBoundSort`
 - **FuncDecl** — `getDeclKindRaw`, `getName`, `toString`
 - **Params** — `new`, `setBool`, `setUInt`
 - **Solver** — `new`, `setParams`, `assert`, `assertAndTrack`, `push`, `pop`, `reset`, `checkSat`, `checkAssumptions`, `getReasonUnknown`, `getProof`, `getUnsatCore`, `getAssertions`, `registerOnClause`, `toString`
@@ -144,6 +145,10 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [ ] `Z3_solver_get_consequences` / `Z3_solver_get_trail`
 
 #### Quantifiers (extended)
+- [x] `Z3_is_quantifier_forall` / `Z3_is_quantifier_exists` — quantifier kind checks
+- [x] `Z3_get_quantifier_body` — get quantifier body
+- [x] `Z3_get_quantifier_num_bound` / `Z3_get_quantifier_bound_name` / `Z3_get_quantifier_bound_sort` — bound variable info
+- [x] `Z3_get_index_value` — de Bruijn index for variable ASTs
 - [ ] `Z3_mk_pattern` — quantifier triggers/patterns
 - [ ] `Z3_mk_quantifier_ex` — quantifier with patterns/weight/id
 - [ ] `Z3_mk_forall_const` / `Z3_mk_exists_const` — quantifier over constants

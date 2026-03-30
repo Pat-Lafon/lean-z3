@@ -411,6 +411,59 @@ opaque Ast.toString' (a : @& Ast) : String
 
 instance : ToString Ast := ⟨fun a => Ast.toString' a⟩
 
+/-! ## Quantifier inspection -/
+
+/-- Check if a quantifier AST is a universal (forall). -/
+@[extern "lean_z3_Ast_isQuantifierForall"]
+opaque Ast.isQuantifierForall (a : @& Ast) : Bool
+
+/-- Check if a quantifier AST is existential. -/
+@[extern "lean_z3_Ast_isQuantifierExists"]
+opaque Ast.isQuantifierExists (a : @& Ast) : Bool
+
+/-- Get the body of a quantifier. -/
+@[extern "lean_z3_Ast_getQuantifierBody"]
+opaque Ast.getQuantifierBody (a : @& Ast) : Ast
+
+/-- Get the number of bound variables in a quantifier. -/
+@[extern "lean_z3_Ast_getQuantifierNumBound"]
+opaque Ast.getQuantifierNumBound (a : @& Ast) : UInt32
+
+/-- Get the name of the i-th bound variable in a quantifier. -/
+@[extern "lean_z3_Ast_getQuantifierBoundName"]
+opaque Ast.getQuantifierBoundName (a : @& Ast) (i : UInt32) : String
+
+/-- Get the sort of the i-th bound variable in a quantifier. -/
+@[extern "lean_z3_Ast_getQuantifierBoundSort"]
+opaque Ast.getQuantifierBoundSort (a : @& Ast) (i : UInt32) : Srt
+
+/-- Get the weight of a quantifier. -/
+@[extern "lean_z3_Ast_getQuantifierWeight"]
+opaque Ast.getQuantifierWeight (a : @& Ast) : UInt32
+
+/-- Get the number of patterns in a quantifier. -/
+@[extern "lean_z3_Ast_getQuantifierNumPatterns"]
+opaque Ast.getQuantifierNumPatterns (a : @& Ast) : UInt32
+
+/-- Get the i-th pattern of a quantifier (returned as an Ast). -/
+@[extern "lean_z3_Ast_getQuantifierPatternAst"]
+opaque Ast.getQuantifierPatternAst (a : @& Ast) (i : UInt32) : Ast
+
+/-- Check if a quantifier AST is a lambda. -/
+@[extern "lean_z3_Ast_isLambda"]
+opaque Ast.isLambda (a : @& Ast) : Bool
+
+/-- Create a pattern (trigger) from one or more terms.
+Used with `mkQuantifierEx` or the extended quantifier API. -/
+@[extern "lean_z3_Ast_mkPattern"]
+opaque Ast.mkPattern (ctx : @& Context) (terms : @& Array Ast) : Ast
+
+/-! ## Variable inspection -/
+
+/-- Get the de Bruijn index of a bound variable AST (`Z3_VAR_AST`). -/
+@[extern "lean_z3_Ast_getVarIndex"]
+opaque Ast.getVarIndex (a : @& Ast) : UInt32
+
 /-! ## FuncDecl operations -/
 
 /-- Get the decl kind as a raw `UInt32`. -/

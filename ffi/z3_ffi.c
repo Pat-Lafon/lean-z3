@@ -738,6 +738,97 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_toString(b_lean_obj_arg a) {
   return lean_mk_string(str);
 }
 
+/* ── Quantifier inspection (pure) ──────────────────────────────────────── */
+
+LEAN_EXPORT uint8_t lean_z3_Ast_isQuantifierForall(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_is_quantifier_forall(aw->ctx, aw->ast) ? 1 : 0;
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_isQuantifierExists(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_is_quantifier_exists(aw->ctx, aw->ast) ? 1 : 0;
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getQuantifierBody(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  Z3_ast body = Z3_get_quantifier_body(aw->ctx, aw->ast);
+  if (body == NULL) { lean_internal_panic("Z3_get_quantifier_body: not a quantifier"); }
+  return z3_wrap_ast(aw->ctx_obj, aw->ctx, body);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Ast_getQuantifierNumBound(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_get_quantifier_num_bound(aw->ctx, aw->ast);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getQuantifierBoundName(b_lean_obj_arg a, uint32_t i) {
+  Z3AstWrapper *aw = to_Ast(a);
+  unsigned n = Z3_get_quantifier_num_bound(aw->ctx, aw->ast);
+  if (i >= n) { lean_internal_panic("Ast.getQuantifierBoundName: index out of bounds"); }
+  Z3_symbol sym = Z3_get_quantifier_bound_name(aw->ctx, aw->ast, i);
+  return lean_mk_string(Z3_get_symbol_string(aw->ctx, sym));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getQuantifierBoundSort(b_lean_obj_arg a, uint32_t i) {
+  Z3AstWrapper *aw = to_Ast(a);
+  unsigned n = Z3_get_quantifier_num_bound(aw->ctx, aw->ast);
+  if (i >= n) { lean_internal_panic("Ast.getQuantifierBoundSort: index out of bounds"); }
+  Z3_sort s = Z3_get_quantifier_bound_sort(aw->ctx, aw->ast, i);
+  if (s == NULL) { lean_internal_panic("Z3_get_quantifier_bound_sort returned NULL"); }
+  return z3_wrap_sort(aw->ctx_obj, aw->ctx, s);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Ast_getQuantifierWeight(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_get_quantifier_weight(aw->ctx, aw->ast);
+}
+
+LEAN_EXPORT uint32_t lean_z3_Ast_getQuantifierNumPatterns(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_get_quantifier_num_patterns(aw->ctx, aw->ast);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_getQuantifierPatternAst(b_lean_obj_arg a, uint32_t i) {
+  Z3AstWrapper *aw = to_Ast(a);
+  unsigned n = Z3_get_quantifier_num_patterns(aw->ctx, aw->ast);
+  if (i >= n) { lean_internal_panic("Ast.getQuantifierPatternAst: index out of bounds"); }
+  Z3_pattern p = Z3_get_quantifier_pattern_ast(aw->ctx, aw->ast, i);
+  /* Z3_pattern is a Z3_ast — wrap it as Ast */
+  Z3_ast pat_ast = Z3_pattern_to_ast(aw->ctx, p);
+  return z3_wrap_ast(aw->ctx_obj, aw->ctx, pat_ast);
+}
+
+LEAN_EXPORT uint8_t lean_z3_Ast_isLambda(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_is_lambda(aw->ctx, aw->ast) ? 1 : 0;
+}
+
+/* ── Pattern construction ─────────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkPattern(b_lean_obj_arg ctx, b_lean_obj_arg terms) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(terms);
+  if (n == 0) { lean_internal_panic("Ast.mkPattern: need at least one term"); }
+  Z3_ast *arr = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+  if (arr == NULL) { lean_internal_panic("out of memory"); }
+  for (unsigned i = 0; i < n; i++) {
+    arr[i] = to_Ast(lean_array_get_core(terms, i))->ast;
+  }
+  Z3_pattern p = Z3_mk_pattern(c->ctx, n, arr);
+  free(arr);
+  /* Z3_pattern is a Z3_ast — wrap via pattern_to_ast */
+  Z3_ast pat_ast = Z3_pattern_to_ast(c->ctx, p);
+  return z3_wrap_ast(ctx, c->ctx, pat_ast);
+}
+
+/* ── Variable inspection (pure) ───────────────────────────────────────── */
+
+LEAN_EXPORT uint32_t lean_z3_Ast_getVarIndex(b_lean_obj_arg a) {
+  Z3AstWrapper *aw = to_Ast(a);
+  return Z3_get_index_value(aw->ctx, aw->ast);
+}
+
 /* ── FuncDecl operations (pure) ────────────────────────────────────────── */
 
 LEAN_EXPORT uint32_t lean_z3_FuncDecl_getDeclKindRaw(b_lean_obj_arg fd) {

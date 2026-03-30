@@ -882,6 +882,60 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_bvnegNoOverflow(b_lean_obj_arg ctx, b_lean_
   return z3_wrap_ast(ctx, c->ctx, Z3_mk_bvneg_no_overflow(c->ctx, to_Ast(a)->ast));
 }
 
+/* ── Pseudo-boolean constraints ────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkAtmost(b_lean_obj_arg ctx, b_lean_obj_arg args, uint32_t k) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(args);
+  Z3_ast buf[n];
+  for (unsigned i = 0; i < n; i++) buf[i] = to_Ast(lean_array_get_core(args, i))->ast;
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_atmost(c->ctx, n, buf, k));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkAtleast(b_lean_obj_arg ctx, b_lean_obj_arg args, uint32_t k) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(args);
+  Z3_ast buf[n];
+  for (unsigned i = 0; i < n; i++) buf[i] = to_Ast(lean_array_get_core(args, i))->ast;
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_atleast(c->ctx, n, buf, k));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkPble(b_lean_obj_arg ctx, b_lean_obj_arg args, b_lean_obj_arg coeffs, uint32_t k) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(args);
+  Z3_ast abuf[n];
+  int cbuf[n];
+  for (unsigned i = 0; i < n; i++) {
+    abuf[i] = to_Ast(lean_array_get_core(args, i))->ast;
+    cbuf[i] = (int)lean_unbox_uint32(lean_array_get_core(coeffs, i));
+  }
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_pble(c->ctx, n, abuf, cbuf, (int)k));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkPbge(b_lean_obj_arg ctx, b_lean_obj_arg args, b_lean_obj_arg coeffs, uint32_t k) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(args);
+  Z3_ast abuf[n];
+  int cbuf[n];
+  for (unsigned i = 0; i < n; i++) {
+    abuf[i] = to_Ast(lean_array_get_core(args, i))->ast;
+    cbuf[i] = (int)lean_unbox_uint32(lean_array_get_core(coeffs, i));
+  }
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_pbge(c->ctx, n, abuf, cbuf, (int)k));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Ast_mkPbeq(b_lean_obj_arg ctx, b_lean_obj_arg args, b_lean_obj_arg coeffs, uint32_t k) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(args);
+  Z3_ast abuf[n];
+  int cbuf[n];
+  for (unsigned i = 0; i < n; i++) {
+    abuf[i] = to_Ast(lean_array_get_core(args, i))->ast;
+    cbuf[i] = (int)lean_unbox_uint32(lean_array_get_core(coeffs, i));
+  }
+  return z3_wrap_ast(ctx, c->ctx, Z3_mk_pbeq(c->ctx, n, abuf, cbuf, (int)k));
+}
+
 /* ── Array operations (pure) ───────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_select(b_lean_obj_arg ctx, b_lean_obj_arg a, b_lean_obj_arg i) {

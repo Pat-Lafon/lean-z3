@@ -28,11 +28,15 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Params** — `new`, `setBool`, `setUInt`, `setDouble`, `setSymbol`, `validate`, `toString`
 - **ParamDescrs** — `size`, `getName`, `getKindRaw`, `getDocumentation`, `toString`; obtained via `Solver.getParamDescrs`, `Context.getGlobalParamDescrs`
 - **Solver** — `new`, `setParams`, `assert`, `assertAndTrack`, `push`, `pop`, `reset`, `checkSat`, `checkAssumptions`, `getReasonUnknown`, `getProof`, `getUnsatCore`, `getAssertions`, `registerOnClause`, `toString`
-- **Model** — `eval`, `getNumConsts`, `getConstDecl`, `getConstInterp`, `toString`
+- **Pseudo-boolean** — `mkAtmost`, `mkAtleast`, `mkPble`, `mkPbge`, `mkPbeq`
+- **Model** — `eval`, `getNumConsts`, `getConstDecl`, `getConstInterp`, `getNumFuncs`, `getFuncDecl`, `getFuncInterp`, `hasInterp`, `getSortUniverse`, `toString`
+- **FuncInterp** — `getNumEntries`, `getEntry`, `getElse`, `getArity`
+- **FuncEntry** — `getValue`, `getNumArgs`, `getArg`
 - **SMT-LIB parsing** — `parseSMTLIB2String`, `parseSMTLIB2File`, `evalSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 140 tests
+- **DeclKind** — `DeclKind` enum (~80 variants), `FuncDecl.getDeclKind`, C-validated enum values
+- **Test suite** — 164 tests
 
 ### Unbound — Coverage Gaps
 
@@ -82,8 +86,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_get_arity` / `Z3_get_domain_size` / `Z3_get_domain` / `Z3_get_range` — signature inspection
 
 #### Pseudo-boolean constraints
-- [ ] `Z3_mk_atmost` / `Z3_mk_atleast` — cardinality constraints
-- [ ] `Z3_mk_pble` / `Z3_mk_pbge` / `Z3_mk_pbeq` — weighted pseudo-boolean
+- [x] `Z3_mk_atmost` / `Z3_mk_atleast` — cardinality constraints
+- [x] `Z3_mk_pble` / `Z3_mk_pbge` / `Z3_mk_pbeq` — weighted pseudo-boolean
 
 #### Optimization API
 - [ ] `Z3_mk_optimize` — create optimizer
@@ -137,9 +141,9 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [ ] `Z3_get_datatype_sort_*` — datatype sort inspection
 
 #### Model (extended)
-- [ ] `Z3_model_get_num_funcs` / `Z3_model_get_func_decl` / `Z3_model_get_func_interp`
-- [ ] `Z3_model_has_interp` / `Z3_model_get_sort_universe`
-- [ ] `Z3_func_interp_*` / `Z3_func_entry_*` — function interpretation API
+- [x] `Z3_model_get_num_funcs` / `Z3_model_get_func_decl` / `Z3_model_get_func_interp`
+- [x] `Z3_model_has_interp` / `Z3_model_get_sort_universe`
+- [x] `Z3_func_interp_*` / `Z3_func_entry_*` — function interpretation API
 
 #### Solver (extended)
 - [ ] `Z3_mk_simple_solver` / `Z3_mk_solver_for_logic`
@@ -189,7 +193,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 
 ### TODO — Ergonomics
 
-- [ ] `SortKind` / `DeclKind` typed enums from raw `UInt32`
+- [x] `DeclKind` typed enum from raw `UInt32` (with C-validated values)
+- [ ] `SortKind` typed enum from raw `UInt32`
 - [ ] Nicer API wrappers that thread Context implicitly (ReaderT-style)
 - [ ] `Solver.checkSatAndGetModel` convenience
 - [ ] `ToString` / `Repr` for all types

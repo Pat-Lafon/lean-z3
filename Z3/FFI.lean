@@ -478,6 +478,28 @@ opaque Ast.bvsdivNoOverflow (ctx : @& Context) (a b : @& Ast) : Ast
 @[extern "lean_z3_Ast_bvnegNoOverflow"]
 opaque Ast.bvnegNoOverflow (ctx : @& Context) (a : @& Ast) : Ast
 
+/-! ## Pseudo-boolean constraints -/
+
+/-- At-most-k constraint: at most `k` of the Boolean arguments are true. -/
+@[extern "lean_z3_Ast_mkAtmost"]
+opaque Ast.mkAtmost (ctx : @& Context) (args : @& Array Ast) (k : UInt32) : Ast
+
+/-- At-least-k constraint: at least `k` of the Boolean arguments are true. -/
+@[extern "lean_z3_Ast_mkAtleast"]
+opaque Ast.mkAtleast (ctx : @& Context) (args : @& Array Ast) (k : UInt32) : Ast
+
+/-- Weighted pseudo-boolean ≤: `coeffs[0]*args[0] + ... + coeffs[n-1]*args[n-1] ≤ k`. -/
+@[extern "lean_z3_Ast_mkPble"]
+opaque Ast.mkPble (ctx : @& Context) (args : @& Array Ast) (coeffs : @& Array Int32) (k : Int32) : Ast
+
+/-- Weighted pseudo-boolean ≥: `coeffs[0]*args[0] + ... + coeffs[n-1]*args[n-1] ≥ k`. -/
+@[extern "lean_z3_Ast_mkPbge"]
+opaque Ast.mkPbge (ctx : @& Context) (args : @& Array Ast) (coeffs : @& Array Int32) (k : Int32) : Ast
+
+/-- Weighted pseudo-boolean =: `coeffs[0]*args[0] + ... + coeffs[n-1]*args[n-1] = k`. -/
+@[extern "lean_z3_Ast_mkPbeq"]
+opaque Ast.mkPbeq (ctx : @& Context) (args : @& Array Ast) (coeffs : @& Array Int32) (k : Int32) : Ast
+
 /-! ## Array operations -/
 
 /-- Select (read) from an array: `a[i]`. -/

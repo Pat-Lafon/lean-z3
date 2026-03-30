@@ -117,9 +117,9 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_seq_in_re` — regex membership
 
 #### Regular expressions
-- [ ] `Z3_mk_re_sort` / `Z3_mk_re_star` / `Z3_mk_re_plus` / `Z3_mk_re_option` — regex constructors
-- [ ] `Z3_mk_re_union` / `Z3_mk_re_intersect` / `Z3_mk_re_concat` / `Z3_mk_re_complement`
-- [ ] `Z3_mk_re_range` / `Z3_mk_seq_to_re`
+- [x] `Z3_mk_re_sort` / `Z3_mk_re_star` / `Z3_mk_re_plus` / `Z3_mk_re_option` — regex constructors
+- [x] `Z3_mk_re_union` / `Z3_mk_re_intersect` / `Z3_mk_re_concat` / `Z3_mk_re_complement`
+- [x] `Z3_mk_re_range` / `Z3_mk_seq_to_re`
 
 #### Floating point theory
 - [ ] `Z3_mk_fpa_sort` / `Z3_mk_fpa_sort_32` / `Z3_mk_fpa_sort_64` — FP sorts

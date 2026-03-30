@@ -1329,6 +1329,40 @@ LEAN_EXPORT lean_obj_res lean_z3_Context_parseSMTLIB2String(b_lean_obj_arg ctx, 
   return result;
 }
 
+LEAN_EXPORT lean_obj_res lean_z3_Context_parseSMTLIB2File(b_lean_obj_arg ctx, b_lean_obj_arg filename) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_ast_vector vec = Z3_parse_smtlib2_file(c->ctx, lean_string_cstr(filename), 0, NULL, NULL, 0, NULL, NULL);
+  if (vec == NULL) {
+    return z3_env_error("SMT-LIB2 file parse failed");
+  }
+  Z3_ast_vector_inc_ref(c->ctx, vec);
+  unsigned n = Z3_ast_vector_size(c->ctx, vec);
+  lean_obj_res result;
+  if (n == 0) {
+    result = z3_env_val(z3_wrap_ast(ctx, c->ctx, Z3_mk_true(c->ctx)));
+  } else if (n == 1) {
+    result = z3_env_val(z3_wrap_ast(ctx, c->ctx, Z3_ast_vector_get(c->ctx, vec, 0)));
+  } else {
+    Z3_ast *args = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+    if (args == NULL) { Z3_ast_vector_dec_ref(c->ctx, vec); return z3_env_error("out of memory"); }
+    for (unsigned i = 0; i < n; i++) {
+      args[i] = Z3_ast_vector_get(c->ctx, vec, i);
+    }
+    Z3_ast conj = Z3_mk_and(c->ctx, n, args);
+    free(args);
+    result = z3_env_val(z3_wrap_ast(ctx, c->ctx, conj));
+  }
+  Z3_ast_vector_dec_ref(c->ctx, vec);
+  return result;
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Context_evalSMTLIB2String(b_lean_obj_arg ctx, b_lean_obj_arg str) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_string result = Z3_eval_smtlib2_string(c->ctx, lean_string_cstr(str));
+  if (result == NULL) { lean_internal_panic("Z3_eval_smtlib2_string returned NULL"); }
+  return lean_mk_string(result);
+}
+
 /* ── Quantifiers ───────────────────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_mkBound(b_lean_obj_arg ctx, uint32_t idx, b_lean_obj_arg s) {

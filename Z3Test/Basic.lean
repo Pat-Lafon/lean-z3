@@ -260,6 +260,45 @@ def testGetBoolValue : IO TestResult := runTest "getBoolValue" do
   return check "getBoolValue" (bv == .true)
     s!"expected LBool.true, got {bv}"
 
+/-- evalSMTLIB2String: evaluate a command and get result -/
+def testEvalSMTLIB2String : IO TestResult := runTest "evalSMTLIB2String" do
+  let ctx ← Env.run Context.new
+  let result ← Context.evalSMTLIB2String ctx "(simplify (+ 2 3))"
+  -- Z3 should return "5\n" or "5"
+  let trimmed := result.trimAscii.toString
+  return check "evalSMTLIB2String" (trimmed == "5")
+    s!"expected '5', got '{trimmed}'"
+
+/-- evalSMTLIB2String: check-sat via eval -/
+def testEvalSMTLIB2CheckSat : IO TestResult := runTest "evalSMTLIB2 check-sat" do
+  let ctx ← Env.run Context.new
+  let _ ← Context.evalSMTLIB2String ctx "(declare-const x Int)"
+  let _ ← Context.evalSMTLIB2String ctx "(assert (> x 0))"
+  let result ← Context.evalSMTLIB2String ctx "(check-sat)"
+  let trimmed := result.trimAscii.toString
+  return check "evalSMTLIB2 check-sat" (trimmed == "sat")
+    s!"expected 'sat', got '{trimmed}'"
+
+/-- parseSMTLIB2File: parse from a temporary file -/
+def testParseSMTLIB2File : IO TestResult := runTest "parseSMTLIB2File" do
+  let tmpPath := "/tmp/lean_z3_test.smt2"
+  IO.FS.writeFile tmpPath "(declare-const y Int)\n(assert (> y 100))\n"
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let formula ← Env.run (Context.parseSMTLIB2File ctx tmpPath)
+  Solver.assert solver formula
+  let result ← Solver.checkSat solver
+  if result != .true then
+    return check "parseSMTLIB2File" false s!"expected sat, got {result}"
+  let model ← Env.run (Solver.getModel solver)
+  let y := Ast.mkIntConst ctx "y"
+  let val ← Env.run (Model.eval model y true)
+  let valStr := Ast.getNumeralString val
+  let valInt := valStr.toInt!
+  IO.FS.removeFile tmpPath
+  return check "parseSMTLIB2File" (valInt > 100)
+    s!"expected y > 100, got y = {valStr}"
+
 def basicTests : List (IO TestResult) :=
   [ testContextCreation
   , testIntSat
@@ -279,4 +318,7 @@ def basicTests : List (IO TestResult) :=
   , testXor
   , testIff
   , testGetBoolValue
+  , testEvalSMTLIB2String
+  , testEvalSMTLIB2CheckSat
+  , testParseSMTLIB2File
   ]

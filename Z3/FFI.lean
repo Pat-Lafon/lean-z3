@@ -796,6 +796,14 @@ instance : ToString Model := ⟨fun m => Model.toString' m⟩
 @[extern "lean_z3_Context_parseSMTLIB2String"]
 opaque Context.parseSMTLIB2String (ctx : @& Context) (str : @& String) : Env Ast
 
+/-- Parse an SMT-LIB2 file and return the resulting assertions as an AST. -/
+@[extern "lean_z3_Context_parseSMTLIB2File"]
+opaque Context.parseSMTLIB2File (ctx : @& Context) (filename : @& String) : Env Ast
+
+/-- Evaluate an SMT-LIB2 command string and return the result as a string. -/
+@[extern "lean_z3_Context_evalSMTLIB2String"]
+opaque Context.evalSMTLIB2String (ctx : @& Context) (str : @& String) : BaseIO String
+
 /-! ## Quantifiers -/
 
 /-- Create a bound variable with de Bruijn index `idx` and sort `s`. -/

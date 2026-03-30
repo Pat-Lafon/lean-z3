@@ -29,10 +29,10 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **ParamDescrs** — `size`, `getName`, `getKindRaw`, `getDocumentation`, `toString`; obtained via `Solver.getParamDescrs`, `Context.getGlobalParamDescrs`
 - **Solver** — `new`, `setParams`, `assert`, `assertAndTrack`, `push`, `pop`, `reset`, `checkSat`, `checkAssumptions`, `getReasonUnknown`, `getProof`, `getUnsatCore`, `getAssertions`, `registerOnClause`, `toString`
 - **Model** — `eval`, `getNumConsts`, `getConstDecl`, `getConstInterp`, `toString`
-- **SMT-LIB parsing** — `parseSMTLIB2String`
+- **SMT-LIB parsing** — `parseSMTLIB2String`, `parseSMTLIB2File`, `evalSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 124 tests
+- **Test suite** — 127 tests
 
 ### Unbound — Coverage Gaps
 
@@ -179,8 +179,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [ ] `Z3_stats_get_uint_value` / `Z3_stats_get_double_value`
 
 #### Parser (extended)
-- [ ] `Z3_parse_smtlib2_file`
-- [ ] `Z3_eval_smtlib2_string` — evaluate SMT-LIB2 command string
+- [x] `Z3_parse_smtlib2_file`
+- [x] `Z3_eval_smtlib2_string` — evaluate SMT-LIB2 command string
 
 ### TODO — Build & CI
 

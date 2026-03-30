@@ -23,7 +23,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Term inspection** — `getSort`, `getAstKind`, `getNumArgs`, `getArg`, `getFuncDecl`, `getNumeralString`, `getNumeralDecimalString`, `getNumeralBinaryString`, `getNumeralInt64`, `getNumeralUInt64`, `getNumeralDouble`, `getNumerator`, `getDenominator`, `getVarIndex`, `toString`
 - **Quantifier inspection** — `isQuantifierForall`, `isQuantifierExists`, `getQuantifierBody`, `getQuantifierNumBound`, `getQuantifierBoundName`, `getQuantifierBoundSort`
 - **Substitution & simplification** — `substitute`, `substituteVars`, `simplify`, `simplifyEx`, `simplifyGetParamDescrs`
-- **Uninterpreted functions** — `FuncDecl.mk`, `Ast.mkApp`, `Ast.mkFreshConst`, `FuncDecl.mkFresh`
+- **Uninterpreted functions** — `FuncDecl.mk`, `Ast.mkApp`, `Ast.mkFreshConst`, `FuncDecl.mkFresh`, `FuncDecl.mkRec`, `FuncDecl.addRecDef`
 - **FuncDecl** — `getDeclKindRaw`, `getName`, `getArity`, `getDomain`, `getRange`, `toString`
 - **Params** — `new`, `setBool`, `setUInt`, `setDouble`, `setSymbol`, `validate`, `toString`
 - **ParamDescrs** — `size`, `getName`, `getKindRaw`, `getDocumentation`, `toString`; obtained via `Solver.getParamDescrs`, `Context.getGlobalParamDescrs`
@@ -32,7 +32,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **SMT-LIB parsing** — `parseSMTLIB2String`, `parseSMTLIB2File`, `evalSMTLIB2String`
 - **Proof API** — `ProofRule` inductive (42 rules), `Ast.getProofRule?`, `Ast.collectProofRules`, proof tree navigation
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
-- **Test suite** — 137 tests
+- **Test suite** — 140 tests
 
 ### Unbound — Coverage Gaps
 
@@ -52,7 +52,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_app` — apply function declaration to arguments
 - [x] `Z3_mk_fresh_const` — fresh constant with prefix
 - [x] `Z3_mk_fresh_func_decl` — fresh function decl with prefix
-- [ ] `Z3_mk_rec_func_decl` / `Z3_add_rec_def` — recursive functions
+- [x] `Z3_mk_rec_func_decl` / `Z3_add_rec_def` — recursive functions
 
 #### Bool / propositional
 - [x] `Z3_mk_xor` — exclusive or

@@ -135,6 +135,77 @@ def testUFConstant : IO TestResult := runTest "UF constant (0-arity app)" do
   return check "UF constant (0-arity app)" (valStr == "5")
     s!"expected c = 5, got c = {valStr}"
 
+/-- Recursive function: factorial. fact(0)=1, fact(n)=n*fact(n-1), check fact(5)=120 -/
+def testRecFuncFactorial : IO TestResult := runTest "rec func (factorial)" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let intSort := Srt.mkInt ctx
+  -- Declare recursive function: fact : Int -> Int
+  let fact := FuncDecl.mkRec ctx "fact" #[intSort] intSort
+  -- Define: fact(n) = if n <= 0 then 1 else n * fact(n-1)
+  let n := Ast.mkIntConst ctx "n"
+  let zero := Ast.mkNumeral ctx "0" intSort
+  let one := Ast.mkNumeral ctx "1" intSort
+  let nMinus1 := Ast.sub ctx n one
+  let factNMinus1 := Ast.mkApp ctx fact #[nMinus1]
+  let body := Ast.ite ctx (Ast.le ctx n zero) one (Ast.mul ctx n factNMinus1)
+  FuncDecl.addRecDef ctx fact #[n] body
+  -- Assert fact(5) = 120
+  let five := Ast.mkNumeral ctx "5" intSort
+  let fact5 := Ast.mkApp ctx fact #[five]
+  let oneTwenty := Ast.mkNumeral ctx "120" intSort
+  Solver.assert solver (Ast.eq ctx fact5 oneTwenty)
+  let result ← Solver.checkSat solver
+  return check "rec func (factorial)" (result == .true)
+    s!"expected sat, got {result}"
+
+/-- Recursive function: fib. fib(0)=0, fib(1)=1, fib(n)=fib(n-1)+fib(n-2), check fib(7)=13 -/
+def testRecFuncFib : IO TestResult := runTest "rec func (fibonacci)" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let intSort := Srt.mkInt ctx
+  let fib := FuncDecl.mkRec ctx "fib" #[intSort] intSort
+  let n := Ast.mkIntConst ctx "n"
+  let zero := Ast.mkNumeral ctx "0" intSort
+  let one := Ast.mkNumeral ctx "1" intSort
+  let nMinus1 := Ast.sub ctx n one
+  let nMinus2 := Ast.sub ctx n (Ast.mkNumeral ctx "2" intSort)
+  let fibN1 := Ast.mkApp ctx fib #[nMinus1]
+  let fibN2 := Ast.mkApp ctx fib #[nMinus2]
+  -- fib(n) = if n <= 0 then 0 else if n = 1 then 1 else fib(n-1) + fib(n-2)
+  let body := Ast.ite ctx (Ast.le ctx n zero) zero
+    (Ast.ite ctx (Ast.eq ctx n one) one (Ast.add ctx fibN1 fibN2))
+  FuncDecl.addRecDef ctx fib #[n] body
+  -- Assert fib(7) = 13
+  let seven := Ast.mkNumeral ctx "7" intSort
+  let fib7 := Ast.mkApp ctx fib #[seven]
+  let thirteen := Ast.mkNumeral ctx "13" intSort
+  Solver.assert solver (Ast.eq ctx fib7 thirteen)
+  let result ← Solver.checkSat solver
+  return check "rec func (fibonacci)" (result == .true)
+    s!"expected sat, got {result}"
+
+/-- Recursive function: wrong value is unsat -/
+def testRecFuncUnsat : IO TestResult := runTest "rec func (wrong value unsat)" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let intSort := Srt.mkInt ctx
+  let fact := FuncDecl.mkRec ctx "fact" #[intSort] intSort
+  let n := Ast.mkIntConst ctx "n"
+  let zero := Ast.mkNumeral ctx "0" intSort
+  let one := Ast.mkNumeral ctx "1" intSort
+  let body := Ast.ite ctx (Ast.le ctx n zero) one
+    (Ast.mul ctx n (Ast.mkApp ctx fact #[Ast.sub ctx n one]))
+  FuncDecl.addRecDef ctx fact #[n] body
+  -- Assert fact(5) = 999 (wrong!) — should be unsat
+  let five := Ast.mkNumeral ctx "5" intSort
+  let fact5 := Ast.mkApp ctx fact #[five]
+  let wrong := Ast.mkNumeral ctx "999" intSort
+  Solver.assert solver (Ast.eq ctx fact5 wrong)
+  let result ← Solver.checkSat solver
+  return check "rec func (wrong value unsat)" (result == .false)
+    s!"expected unsat, got {result}"
+
 def uninterpFunTests : List (IO TestResult) :=
   [ testUFBasic
   , testUFDifferentArgs
@@ -144,4 +215,7 @@ def uninterpFunTests : List (IO TestResult) :=
   , testFreshConst
   , testFreshFuncDecl
   , testUFConstant
+  , testRecFuncFactorial
+  , testRecFuncFib
+  , testRecFuncUnsat
   ]

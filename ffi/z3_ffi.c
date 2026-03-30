@@ -1132,6 +1132,44 @@ LEAN_EXPORT lean_obj_res lean_z3_FuncDecl_mkFresh(b_lean_obj_arg ctx, b_lean_obj
   return z3_wrap_func_decl(ctx, c->ctx, fd);
 }
 
+LEAN_EXPORT lean_obj_res lean_z3_FuncDecl_mkRec(b_lean_obj_arg ctx, b_lean_obj_arg name,
+    b_lean_obj_arg domain, b_lean_obj_arg range) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3SortWrapper *r = to_Srt(range);
+  unsigned n = lean_array_size(domain);
+  Z3_sort *dom = NULL;
+  if (n > 0) {
+    dom = (Z3_sort *)malloc(n * sizeof(Z3_sort));
+    if (dom == NULL) { lean_internal_panic("out of memory"); }
+    for (unsigned i = 0; i < n; i++) {
+      dom[i] = to_Srt(lean_array_get_core(domain, i))->sort;
+    }
+  }
+  Z3_symbol sym = Z3_mk_string_symbol(c->ctx, lean_string_cstr(name));
+  Z3_func_decl fd = Z3_mk_rec_func_decl(c->ctx, sym, n, dom, r->sort);
+  free(dom);
+  return z3_wrap_func_decl(ctx, c->ctx, fd);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_FuncDecl_addRecDef(b_lean_obj_arg ctx,
+    b_lean_obj_arg fd, b_lean_obj_arg args, b_lean_obj_arg body) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3FuncDeclWrapper *fw = to_FuncDecl(fd);
+  Z3AstWrapper *bw = to_Ast(body);
+  unsigned n = lean_array_size(args);
+  Z3_ast *arr = NULL;
+  if (n > 0) {
+    arr = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+    if (arr == NULL) { lean_internal_panic("out of memory"); }
+    for (unsigned i = 0; i < n; i++) {
+      arr[i] = to_Ast(lean_array_get_core(args, i))->ast;
+    }
+  }
+  Z3_add_rec_def(c->ctx, fw->func_decl, n, arr, bw->ast);
+  free(arr);
+  return lean_box(0);
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
  * BaseIO-returning functions
  *

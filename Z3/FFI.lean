@@ -674,6 +674,18 @@ opaque Ast.mkFreshConst (ctx : @& Context) (pfx : @& String) (sort : @& Srt) : B
 opaque FuncDecl.mkFresh (ctx : @& Context) (pfx : @& String)
     (domain : @& Array Srt) (range : @& Srt) : BaseIO FuncDecl
 
+/-- Declare a recursive function. Must be followed by `FuncDecl.addRecDef` to provide the body. -/
+@[extern "lean_z3_FuncDecl_mkRec"]
+opaque FuncDecl.mkRec (ctx : @& Context) (name : @& String)
+    (domain : @& Array Srt) (range : @& Srt) : FuncDecl
+
+/-- Add the recursive definition for a function declared with `FuncDecl.mkRec`.
+  `args` — the formal parameters (constants matching the domain sorts).
+  `body` — the function body in terms of those parameters. -/
+@[extern "lean_z3_FuncDecl_addRecDef"]
+opaque FuncDecl.addRecDef (ctx : @& Context) (f : @& FuncDecl)
+    (args : @& Array Ast) (body : @& Ast) : BaseIO PUnit
+
 /-! ## Params operations -/
 
 /-- Create a new empty parameter set. -/

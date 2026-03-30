@@ -446,7 +446,7 @@ def Solver.checkSat (s : @& Solver) : BaseIO LBool := do
 
 /-- Get reason for unknown result. -/
 @[extern "lean_z3_Solver_getReasonUnknown"]
-opaque Solver.getReasonUnknown (s : @& Solver) : String
+opaque Solver.getReasonUnknown (s : @& Solver) : BaseIO String
 
 /-- Get the proof from an unsatisfiable check.
 Requires a context created with `Context.newWithProofs`. -/

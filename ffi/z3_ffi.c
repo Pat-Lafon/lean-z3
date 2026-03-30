@@ -204,6 +204,7 @@ static inline lean_obj_res mk_OnClauseHandle(Z3OnClauseHandleData *p) {
 static inline lean_obj_res z3_wrap_ast(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_ast ast) {
   Z3_inc_ref(raw_ctx, ast);
   Z3AstWrapper *w = (Z3AstWrapper *)malloc(sizeof(Z3AstWrapper));
+  if (w == NULL) { Z3_dec_ref(raw_ctx, ast); lean_internal_panic("out of memory"); }
   lean_inc(ctx);
   w->ctx_obj = ctx;
   w->ctx = raw_ctx;
@@ -214,6 +215,7 @@ static inline lean_obj_res z3_wrap_ast(b_lean_obj_arg ctx, Z3_context raw_ctx, Z
 static inline lean_obj_res z3_wrap_sort(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_sort sort) {
   Z3_inc_ref(raw_ctx, (Z3_ast)sort);
   Z3SortWrapper *w = (Z3SortWrapper *)malloc(sizeof(Z3SortWrapper));
+  if (w == NULL) { Z3_dec_ref(raw_ctx, (Z3_ast)sort); lean_internal_panic("out of memory"); }
   lean_inc(ctx);
   w->ctx_obj = ctx;
   w->ctx = raw_ctx;
@@ -224,6 +226,7 @@ static inline lean_obj_res z3_wrap_sort(b_lean_obj_arg ctx, Z3_context raw_ctx, 
 static inline lean_obj_res z3_wrap_func_decl(b_lean_obj_arg ctx, Z3_context raw_ctx, Z3_func_decl fd) {
   Z3_inc_ref(raw_ctx, (Z3_ast)fd);
   Z3FuncDeclWrapper *w = (Z3FuncDeclWrapper *)malloc(sizeof(Z3FuncDeclWrapper));
+  if (w == NULL) { Z3_dec_ref(raw_ctx, (Z3_ast)fd); lean_internal_panic("out of memory"); }
   lean_inc(ctx);
   w->ctx_obj = ctx;
   w->ctx = raw_ctx;
@@ -244,6 +247,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Context_new(void) {
   Z3_context ctx = Z3_mk_context_rc(cfg);
   Z3_del_config(cfg);
   Z3Ctx *c = (Z3Ctx *)malloc(sizeof(Z3Ctx));
+  if (c == NULL) { Z3_del_context(ctx); return z3_env_error("out of memory"); }
   c->ctx = ctx;
   return z3_env_val(mk_Context(c));
 }
@@ -254,6 +258,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Context_newWithProofs(void) {
   Z3_context ctx = Z3_mk_context_rc(cfg);
   Z3_del_config(cfg);
   Z3Ctx *c = (Z3Ctx *)malloc(sizeof(Z3Ctx));
+  if (c == NULL) { Z3_del_context(ctx); return z3_env_error("out of memory"); }
   c->ctx = ctx;
   return z3_env_val(mk_Context(c));
 }
@@ -313,7 +318,9 @@ LEAN_EXPORT uint32_t lean_z3_Srt_getBvSize(b_lean_obj_arg s) {
 
 LEAN_EXPORT lean_obj_res lean_z3_Srt_toString(b_lean_obj_arg s) {
   Z3SortWrapper *w = to_Srt(s);
-  return lean_mk_string(Z3_sort_to_string(w->ctx, w->sort));
+  const char *str = Z3_sort_to_string(w->ctx, w->sort);
+  if (str == NULL) { lean_internal_panic("Z3_sort_to_string returned NULL"); }
+  return lean_mk_string(str);
 }
 
 /* ── Term constructors (pure) ──────────────────────────────────────────── */
@@ -328,6 +335,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_mkNumeral(b_lean_obj_arg ctx, b_lean_obj_ar
   Z3Ctx *c = to_Context(ctx);
   Z3SortWrapper *s = to_Srt(sort);
   Z3_ast a = Z3_mk_numeral(c->ctx, lean_string_cstr(val), s->sort);
+  if (a == NULL) { lean_internal_panic("Z3_mk_numeral failed: invalid numeral string"); }
   return z3_wrap_ast(ctx, c->ctx, a);
 }
 
@@ -335,14 +343,20 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_mkIntConst(b_lean_obj_arg ctx, b_lean_obj_a
   Z3Ctx *c = to_Context(ctx);
   Z3_symbol sym = Z3_mk_string_symbol(c->ctx, lean_string_cstr(name));
   Z3_sort int_sort = Z3_mk_int_sort(c->ctx);
-  return z3_wrap_ast(ctx, c->ctx, Z3_mk_const(c->ctx, sym, int_sort));
+  Z3_inc_ref(c->ctx, (Z3_ast)int_sort);
+  lean_obj_res result = z3_wrap_ast(ctx, c->ctx, Z3_mk_const(c->ctx, sym, int_sort));
+  Z3_dec_ref(c->ctx, (Z3_ast)int_sort);
+  return result;
 }
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_mkBoolConst(b_lean_obj_arg ctx, b_lean_obj_arg name) {
   Z3Ctx *c = to_Context(ctx);
   Z3_symbol sym = Z3_mk_string_symbol(c->ctx, lean_string_cstr(name));
   Z3_sort bool_sort = Z3_mk_bool_sort(c->ctx);
-  return z3_wrap_ast(ctx, c->ctx, Z3_mk_const(c->ctx, sym, bool_sort));
+  Z3_inc_ref(c->ctx, (Z3_ast)bool_sort);
+  lean_obj_res result = z3_wrap_ast(ctx, c->ctx, Z3_mk_const(c->ctx, sym, bool_sort));
+  Z3_dec_ref(c->ctx, (Z3_ast)bool_sort);
+  return result;
 }
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_mkConst(b_lean_obj_arg ctx, b_lean_obj_arg name, b_lean_obj_arg sort) {
@@ -356,7 +370,10 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_mkBvConst(b_lean_obj_arg ctx, b_lean_obj_ar
   Z3Ctx *c = to_Context(ctx);
   Z3_symbol sym = Z3_mk_string_symbol(c->ctx, lean_string_cstr(name));
   Z3_sort bv_sort = Z3_mk_bv_sort(c->ctx, size);
-  return z3_wrap_ast(ctx, c->ctx, Z3_mk_const(c->ctx, sym, bv_sort));
+  Z3_inc_ref(c->ctx, (Z3_ast)bv_sort);
+  lean_obj_res result = z3_wrap_ast(ctx, c->ctx, Z3_mk_const(c->ctx, sym, bv_sort));
+  Z3_dec_ref(c->ctx, (Z3_ast)bv_sort);
+  return result;
 }
 
 /* ── Boolean operations (pure) ─────────────────────────────────────────── */
@@ -437,7 +454,9 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_ge(b_lean_obj_arg ctx, b_lean_obj_arg a, b_
 LEAN_EXPORT lean_obj_res lean_z3_Ast_distinct(b_lean_obj_arg ctx, b_lean_obj_arg args) {
   Z3Ctx *c = to_Context(ctx);
   unsigned n = lean_array_size(args);
+  if (n == 0) { return z3_wrap_ast(ctx, c->ctx, Z3_mk_true(c->ctx)); }
   Z3_ast *arr = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+  if (arr == NULL) { lean_internal_panic("out of memory"); }
   for (unsigned i = 0; i < n; i++) {
     arr[i] = to_Ast(lean_array_get_core(args, i))->ast;
   }
@@ -649,6 +668,8 @@ LEAN_EXPORT uint32_t lean_z3_Ast_getNumArgs(b_lean_obj_arg a) {
 LEAN_EXPORT lean_obj_res lean_z3_Ast_getArg(b_lean_obj_arg a, uint32_t i) {
   Z3AstWrapper *aw = to_Ast(a);
   Z3_app app = Z3_to_app(aw->ctx, aw->ast);
+  unsigned n = Z3_get_app_num_args(aw->ctx, app);
+  if (i >= n) { lean_internal_panic("Ast.getArg: index out of bounds"); }
   return z3_wrap_ast(aw->ctx_obj, aw->ctx, Z3_get_app_arg(aw->ctx, app, i));
 }
 
@@ -660,12 +681,16 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_getFuncDecl(b_lean_obj_arg a) {
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_getNumeralString(b_lean_obj_arg a) {
   Z3AstWrapper *aw = to_Ast(a);
-  return lean_mk_string(Z3_get_numeral_string(aw->ctx, aw->ast));
+  const char *s = Z3_get_numeral_string(aw->ctx, aw->ast);
+  if (s == NULL) { lean_internal_panic("Z3_get_numeral_string failed: AST is not a numeral"); }
+  return lean_mk_string(s);
 }
 
 LEAN_EXPORT lean_obj_res lean_z3_Ast_toString(b_lean_obj_arg a) {
   Z3AstWrapper *aw = to_Ast(a);
-  return lean_mk_string(Z3_ast_to_string(aw->ctx, aw->ast));
+  const char *str = Z3_ast_to_string(aw->ctx, aw->ast);
+  if (str == NULL) { lean_internal_panic("Z3_ast_to_string returned NULL"); }
+  return lean_mk_string(str);
 }
 
 /* ── FuncDecl operations (pure) ────────────────────────────────────────── */
@@ -683,7 +708,9 @@ LEAN_EXPORT lean_obj_res lean_z3_FuncDecl_getName(b_lean_obj_arg fd) {
 
 LEAN_EXPORT lean_obj_res lean_z3_FuncDecl_toString(b_lean_obj_arg fd) {
   Z3FuncDeclWrapper *w = to_FuncDecl(fd);
-  return lean_mk_string(Z3_func_decl_to_string(w->ctx, w->func_decl));
+  const char *str = Z3_func_decl_to_string(w->ctx, w->func_decl);
+  if (str == NULL) { lean_internal_panic("Z3_func_decl_to_string returned NULL"); }
+  return lean_mk_string(str);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -699,6 +726,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Params_new(b_lean_obj_arg ctx) {
   Z3_params p = Z3_mk_params(c->ctx);
   Z3_params_inc_ref(c->ctx, p);
   Z3ParamsWrapper *w = (Z3ParamsWrapper *)malloc(sizeof(Z3ParamsWrapper));
+  if (w == NULL) { Z3_params_dec_ref(c->ctx, p); lean_internal_panic("out of memory"); }
   lean_inc(ctx);
   w->ctx_obj = ctx;
   w->ctx = c->ctx;
@@ -727,6 +755,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_new(b_lean_obj_arg ctx) {
   Z3_solver s = Z3_mk_solver(c->ctx);
   Z3_solver_inc_ref(c->ctx, s);
   Z3SolverWrapper *w = (Z3SolverWrapper *)malloc(sizeof(Z3SolverWrapper));
+  if (w == NULL) { Z3_solver_dec_ref(c->ctx, s); lean_internal_panic("out of memory"); }
   lean_inc(ctx);
   w->ctx_obj = ctx;
   w->ctx = c->ctx;
@@ -773,7 +802,9 @@ LEAN_EXPORT uint32_t lean_z3_Solver_checkSatRaw(b_lean_obj_arg s) {
 
 LEAN_EXPORT lean_obj_res lean_z3_Solver_getReasonUnknown(b_lean_obj_arg s) {
   Z3SolverWrapper *sw = to_Solver(s);
-  return lean_mk_string(Z3_solver_get_reason_unknown(sw->ctx, sw->solver));
+  const char *str = Z3_solver_get_reason_unknown(sw->ctx, sw->solver);
+  if (str == NULL) { lean_internal_panic("Z3_solver_get_reason_unknown returned NULL"); }
+  return lean_mk_string(str);
 }
 
 LEAN_EXPORT lean_obj_res lean_z3_Solver_getProof(b_lean_obj_arg s) {
@@ -784,6 +815,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_getProof(b_lean_obj_arg s) {
   }
   Z3_inc_ref(sw->ctx, proof);
   Z3AstWrapper *w = (Z3AstWrapper *)malloc(sizeof(Z3AstWrapper));
+  if (w == NULL) { Z3_dec_ref(sw->ctx, proof); return z3_env_error("out of memory"); }
   lean_inc(sw->ctx_obj);
   w->ctx_obj = sw->ctx_obj;
   w->ctx = sw->ctx;
@@ -793,7 +825,9 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_getProof(b_lean_obj_arg s) {
 
 LEAN_EXPORT lean_obj_res lean_z3_Solver_toString(b_lean_obj_arg s) {
   Z3SolverWrapper *sw = to_Solver(s);
-  return lean_mk_string(Z3_solver_to_string(sw->ctx, sw->solver));
+  const char *str = Z3_solver_to_string(sw->ctx, sw->solver);
+  if (str == NULL) { lean_internal_panic("Z3_solver_to_string returned NULL"); }
+  return lean_mk_string(str);
 }
 
 /* ── Unsat core / assumptions ──────────────────────────────────────────── */
@@ -807,9 +841,13 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_assertAndTrack(b_lean_obj_arg s, b_lean_
 LEAN_EXPORT uint32_t lean_z3_Solver_checkAssumptionsRaw(b_lean_obj_arg s, b_lean_obj_arg assumptions) {
   Z3SolverWrapper *sw = to_Solver(s);
   unsigned n = lean_array_size(assumptions);
-  Z3_ast *arr = (Z3_ast *)malloc(n * sizeof(Z3_ast));
-  for (unsigned i = 0; i < n; i++) {
-    arr[i] = to_Ast(lean_array_get_core(assumptions, i))->ast;
+  Z3_ast *arr = NULL;
+  if (n > 0) {
+    arr = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+    if (arr == NULL) { lean_internal_panic("out of memory"); }
+    for (unsigned i = 0; i < n; i++) {
+      arr[i] = to_Ast(lean_array_get_core(assumptions, i))->ast;
+    }
   }
   Z3_lbool result = Z3_solver_check_assumptions(sw->ctx, sw->solver, n, arr);
   free(arr);
@@ -836,6 +874,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_getUnsatCore(b_lean_obj_arg s) {
 LEAN_EXPORT lean_obj_res lean_z3_Solver_getAssertions(b_lean_obj_arg s) {
   Z3SolverWrapper *sw = to_Solver(s);
   Z3_ast_vector assertions = Z3_solver_get_assertions(sw->ctx, sw->solver);
+  if (assertions == NULL) { lean_internal_panic("Z3_solver_get_assertions returned NULL"); }
   Z3_ast_vector_inc_ref(sw->ctx, assertions);
   unsigned n = Z3_ast_vector_size(sw->ctx, assertions);
   lean_object *arr = lean_mk_empty_array();
@@ -857,6 +896,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_getModel(b_lean_obj_arg s) {
   }
   Z3_model_inc_ref(sw->ctx, m);
   Z3ModelWrapper *w = (Z3ModelWrapper *)malloc(sizeof(Z3ModelWrapper));
+  if (w == NULL) { Z3_model_dec_ref(sw->ctx, m); return z3_env_error("out of memory"); }
   lean_inc(sw->ctx_obj);
   w->ctx_obj = sw->ctx_obj;
   w->ctx = sw->ctx;
@@ -874,6 +914,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Model_eval(b_lean_obj_arg m, b_lean_obj_arg a, 
   }
   Z3_inc_ref(mw->ctx, result);
   Z3AstWrapper *rw = (Z3AstWrapper *)malloc(sizeof(Z3AstWrapper));
+  if (rw == NULL) { Z3_dec_ref(mw->ctx, result); return z3_env_error("out of memory"); }
   lean_inc(mw->ctx_obj);
   rw->ctx_obj = mw->ctx_obj;
   rw->ctx = mw->ctx;
@@ -888,6 +929,8 @@ LEAN_EXPORT uint32_t lean_z3_Model_getNumConsts(b_lean_obj_arg m) {
 
 LEAN_EXPORT lean_obj_res lean_z3_Model_getConstDecl(b_lean_obj_arg m, uint32_t i) {
   Z3ModelWrapper *mw = to_Model(m);
+  unsigned n = Z3_model_get_num_consts(mw->ctx, mw->model);
+  if (i >= n) { lean_internal_panic("Model.getConstDecl: index out of bounds"); }
   return z3_wrap_func_decl(mw->ctx_obj, mw->ctx, Z3_model_get_const_decl(mw->ctx, mw->model, i));
 }
 
@@ -900,6 +943,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Model_getConstInterp(b_lean_obj_arg m, b_lean_o
   }
   Z3_inc_ref(mw->ctx, a);
   Z3AstWrapper *w = (Z3AstWrapper *)malloc(sizeof(Z3AstWrapper));
+  if (w == NULL) { Z3_dec_ref(mw->ctx, a); return z3_env_error("out of memory"); }
   lean_inc(mw->ctx_obj);
   w->ctx_obj = mw->ctx_obj;
   w->ctx = mw->ctx;
@@ -909,7 +953,9 @@ LEAN_EXPORT lean_obj_res lean_z3_Model_getConstInterp(b_lean_obj_arg m, b_lean_o
 
 LEAN_EXPORT lean_obj_res lean_z3_Model_toString(b_lean_obj_arg m) {
   Z3ModelWrapper *mw = to_Model(m);
-  return lean_mk_string(Z3_model_to_string(mw->ctx, mw->model));
+  const char *str = Z3_model_to_string(mw->ctx, mw->model);
+  if (str == NULL) { lean_internal_panic("Z3_model_to_string returned NULL"); }
+  return lean_mk_string(str);
 }
 
 /* ── SMT-LIB parsing ──────────────────────────────────────────────────── */
@@ -920,20 +966,25 @@ LEAN_EXPORT lean_obj_res lean_z3_Context_parseSMTLIB2String(b_lean_obj_arg ctx, 
   if (vec == NULL) {
     return z3_env_error("SMT-LIB2 parse failed");
   }
+  Z3_ast_vector_inc_ref(c->ctx, vec);
   unsigned n = Z3_ast_vector_size(c->ctx, vec);
+  lean_obj_res result;
   if (n == 0) {
-    return z3_env_val(z3_wrap_ast(ctx, c->ctx, Z3_mk_true(c->ctx)));
+    result = z3_env_val(z3_wrap_ast(ctx, c->ctx, Z3_mk_true(c->ctx)));
   } else if (n == 1) {
-    return z3_env_val(z3_wrap_ast(ctx, c->ctx, Z3_ast_vector_get(c->ctx, vec, 0)));
+    result = z3_env_val(z3_wrap_ast(ctx, c->ctx, Z3_ast_vector_get(c->ctx, vec, 0)));
   } else {
     Z3_ast *args = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+    if (args == NULL) { Z3_ast_vector_dec_ref(c->ctx, vec); return z3_env_error("out of memory"); }
     for (unsigned i = 0; i < n; i++) {
       args[i] = Z3_ast_vector_get(c->ctx, vec, i);
     }
     Z3_ast conj = Z3_mk_and(c->ctx, n, args);
     free(args);
-    return z3_env_val(z3_wrap_ast(ctx, c->ctx, conj));
+    result = z3_env_val(z3_wrap_ast(ctx, c->ctx, conj));
   }
+  Z3_ast_vector_dec_ref(c->ctx, vec);
+  return result;
 }
 
 /* ── Quantifiers ───────────────────────────────────────────────────────── */
@@ -957,6 +1008,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_mkForall(b_lean_obj_arg ctx, b_lean_obj_arg
   }
   Z3_sort *z3_sorts = (Z3_sort *)malloc(n * sizeof(Z3_sort));
   Z3_symbol *z3_names = (Z3_symbol *)malloc(n * sizeof(Z3_symbol));
+  if (z3_sorts == NULL || z3_names == NULL) { free(z3_sorts); free(z3_names); return z3_env_error("out of memory"); }
   for (unsigned i = 0; i < n; i++) {
     Z3SortWrapper *si = to_Srt(lean_array_get_core(sorts, i));
     z3_sorts[i] = si->sort;
@@ -982,6 +1034,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_mkExists(b_lean_obj_arg ctx, b_lean_obj_arg
   }
   Z3_sort *z3_sorts = (Z3_sort *)malloc(n * sizeof(Z3_sort));
   Z3_symbol *z3_names = (Z3_symbol *)malloc(n * sizeof(Z3_symbol));
+  if (z3_sorts == NULL || z3_names == NULL) { free(z3_sorts); free(z3_names); return z3_env_error("out of memory"); }
   for (unsigned i = 0; i < n; i++) {
     Z3SortWrapper *si = to_Srt(lean_array_get_core(sorts, i));
     z3_sorts[i] = si->sort;
@@ -1013,6 +1066,10 @@ LEAN_EXPORT lean_obj_res lean_z3_Constructor_mk(b_lean_obj_arg ctx, b_lean_obj_a
     z3_fnames = (Z3_symbol *)malloc(n * sizeof(Z3_symbol));
     z3_fsorts = (Z3_sort *)malloc(n * sizeof(Z3_sort));
     z3_frefs = (unsigned *)malloc(n * sizeof(unsigned));
+    if (z3_fnames == NULL || z3_fsorts == NULL || z3_frefs == NULL) {
+      free(z3_fnames); free(z3_fsorts); free(z3_frefs);
+      return z3_env_error("out of memory");
+    }
     for (unsigned i = 0; i < n; i++) {
       z3_fnames[i] = Z3_mk_string_symbol(c->ctx,
         lean_string_cstr(lean_array_get_core(fieldNames, i)));
@@ -1025,6 +1082,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Constructor_mk(b_lean_obj_arg ctx, b_lean_obj_a
                                           z3_fnames, z3_fsorts, z3_frefs);
   free(z3_fnames); free(z3_fsorts); free(z3_frefs);
   Z3ConstructorWrapper *w = (Z3ConstructorWrapper *)malloc(sizeof(Z3ConstructorWrapper));
+  if (w == NULL) { Z3_del_constructor(c->ctx, con); return z3_env_error("out of memory"); }
   lean_inc(ctx);
   w->ctx_obj = ctx;
   w->ctx = c->ctx;
@@ -1040,6 +1098,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Srt_mkDatatype(b_lean_obj_arg ctx, b_lean_obj_a
     return z3_env_error("datatype must have at least one constructor");
   }
   Z3_constructor *z3_cons = (Z3_constructor *)malloc(n * sizeof(Z3_constructor));
+  if (z3_cons == NULL) { return z3_env_error("out of memory"); }
   for (unsigned i = 0; i < n; i++) {
     Z3ConstructorWrapper *cw = to_Constructor(lean_array_get_core(constructors, i));
     z3_cons[i] = cw->constructor;
@@ -1062,6 +1121,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Constructor_query(b_lean_obj_arg con, uint32_t 
   unsigned n = numFields;
   if (n > 0) {
     accessors = (Z3_func_decl *)malloc(n * sizeof(Z3_func_decl));
+    if (accessors == NULL) { return z3_env_error("out of memory"); }
   }
   Z3_query_constructor(cw->ctx, cw->constructor, n, &con_decl, &tester_decl, accessors);
 
@@ -1135,6 +1195,7 @@ LEAN_EXPORT lean_obj_res lean_z3_Solver_registerOnClause(b_lean_obj_arg solver_o
   Z3SolverWrapper *sw = to_Solver(solver_obj);
 
   Z3OnClauseHandleData *h = (Z3OnClauseHandleData *)malloc(sizeof(Z3OnClauseHandleData));
+  if (h == NULL) { lean_internal_panic("out of memory"); }
   lean_inc(solver_obj);
   h->solver_obj = solver_obj;
   lean_inc(sw->ctx_obj);

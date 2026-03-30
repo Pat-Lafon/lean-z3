@@ -214,7 +214,7 @@ def testSolverTimeout : IO TestResult := runTest "solver timeout / unknown" do
   let result ← Solver.checkSat solver
   -- We expect unknown due to timeout, but it might solve it anyway on fast machines
   if result == .undef then
-    let reason := Solver.getReasonUnknown solver
+    let reason ← Solver.getReasonUnknown solver
     return check "solver timeout / unknown" (reason.length > 0)
       s!"getReasonUnknown returned empty string"
   else

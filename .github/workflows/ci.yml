@@ -40,6 +40,10 @@ jobs:
         shell: bash
         run: echo "${{ github.workspace }}/z3-4.16.0-x64-win/bin" >> "$GITHUB_PATH"
 
+      - name: Check FFI sync (Lean ↔ C)
+        shell: bash
+        run: ./scripts/check-ffi-sync.sh
+
       - uses: leanprover/lean-action@v1
         with:
           build-args: z3test

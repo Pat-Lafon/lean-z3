@@ -2180,6 +2180,196 @@ LEAN_EXPORT lean_obj_res lean_z3_Ast_mkFpaToIeeeBv(b_lean_obj_arg ctx, b_lean_ob
   return z3_wrap_ast(ctx, c->ctx, Z3_mk_fpa_to_ieee_bv(c->ctx, to_Ast(t)->ast));
 }
 
+/* ── Additional sorts ─────────────────────────────────────────────────── */
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkFiniteDomain(b_lean_obj_arg ctx, b_lean_obj_arg name, uint64_t size) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_symbol sym = Z3_mk_string_symbol(c->ctx, lean_string_cstr(name));
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_finite_domain_sort(c->ctx, sym, size));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkChar(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  return z3_wrap_sort(ctx, c->ctx, Z3_mk_char_sort(c->ctx));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkEnumeration(b_lean_obj_arg ctx, b_lean_obj_arg name,
+    b_lean_obj_arg enumNames) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(enumNames);
+  Z3_symbol z3_name = Z3_mk_string_symbol(c->ctx, lean_string_cstr(name));
+  Z3_symbol *z3_names = (Z3_symbol *)malloc(n * sizeof(Z3_symbol));
+  Z3_func_decl *consts = (Z3_func_decl *)malloc(n * sizeof(Z3_func_decl));
+  Z3_func_decl *testers = (Z3_func_decl *)malloc(n * sizeof(Z3_func_decl));
+  if ((n > 0) && (z3_names == NULL || consts == NULL || testers == NULL)) {
+    free(z3_names); free(consts); free(testers);
+    return z3_env_error("out of memory");
+  }
+  for (unsigned i = 0; i < n; i++) {
+    z3_names[i] = Z3_mk_string_symbol(c->ctx, lean_string_cstr(lean_array_get_core(enumNames, i)));
+  }
+  Z3_sort s = Z3_mk_enumeration_sort(c->ctx, z3_name, n, z3_names, consts, testers);
+
+  lean_object *sort_lean = z3_wrap_sort(ctx, c->ctx, s);
+  lean_object *consts_arr = lean_mk_empty_array();
+  lean_object *testers_arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < n; i++) {
+    consts_arr = lean_array_push(consts_arr, z3_wrap_func_decl(ctx, c->ctx, consts[i]));
+    testers_arr = lean_array_push(testers_arr, z3_wrap_func_decl(ctx, c->ctx, testers[i]));
+  }
+  free(z3_names); free(consts); free(testers);
+
+  /* Build (Srt × Array FuncDecl × Array FuncDecl) */
+  lean_object *inner = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(inner, 0, consts_arr);
+  lean_ctor_set(inner, 1, testers_arr);
+  lean_object *triple = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(triple, 0, sort_lean);
+  lean_ctor_set(triple, 1, inner);
+
+  return z3_env_val(triple);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkList(b_lean_obj_arg ctx, b_lean_obj_arg name,
+    b_lean_obj_arg elemSort) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_symbol z3_name = Z3_mk_string_symbol(c->ctx, lean_string_cstr(name));
+  Z3_func_decl nil_decl, is_nil_decl, cons_decl, is_cons_decl, head_decl, tail_decl;
+  Z3_sort s = Z3_mk_list_sort(c->ctx, z3_name, to_Srt(elemSort)->sort,
+    &nil_decl, &is_nil_decl, &cons_decl, &is_cons_decl, &head_decl, &tail_decl);
+
+  lean_object *sort_lean = z3_wrap_sort(ctx, c->ctx, s);
+  lean_object *nil_lean = z3_wrap_func_decl(ctx, c->ctx, nil_decl);
+  lean_object *is_nil_lean = z3_wrap_func_decl(ctx, c->ctx, is_nil_decl);
+  lean_object *cons_lean = z3_wrap_func_decl(ctx, c->ctx, cons_decl);
+  lean_object *is_cons_lean = z3_wrap_func_decl(ctx, c->ctx, is_cons_decl);
+  lean_object *head_lean = z3_wrap_func_decl(ctx, c->ctx, head_decl);
+  lean_object *tail_lean = z3_wrap_func_decl(ctx, c->ctx, tail_decl);
+
+  /* Build (Srt × FuncDecl × FuncDecl × FuncDecl × FuncDecl × FuncDecl × FuncDecl)
+     as nested Prod: (s, (nil, (is_nil, (cons, (is_cons, (head, tail)))))) */
+  lean_object *p5 = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(p5, 0, head_lean);
+  lean_ctor_set(p5, 1, tail_lean);
+  lean_object *p4 = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(p4, 0, is_cons_lean);
+  lean_ctor_set(p4, 1, p5);
+  lean_object *p3 = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(p3, 0, cons_lean);
+  lean_ctor_set(p3, 1, p4);
+  lean_object *p2 = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(p2, 0, is_nil_lean);
+  lean_ctor_set(p2, 1, p3);
+  lean_object *p1 = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(p1, 0, nil_lean);
+  lean_ctor_set(p1, 1, p2);
+  lean_object *result = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(result, 0, sort_lean);
+  lean_ctor_set(result, 1, p1);
+
+  return z3_env_val(result);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkTuple(b_lean_obj_arg ctx, b_lean_obj_arg name,
+    b_lean_obj_arg fieldNames, b_lean_obj_arg fieldSorts) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned n = lean_array_size(fieldNames);
+  if (n != lean_array_size(fieldSorts)) {
+    return z3_env_error("fieldNames and fieldSorts must have same length");
+  }
+  Z3_symbol z3_name = Z3_mk_string_symbol(c->ctx, lean_string_cstr(name));
+  Z3_symbol *z3_fnames = NULL;
+  Z3_sort *z3_fsorts = NULL;
+  Z3_func_decl mk_tuple_decl;
+  Z3_func_decl *proj_decls = NULL;
+  if (n > 0) {
+    z3_fnames = (Z3_symbol *)malloc(n * sizeof(Z3_symbol));
+    z3_fsorts = (Z3_sort *)malloc(n * sizeof(Z3_sort));
+    proj_decls = (Z3_func_decl *)malloc(n * sizeof(Z3_func_decl));
+    if (z3_fnames == NULL || z3_fsorts == NULL || proj_decls == NULL) {
+      free(z3_fnames); free(z3_fsorts); free(proj_decls);
+      return z3_env_error("out of memory");
+    }
+    for (unsigned i = 0; i < n; i++) {
+      z3_fnames[i] = Z3_mk_string_symbol(c->ctx, lean_string_cstr(lean_array_get_core(fieldNames, i)));
+      z3_fsorts[i] = to_Srt(lean_array_get_core(fieldSorts, i))->sort;
+    }
+  }
+  Z3_sort s = Z3_mk_tuple_sort(c->ctx, z3_name, n, z3_fnames, z3_fsorts, &mk_tuple_decl, proj_decls);
+
+  lean_object *sort_lean = z3_wrap_sort(ctx, c->ctx, s);
+  lean_object *mk_lean = z3_wrap_func_decl(ctx, c->ctx, mk_tuple_decl);
+  lean_object *projs_arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < n; i++) {
+    projs_arr = lean_array_push(projs_arr, z3_wrap_func_decl(ctx, c->ctx, proj_decls[i]));
+  }
+  free(z3_fnames); free(z3_fsorts); free(proj_decls);
+
+  /* Build (Srt × FuncDecl × Array FuncDecl) */
+  lean_object *inner = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(inner, 0, mk_lean);
+  lean_ctor_set(inner, 1, projs_arr);
+  lean_object *triple = lean_alloc_ctor(0, 2, 0);
+  lean_ctor_set(triple, 0, sort_lean);
+  lean_ctor_set(triple, 1, inner);
+
+  return z3_env_val(triple);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Srt_mkDatatypes(b_lean_obj_arg ctx,
+    b_lean_obj_arg names, b_lean_obj_arg constructorGroups) {
+  Z3Ctx *c = to_Context(ctx);
+  unsigned num_sorts = lean_array_size(names);
+  if (num_sorts != lean_array_size(constructorGroups)) {
+    return z3_env_error("names and constructorGroups must have same length");
+  }
+  if (num_sorts == 0) {
+    return z3_env_error("must have at least one sort");
+  }
+
+  Z3_symbol *z3_names = (Z3_symbol *)malloc(num_sorts * sizeof(Z3_symbol));
+  Z3_sort *z3_sorts = (Z3_sort *)malloc(num_sorts * sizeof(Z3_sort));
+  Z3_constructor_list *z3_clists = (Z3_constructor_list *)malloc(num_sorts * sizeof(Z3_constructor_list));
+  if (z3_names == NULL || z3_sorts == NULL || z3_clists == NULL) {
+    free(z3_names); free(z3_sorts); free(z3_clists);
+    return z3_env_error("out of memory");
+  }
+
+  for (unsigned i = 0; i < num_sorts; i++) {
+    z3_names[i] = Z3_mk_string_symbol(c->ctx, lean_string_cstr(lean_array_get_core(names, i)));
+    lean_object *group = lean_array_get_core(constructorGroups, i);
+    unsigned nc = lean_array_size(group);
+    Z3_constructor *cons = (Z3_constructor *)malloc(nc * sizeof(Z3_constructor));
+    if (cons == NULL) {
+      /* Clean up already-created lists */
+      for (unsigned j = 0; j < i; j++) Z3_del_constructor_list(c->ctx, z3_clists[j]);
+      free(z3_names); free(z3_sorts); free(z3_clists);
+      return z3_env_error("out of memory");
+    }
+    for (unsigned j = 0; j < nc; j++) {
+      cons[j] = to_Constructor(lean_array_get_core(group, j))->constructor;
+    }
+    z3_clists[i] = Z3_mk_constructor_list(c->ctx, nc, cons);
+    free(cons);
+  }
+
+  Z3_mk_datatypes(c->ctx, num_sorts, z3_names, z3_sorts, z3_clists);
+
+  /* Build result array of sorts */
+  lean_object *result_arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < num_sorts; i++) {
+    result_arr = lean_array_push(result_arr, z3_wrap_sort(ctx, c->ctx, z3_sorts[i]));
+  }
+
+  /* Update constructor wrappers in-place (like mkDatatype) and clean up */
+  for (unsigned i = 0; i < num_sorts; i++) {
+    Z3_del_constructor_list(c->ctx, z3_clists[i]);
+  }
+  free(z3_names); free(z3_sorts); free(z3_clists);
+
+  return z3_env_val(result_arr);
+}
+
 /* ── Sets ─────────────────────────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Srt_mkSet(b_lean_obj_arg ctx, b_lean_obj_arg ty) {

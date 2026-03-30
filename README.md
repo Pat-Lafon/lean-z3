@@ -42,7 +42,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **String / Sequence** — `Srt.mkString`, `Srt.mkSeq`, `Srt.mkRe`, `Ast.mkString`, `getString`, `mkSeqConcat`, `mkSeqLength`, `mkSeqContains`, `mkSeqPrefix`, `mkSeqSuffix`, `mkSeqExtract`, `mkSeqAt`, `mkSeqIndex`, `mkStrToInt`, `mkIntToStr`, `mkSeqToRe`, `mkSeqInRe`, `mkReStar`, `mkRePlus`, `mkReOption`, `mkReUnion`, `mkReConcat`, `mkReRange`, `mkReComplement`, `mkReIntersect`
 - **Floating point** — `Srt.mkFpa`, `mkFpa32`, `mkFpa64`, `mkFpa16`, `mkFpa128`, `mkFpaRoundingMode`, rounding modes (`mkFpaRne/Rna/Rtp/Rtn/Rtz`), special values (`mkFpaNan/Inf/Zero`), numerals (`mkFpaNumeralDouble/Int`), arithmetic (`mkFpaAdd/Sub/Mul/Div/Fma/Sqrt/Rem/Abs/Neg/Min/Max`), comparisons (`mkFpaLt/Leq/Gt/Geq/Eq`), classification (`mkFpaIsNan/Inf/Zero/Normal/Subnormal/Negative/Positive`), rounding (`mkFpaRoundToIntegral`), conversions (`mkFpaToFpBv/Float/Real/Signed/Unsigned`, `mkFpaToUbv/Sbv/Real/IeeeBv`)
 - **Sets** — `Srt.mkSet`, `mkEmptySet`, `mkFullSet`, `mkSetAdd`, `mkSetDel`, `mkSetUnion`, `mkSetIntersect`, `mkSetDifference`, `mkSetComplement`, `mkSetMember`, `mkSetSubset`
-- **Test suite** — 232 tests
+- **Additional sorts** — `Srt.mkFiniteDomain`, `mkChar`, `mkEnumeration`, `mkList`, `mkTuple`, `mkDatatypes` (mutually recursive)
+- **Test suite** — 239 tests
 
 ### Unbound — Coverage Gaps
 
@@ -138,9 +139,9 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_mk_set_complement` / `Z3_mk_set_member` / `Z3_mk_set_subset`
 
 #### Additional sorts
-- [ ] `Z3_mk_enumeration_sort` / `Z3_mk_list_sort` / `Z3_mk_tuple_sort`
-- [ ] `Z3_mk_finite_domain_sort` / `Z3_mk_char_sort`
-- [ ] `Z3_mk_datatypes` — mutually recursive datatypes
+- [x] `Z3_mk_enumeration_sort` / `Z3_mk_list_sort` / `Z3_mk_tuple_sort`
+- [x] `Z3_mk_finite_domain_sort` / `Z3_mk_char_sort`
+- [x] `Z3_mk_datatypes` — mutually recursive datatypes
 
 #### Sort inspection (extended)
 - [ ] `Z3_get_array_sort_domain` / `Z3_get_array_sort_range`

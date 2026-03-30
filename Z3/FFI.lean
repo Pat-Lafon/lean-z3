@@ -1399,6 +1399,45 @@ opaque Ast.mkFpaToReal (ctx : @& Context) (t : @& Ast) : Ast
 @[extern "lean_z3_Ast_mkFpaToIeeeBv"]
 opaque Ast.mkFpaToIeeeBv (ctx : @& Context) (t : @& Ast) : Ast
 
+/-! ## Additional sorts -/
+
+/-- Create a finite domain sort with the given name and size. -/
+@[extern "lean_z3_Srt_mkFiniteDomain"]
+opaque Srt.mkFiniteDomain (ctx : @& Context) (name : @& String) (size : UInt64) : Srt
+
+/-- Create the character sort (Unicode). -/
+@[extern "lean_z3_Srt_mkChar"]
+opaque Srt.mkChar (ctx : @& Context) : Srt
+
+/-- Create an enumeration sort.
+  Returns `(sort, enumConstants, enumTesters)`. -/
+@[extern "lean_z3_Srt_mkEnumeration"]
+opaque Srt.mkEnumeration (ctx : @& Context) (name : @& String)
+    (enumNames : @& Array String) : Env (Srt × Array FuncDecl × Array FuncDecl)
+
+/-- Create a list sort.
+  Returns `(sort, nilDecl, isNilDecl, consDecl, isConsDecl, headDecl, tailDecl)`. -/
+@[extern "lean_z3_Srt_mkList"]
+opaque Srt.mkList (ctx : @& Context) (name : @& String) (elemSort : @& Srt)
+    : Env (Srt × FuncDecl × FuncDecl × FuncDecl × FuncDecl × FuncDecl × FuncDecl)
+
+/-- Create a tuple sort.
+  Returns `(sort, mkTupleDecl, projectionDecls)`. -/
+@[extern "lean_z3_Srt_mkTuple"]
+opaque Srt.mkTuple (ctx : @& Context) (name : @& String)
+    (fieldNames : @& Array String) (fieldSorts : @& Array Srt)
+    : Env (Srt × FuncDecl × Array FuncDecl)
+
+/-- Create mutually recursive datatypes.
+  Takes an array of `(sortName, constructors)` pairs.
+  Returns the array of created sorts.
+  Note: constructors are modified in-place (like `mkDatatype`). -/
+@[extern "lean_z3_Srt_mkDatatypes"]
+opaque Srt.mkDatatypes (ctx : @& Context)
+    (names : @& Array String)
+    (constructorGroups : @& Array (Array Constructor))
+    : Env (Array Srt)
+
 /-! ## Sets -/
 
 /-- Create a set sort over element sort `ty`. -/

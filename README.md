@@ -46,7 +46,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Sort inspection (extended)** — `getArraySortDomain`, `getArraySortDomainN`, `getArraySortRange`, `getDatatypeSortNumConstructors`, `getDatatypeSortConstructor`, `getDatatypeSortRecognizer`, `getDatatypeSortConstructorAccessor`
 - **Solver (extended)** — `mkSimple`, `mkForLogic`, `fromString`, `fromFile`, `getNumScopes`, `interrupt`, `translate`, `getTrail`, `getConsequences`, `getStatistics`
 - **Statistics** — `Stats` opaque type, `size`, `getKey`, `isUInt`, `isDouble`, `getUIntValue`, `getDoubleValue`, `toString`
-- **Test suite** — 255 tests
+- **Fixedpoint (Datalog/CHC)** — `Fixedpoint` opaque type, `new`, `registerRelation`, `addRule`, `assert`, `query`, `getAnswer`, `getReasonUnknown`, `setParams`, `toString`
+- **Test suite** — 261 tests
 
 ### Unbound — Coverage Gaps
 
@@ -180,8 +181,8 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] `Z3_solver_get_param_descrs` / `Z3_get_global_param_descrs` — obtain param descriptors
 
 #### Fixedpoint (Datalog/CHC)
-- [ ] `Z3_mk_fixedpoint` / `Z3_fixedpoint_add_rule` / `Z3_fixedpoint_query`
-- [ ] `Z3_fixedpoint_assert` / `Z3_fixedpoint_get_answer`
+- [x] `Z3_mk_fixedpoint` / `Z3_fixedpoint_add_rule` / `Z3_fixedpoint_query`
+- [x] `Z3_fixedpoint_assert` / `Z3_fixedpoint_get_answer`
 
 #### Bitvector (remaining ops)
 - [x] `Z3_mk_bvnand` / `Z3_mk_bvnor` / `Z3_mk_bvxnor` / `Z3_mk_bvsmod`

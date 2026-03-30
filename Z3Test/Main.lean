@@ -21,6 +21,7 @@ import Z3Test.Sets
 import Z3Test.AdditionalSorts
 import Z3Test.SortInspect
 import Z3Test.SolverExt
+import Z3Test.Fixedpoint
 
 def main : IO UInt32 :=
   runTests (basicTests ++ z3rsTests ++ arrayTests ++ proofTests
@@ -28,4 +29,5 @@ def main : IO UInt32 :=
     ++ numeralTests ++ quantifierTests ++ substTests ++ declKindTests
     ++ modelExtTests ++ pseudoBoolTests ++ astUtilTests ++ optimizeTests
     ++ tacticTests ++ stringTests ++ floatingPointTests ++ setTests
-    ++ additionalSortTests ++ sortInspectTests ++ solverExtTests)
+    ++ additionalSortTests ++ sortInspectTests ++ solverExtTests
+    ++ fixedpointTests)

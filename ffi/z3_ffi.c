@@ -1699,6 +1699,91 @@ LEAN_EXPORT lean_obj_res lean_z3_Stats_toString(b_lean_obj_arg s) {
   return lean_mk_string(str);
 }
 
+/* ── Fixedpoint (Datalog/CHC) ─────────────────────────────────────────── */
+
+static void Fixedpoint_finalize(void *p) {
+  Z3FixedpointWrapper *w = (Z3FixedpointWrapper *)p;
+  Z3_fixedpoint_dec_ref(w->ctx, w->fixedpoint);
+  lean_dec(w->ctx_obj);
+  free(w);
+}
+
+static lean_external_class *g_Fixedpoint_class = NULL;
+static inline lean_external_class *get_Fixedpoint_class(void) {
+  if (g_Fixedpoint_class == NULL)
+    g_Fixedpoint_class = lean_register_external_class(Fixedpoint_finalize, noop_foreach);
+  return g_Fixedpoint_class;
+}
+
+static inline lean_obj_res mk_Fixedpoint(Z3FixedpointWrapper *w) {
+  return lean_alloc_external(get_Fixedpoint_class(), w);
+}
+
+static inline Z3FixedpointWrapper *to_Fixedpoint(b_lean_obj_arg o) {
+  return (Z3FixedpointWrapper *)lean_get_external_data(o);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_new(b_lean_obj_arg ctx) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3_fixedpoint fp = Z3_mk_fixedpoint(c->ctx);
+  Z3_fixedpoint_inc_ref(c->ctx, fp);
+  Z3FixedpointWrapper *w = (Z3FixedpointWrapper *)malloc(sizeof(Z3FixedpointWrapper));
+  if (w == NULL) { Z3_fixedpoint_dec_ref(c->ctx, fp); return z3_env_error("out of memory"); }
+  lean_inc(ctx);
+  w->ctx_obj = ctx; w->ctx = c->ctx; w->fixedpoint = fp;
+  return z3_env_val(mk_Fixedpoint(w));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_registerRelation(b_lean_obj_arg fp, b_lean_obj_arg f) {
+  Z3FixedpointWrapper *fpw = to_Fixedpoint(fp);
+  Z3_fixedpoint_register_relation(fpw->ctx, fpw->fixedpoint, to_FuncDecl(f)->func_decl);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_addRule(b_lean_obj_arg fp, b_lean_obj_arg rule, b_lean_obj_arg name) {
+  Z3FixedpointWrapper *fpw = to_Fixedpoint(fp);
+  Z3_symbol sym = Z3_mk_string_symbol(fpw->ctx, lean_string_cstr(name));
+  Z3_fixedpoint_add_rule(fpw->ctx, fpw->fixedpoint, to_Ast(rule)->ast, sym);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_assert(b_lean_obj_arg fp, b_lean_obj_arg a) {
+  Z3FixedpointWrapper *fpw = to_Fixedpoint(fp);
+  Z3_fixedpoint_assert(fpw->ctx, fpw->fixedpoint, to_Ast(a)->ast);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_query(b_lean_obj_arg fp, b_lean_obj_arg query) {
+  Z3FixedpointWrapper *fpw = to_Fixedpoint(fp);
+  Z3_lbool r = Z3_fixedpoint_query(fpw->ctx, fpw->fixedpoint, to_Ast(query)->ast);
+  /* Map Z3_lbool {-1,0,1} to LBool {0,1,2} */
+  return lean_box((uint8_t)(r + 1));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_getAnswer(b_lean_obj_arg fp) {
+  Z3FixedpointWrapper *fpw = to_Fixedpoint(fp);
+  Z3_ast a = Z3_fixedpoint_get_answer(fpw->ctx, fpw->fixedpoint);
+  return z3_wrap_ast(fpw->ctx_obj, fpw->ctx, a);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_getReasonUnknown(b_lean_obj_arg fp) {
+  Z3FixedpointWrapper *fpw = to_Fixedpoint(fp);
+  return lean_mk_string(Z3_fixedpoint_get_reason_unknown(fpw->ctx, fpw->fixedpoint));
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_setParams(b_lean_obj_arg fp, b_lean_obj_arg p) {
+  Z3FixedpointWrapper *fpw = to_Fixedpoint(fp);
+  Z3_fixedpoint_set_params(fpw->ctx, fpw->fixedpoint, to_Params(p)->params);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Fixedpoint_toString(b_lean_obj_arg fp) {
+  Z3FixedpointWrapper *fpw = to_Fixedpoint(fp);
+  const char *str = Z3_fixedpoint_to_string(fpw->ctx, fpw->fixedpoint, 0, NULL);
+  if (str == NULL) { lean_internal_panic("Z3_fixedpoint_to_string returned NULL"); }
+  return lean_mk_string(str);
+}
+
 /* ── Unsat core / assumptions ──────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Solver_assertAndTrack(b_lean_obj_arg s, b_lean_obj_arg a, b_lean_obj_arg track) {

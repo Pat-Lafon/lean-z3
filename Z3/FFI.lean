@@ -85,6 +85,11 @@ opaque Stats.Pointed : NonemptyType
 def Stats : Type := Stats.Pointed.type
 instance : Nonempty Stats := Stats.Pointed.property
 
+/-- Z3 fixedpoint engine (`Z3_fixedpoint`). -/
+opaque Fixedpoint.Pointed : NonemptyType
+def Fixedpoint : Type := Fixedpoint.Pointed.type
+instance : Nonempty Fixedpoint := Fixedpoint.Pointed.property
+
 /-! ## Context operations -/
 
 /-- Create a new Z3 context with default configuration. -/
@@ -976,6 +981,46 @@ opaque Stats.getDoubleValue (s : @& Stats) (i : UInt32) : Float
 opaque Stats.toString' (s : @& Stats) : String
 
 instance : ToString Stats := ⟨fun s => Stats.toString' s⟩
+
+/-! ## Fixedpoint (Datalog/CHC) -/
+
+/-- Create a new fixedpoint engine. -/
+@[extern "lean_z3_Fixedpoint_new"]
+opaque Fixedpoint.new (ctx : @& Context) : Env Fixedpoint
+
+/-- Register a relation (predicate) with the fixedpoint engine. -/
+@[extern "lean_z3_Fixedpoint_registerRelation"]
+opaque Fixedpoint.registerRelation (fp : @& Fixedpoint) (f : @& FuncDecl) : BaseIO PUnit
+
+/-- Add a rule (Horn clause). `name` is an optional label. -/
+@[extern "lean_z3_Fixedpoint_addRule"]
+opaque Fixedpoint.addRule (fp : @& Fixedpoint) (rule : @& Ast) (name : @& String) : BaseIO PUnit
+
+/-- Assert a background axiom. -/
+@[extern "lean_z3_Fixedpoint_assert"]
+opaque Fixedpoint.assert (fp : @& Fixedpoint) (a : @& Ast) : BaseIO PUnit
+
+/-- Query the fixedpoint engine. Returns satisfiability of the query. -/
+@[extern "lean_z3_Fixedpoint_query"]
+opaque Fixedpoint.query (fp : @& Fixedpoint) (query : @& Ast) : BaseIO LBool
+
+/-- Get the answer (derivation/proof) after a successful query. -/
+@[extern "lean_z3_Fixedpoint_getAnswer"]
+opaque Fixedpoint.getAnswer (fp : @& Fixedpoint) : Ast
+
+/-- Get reason for unknown result. -/
+@[extern "lean_z3_Fixedpoint_getReasonUnknown"]
+opaque Fixedpoint.getReasonUnknown (fp : @& Fixedpoint) : String
+
+/-- Set parameters. -/
+@[extern "lean_z3_Fixedpoint_setParams"]
+opaque Fixedpoint.setParams (fp : @& Fixedpoint) (p : @& Params) : BaseIO PUnit
+
+/-- String representation. -/
+@[extern "lean_z3_Fixedpoint_toString"]
+opaque Fixedpoint.toString' (fp : @& Fixedpoint) : String
+
+instance : ToString Fixedpoint := ⟨fun fp => Fixedpoint.toString' fp⟩
 
 /-! ## Unsat cores and assumptions -/
 

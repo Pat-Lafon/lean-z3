@@ -114,6 +114,12 @@ typedef struct {
   Z3_stats     stats;
 } Z3StatsWrapper;
 
+typedef struct {
+  lean_object *ctx_obj;
+  Z3_context   ctx;
+  Z3_fixedpoint fixedpoint;
+} Z3FixedpointWrapper;
+
 /* ── On-clause collector ─────────────────────────────────────────────────── */
 
 typedef struct {

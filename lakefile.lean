@@ -86,7 +86,7 @@ lean_lib Z3 where
   -- symbols resolved at DLL link time. Disabling avoids this complexity on Windows.
   precompileModules := !Platform.isWindows
   needs := #[z3Download]
-  moreLinkObjs := #[libz3]
+  moreLinkObjs := #[libz3, z3_ffi_o]
   moreLeancArgs := #[
     s!"-I{z3.targetName}/include",
     "-Iffi"

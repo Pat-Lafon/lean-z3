@@ -196,6 +196,32 @@ def testMultipleContexts : IO TestResult := runTest "multiple contexts" do
   return check "multiple contexts" (v1 == "1" && v2 == "2")
     s!"expected x=1, x=2, got x={v1}, x={v2}"
 
+/-- Solver timeout: set very short timeout, trigger unknown result, check getReasonUnknown -/
+def testSolverTimeout : IO TestResult := runTest "solver timeout / unknown" do
+  let ctx ← Env.run Context.new
+  let solver ← Solver.new ctx
+  let params ← Params.new ctx
+  Params.setUInt params "timeout" 1  -- 1ms timeout
+  Solver.setParams solver params
+  -- Create a problem complex enough to not solve in 1ms
+  let intSort := Srt.mkInt ctx
+  for i in List.range 20 do
+    let x := Ast.mkIntConst ctx s!"x{i}"
+    let y := Ast.mkIntConst ctx s!"y{i}"
+    Solver.assert solver (Ast.gt ctx (Ast.mul ctx x x) (Ast.mkNumeral ctx s!"{i * 1000 + 1}" intSort))
+    Solver.assert solver (Ast.lt ctx (Ast.mul ctx y y) (Ast.mkNumeral ctx s!"{i * 1000 + 100}" intSort))
+    Solver.assert solver (Ast.gt ctx (Ast.add ctx x y) (Ast.mkNumeral ctx "0" intSort))
+  let result ← Solver.checkSat solver
+  -- We expect unknown due to timeout, but it might solve it anyway on fast machines
+  if result == .undef then
+    let reason := Solver.getReasonUnknown solver
+    return check "solver timeout / unknown" (reason.length > 0)
+      s!"getReasonUnknown returned empty string"
+  else
+    -- If the solver was fast enough, that's still a valid outcome
+    return check "solver timeout / unknown" true
+      s!"solver returned {result} (no timeout)"
+
 def basicTests : List (IO TestResult) :=
   [ testContextCreation
   , testIntSat
@@ -211,4 +237,5 @@ def basicTests : List (IO TestResult) :=
   , testSortKind
   , testParseSMTLIB2
   , testMultipleContexts
+  , testSolverTimeout
   ]

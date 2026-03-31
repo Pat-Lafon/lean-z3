@@ -1392,6 +1392,50 @@ opaque Optimize.toString' (o : @& Optimize) : String
 
 instance : ToString Optimize := ⟨fun o => Optimize.toString' o⟩
 
+/-- Assert a hard constraint with a tracking Boolean. -/
+@[extern "lean_z3_Optimize_assertAndTrack"]
+opaque Optimize.assertAndTrack (o : @& Optimize) (a : @& Ast) (t : @& Ast) : BaseIO PUnit
+
+/-- Set an initial value hint for the optimizer. -/
+@[extern "lean_z3_Optimize_setInitialValue"]
+opaque Optimize.setInitialValue (o : @& Optimize) (v : @& Ast) (val : @& Ast) : BaseIO PUnit
+
+/-- Get the unsat core after a failed check. -/
+@[extern "lean_z3_Optimize_getUnsatCore"]
+opaque Optimize.getUnsatCore (o : @& Optimize) : BaseIO (Array Ast)
+
+/-- Get parameter descriptions. -/
+@[extern "lean_z3_Optimize_getParamDescrs"]
+opaque Optimize.getParamDescrs (ctx : @& Context) (o : @& Optimize) : BaseIO ParamDescrs
+
+/-- Load assertions from an SMT-LIB2 string. -/
+@[extern "lean_z3_Optimize_fromString"]
+opaque Optimize.fromString (o : @& Optimize) (s : @& String) : BaseIO PUnit
+
+/-- Load assertions from an SMT-LIB2 file. -/
+@[extern "lean_z3_Optimize_fromFile"]
+opaque Optimize.fromFile (o : @& Optimize) (path : @& String) : BaseIO PUnit
+
+/-- Get a help string describing available parameters. -/
+@[extern "lean_z3_Optimize_getHelp"]
+opaque Optimize.getHelp (o : @& Optimize) : BaseIO String
+
+/-- Get statistics from the last check. -/
+@[extern "lean_z3_Optimize_getStatistics"]
+opaque Optimize.getStatistics (o : @& Optimize) : BaseIO Stats
+
+/-- Get all assertions in the optimizer. -/
+@[extern "lean_z3_Optimize_getAssertions"]
+opaque Optimize.getAssertions (o : @& Optimize) : BaseIO (Array Ast)
+
+/-- Get all objective functions in the optimizer. -/
+@[extern "lean_z3_Optimize_getObjectives"]
+opaque Optimize.getObjectives (o : @& Optimize) : BaseIO (Array Ast)
+
+/-- Check satisfiability with additional assumptions. -/
+@[extern "lean_z3_Optimize_checkAssumptions"]
+opaque Optimize.checkAssumptions (o : @& Optimize) (assumptions : @& Array Ast) : BaseIO LBool
+
 /-! ## Tactic / Goal API -/
 
 /-- Create a tactic by name. -/

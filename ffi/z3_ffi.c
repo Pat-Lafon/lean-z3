@@ -3422,6 +3422,110 @@ LEAN_EXPORT lean_obj_res lean_z3_Optimize_getReasonUnknown(b_lean_obj_arg o) {
   return lean_mk_string(str);
 }
 
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_assertAndTrack(b_lean_obj_arg o, b_lean_obj_arg a, b_lean_obj_arg t) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_optimize_assert_and_track(ow->ctx, ow->optimize, to_Ast(a)->ast, to_Ast(t)->ast);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_setInitialValue(b_lean_obj_arg o, b_lean_obj_arg v, b_lean_obj_arg val) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_optimize_set_initial_value(ow->ctx, ow->optimize, to_Ast(v)->ast, to_Ast(val)->ast);
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getUnsatCore(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_ast_vector core = Z3_optimize_get_unsat_core(ow->ctx, ow->optimize);
+  Z3_ast_vector_inc_ref(ow->ctx, core);
+  unsigned n = Z3_ast_vector_size(ow->ctx, core);
+  lean_object *arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < n; i++) {
+    Z3_ast a = Z3_ast_vector_get(ow->ctx, core, i);
+    arr = lean_array_push(arr, z3_wrap_ast(ow->ctx_obj, ow->ctx, a));
+  }
+  Z3_ast_vector_dec_ref(ow->ctx, core);
+  return arr;
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getParamDescrs(b_lean_obj_arg ctx, b_lean_obj_arg o) {
+  Z3Ctx *c = to_Context(ctx);
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_param_descrs pd = Z3_optimize_get_param_descrs(ow->ctx, ow->optimize);
+  return z3_wrap_param_descrs(ctx, c->ctx, pd);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_fromString(b_lean_obj_arg o, b_lean_obj_arg str) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_optimize_from_string(ow->ctx, ow->optimize, lean_string_cstr(str));
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_fromFile(b_lean_obj_arg o, b_lean_obj_arg path) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_optimize_from_file(ow->ctx, ow->optimize, lean_string_cstr(path));
+  return lean_box(0);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getHelp(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  const char *s = Z3_optimize_get_help(ow->ctx, ow->optimize);
+  if (s == NULL) return lean_mk_string("");
+  return lean_mk_string(s);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getStatistics(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_stats st = Z3_optimize_get_statistics(ow->ctx, ow->optimize);
+  Z3_stats_inc_ref(ow->ctx, st);
+  Z3StatsWrapper *w = (Z3StatsWrapper *)malloc(sizeof(Z3StatsWrapper));
+  if (w == NULL) { Z3_stats_dec_ref(ow->ctx, st); lean_internal_panic("out of memory"); }
+  lean_inc(ow->ctx_obj);
+  w->ctx_obj = ow->ctx_obj; w->ctx = ow->ctx; w->stats = st;
+  return mk_Stats(w);
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getAssertions(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_ast_vector v = Z3_optimize_get_assertions(ow->ctx, ow->optimize);
+  Z3_ast_vector_inc_ref(ow->ctx, v);
+  unsigned n = Z3_ast_vector_size(ow->ctx, v);
+  lean_object *arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < n; i++) {
+    Z3_ast a = Z3_ast_vector_get(ow->ctx, v, i);
+    arr = lean_array_push(arr, z3_wrap_ast(ow->ctx_obj, ow->ctx, a));
+  }
+  Z3_ast_vector_dec_ref(ow->ctx, v);
+  return arr;
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_getObjectives(b_lean_obj_arg o) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  Z3_ast_vector v = Z3_optimize_get_objectives(ow->ctx, ow->optimize);
+  Z3_ast_vector_inc_ref(ow->ctx, v);
+  unsigned n = Z3_ast_vector_size(ow->ctx, v);
+  lean_object *arr = lean_mk_empty_array();
+  for (unsigned i = 0; i < n; i++) {
+    Z3_ast a = Z3_ast_vector_get(ow->ctx, v, i);
+    arr = lean_array_push(arr, z3_wrap_ast(ow->ctx_obj, ow->ctx, a));
+  }
+  Z3_ast_vector_dec_ref(ow->ctx, v);
+  return arr;
+}
+
+LEAN_EXPORT lean_obj_res lean_z3_Optimize_checkAssumptions(b_lean_obj_arg o, b_lean_obj_arg assumptions) {
+  Z3OptimizeWrapper *ow = to_Optimize(o);
+  unsigned n = lean_array_size(assumptions);
+  Z3_ast *args = (Z3_ast *)malloc(n * sizeof(Z3_ast));
+  if (!args && n > 0) return lean_box(1); /* undef */
+  for (unsigned i = 0; i < n; i++) {
+    args[i] = to_Ast(lean_array_get_core(assumptions, i))->ast;
+  }
+  Z3_lbool r = Z3_optimize_check(ow->ctx, ow->optimize, n, args);
+  free(args);
+  return lean_box((uint8_t)(r + 1));
+}
+
 /* ── SMT-LIB parsing ──────────────────────────────────────────────────── */
 
 LEAN_EXPORT lean_obj_res lean_z3_Context_parseSMTLIB2String(b_lean_obj_arg ctx, b_lean_obj_arg str) {

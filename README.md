@@ -37,7 +37,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **AST kind inspection** — `Ast.getAstKind`, `AstKind.ofRaw`
 - **DeclKind** — `DeclKind` enum (~80 variants), `FuncDecl.getDeclKind`, C-validated enum values
 - **AST utilities** — `isApp`, `isNumeralAst`, `isWellSorted`, `isEqAst`, `getId`, `getHash`, `translate`
-- **Optimize** — `new`, `assert`, `assertSoft`, `maximize`, `minimize`, `check`, `getModel`, `getLower`, `getUpper`, `push`, `pop`, `setParams`, `getReasonUnknown`, `toString`
+- **Optimize** — `new`, `assert`, `assertAndTrack`, `assertSoft`, `maximize`, `minimize`, `check`, `checkAssumptions`, `getModel`, `getUnsatCore`, `getLower`, `getUpper`, `push`, `pop`, `setParams`, `getParamDescrs`, `getReasonUnknown`, `getHelp`, `getStatistics`, `getAssertions`, `getObjectives`, `setInitialValue`, `fromString`, `fromFile`, `toString`
 - **Tactic / Goal** — `Tactic.mk`, `andThen`, `orElse`, `repeat`, `skip`, `fail`, `getHelp`, `Goal.mk`, `assert`, `formula`, `size`, `reset`, `toString`, `Tactic.apply`, `ApplyResult.getNumSubgoals`, `getSubgoal`, `toString`, `Solver.fromTactic`, `Context.getNumTactics`, `getTacticName`, `getTacticDescription`
 - **String / Sequence** — `Srt.mkString`, `Srt.mkSeq`, `Srt.mkRe`, `Ast.mkString`, `getString`, `mkSeqConcat`, `mkSeqLength`, `mkSeqContains`, `mkSeqPrefix`, `mkSeqSuffix`, `mkSeqExtract`, `mkSeqAt`, `mkSeqIndex`, `mkStrToInt`, `mkIntToStr`, `mkSeqToRe`, `mkSeqInRe`, `mkReStar`, `mkRePlus`, `mkReOption`, `mkReUnion`, `mkReConcat`, `mkReRange`, `mkReComplement`, `mkReIntersect`
 - **Floating point** — `Srt.mkFpa`, `mkFpa32`, `mkFpa64`, `mkFpa16`, `mkFpa128`, `mkFpaRoundingMode`, rounding modes (`mkFpaRne/Rna/Rtp/Rtn/Rtz`), special values (`mkFpaNan/Inf/Zero`), numerals (`mkFpaNumeralDouble/Int`), arithmetic (`mkFpaAdd/Sub/Mul/Div/Fma/Sqrt/Rem/Abs/Neg/Min/Max`), comparisons (`mkFpaLt/Leq/Gt/Geq/Eq`), classification (`mkFpaIsNan/Inf/Zero/Normal/Subnormal/Negative/Positive`), rounding (`mkFpaRoundToIntegral`), conversions (`mkFpaToFpBv/Float/Real/Signed/Unsigned`, `mkFpaToUbv/Sbv/Real/IeeeBv`), numeral inspection (`fpaIsNumeralNan/Inf/Zero/Normal/Subnormal/Positive/Negative`, `fpaGetNumeralSign/SignificandString/SignificandUInt64/ExponentString/ExponentInt64/SignBv/SignificandBv/ExponentBv`)
@@ -51,11 +51,11 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Solver user propagation** — `Propagator` + `SolverCallback` opaque types, `propagateInit`, `setFixed`, `setFinal`, `setEq`, `setDiseq`, `setCreated`, `setDecide`, `propagateRegister`, `propagateConsequence`, `nextSplit`, `propagateDeclare`
 - **Simplifier API** — `Simplifier` opaque type, `mk`, `andThen`, `usingParams`, `getHelp`, `getParamDescrs`, `getDescr`, `Context.getNumSimplifiers`, `getSimplifierName`, `Solver.addSimplifier`
 - **Quantifier elimination** — `Ast.qeLite`, `Ast.qeModelProject`, `Ast.modelExtrapolate`
-- **Test suite** — 308 tests
+- **Test suite** — 316 tests
 
 ### Coverage
 
-455 `@[extern]` bindings covering ~62% of the Z3 C API (487 of 766 functions). Run `./scripts/check-ffi-sync.sh` to verify Lean/C declarations stay in sync, or `--coverage /path/to/z3/include` for a full coverage report.
+466 `@[extern]` bindings covering ~63% of the Z3 C API (498 of 766 functions). Run `./scripts/check-ffi-sync.sh` to verify Lean/C declarations stay in sync, or `--coverage /path/to/z3/include` for a full coverage report.
 
 ### TODO
 
@@ -67,7 +67,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - [x] **Simplifier API** (~7 functions) — new simplifier framework replacing `Z3_simplify`: `Z3_mk_simplifier`, `simplifier_and_then`, `using_params`. Exposed by Python, C++, OCaml, .NET.
 - [x] **Quantifier elimination** (~4 functions) — `Z3_qe_lite`, `Z3_qe_model_project`. Exposed by z3-rs, C++.
 - [x] **Fixedpoint extended** (~25 functions) — fill remaining methods on existing `Fixedpoint` type: `from_string`, `from_file`, `get_rules`, `get_statistics`, `get_cover_delta`, `add_cover`, etc.
-- [ ] **Optimize extended** (~13 functions) — fill remaining methods on existing `Optimize` type: `from_string`, `from_file`, `get_objectives`, `get_statistics`, `assert_and_track`, etc.
+- [x] **Optimize extended** (~13 functions) — fill remaining methods on existing `Optimize` type: `from_string`, `from_file`, `get_objectives`, `get_statistics`, `assert_and_track`, etc.
 
 #### Ergonomics
 

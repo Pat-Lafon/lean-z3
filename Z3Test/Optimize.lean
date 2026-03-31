@@ -127,6 +127,102 @@ def testOptimizeUnsat : IO TestResult := runTest "Optimize unsat" do
   return check "Optimize unsat" (result != .true)
     s!"expected unsat/undef, got {result}"
 
+/-- assertAndTrack: tracked assertion appears in unsat core -/
+def testOptimizeAssertAndTrack : IO TestResult := runTest "Optimize.assertAndTrack" do
+  let ctx ← Env.run Context.new
+  let opt ← Env.run (Optimize.new ctx)
+  let intSort := Srt.mkInt ctx
+  let x := Ast.mkIntConst ctx "x"
+  let t1 := Ast.mkBoolConst ctx "t1"
+  let t2 := Ast.mkBoolConst ctx "t2"
+  Optimize.assertAndTrack opt (Ast.gt ctx x (Ast.mkInt ctx 10 intSort)) t1
+  Optimize.assertAndTrack opt (Ast.lt ctx x (Ast.mkInt ctx 5 intSort)) t2
+  let _ ← Optimize.minimize opt x
+  let result ← Optimize.check opt
+  if result == .true then
+    return check "Optimize.assertAndTrack" false "expected unsat"
+  let core ← Optimize.getUnsatCore opt
+  return check "Optimize.assertAndTrack" (core.size > 0)
+    s!"expected non-empty unsat core, got {core.size} elements"
+
+/-- fromString: load SMT-LIB2 assertions -/
+def testOptimizeFromString : IO TestResult := runTest "Optimize.fromString" do
+  let ctx ← Env.run Context.new
+  let opt ← Env.run (Optimize.new ctx)
+  Optimize.fromString opt "(declare-const x Int)\n(assert (>= x 0))\n(minimize x)"
+  let result ← Optimize.check opt
+  return check "Optimize.fromString" (result == .true)
+    s!"expected sat, got {result}"
+
+/-- getHelp: returns non-empty help string -/
+def testOptimizeGetHelp : IO TestResult := runTest "Optimize.getHelp" do
+  let ctx ← Env.run Context.new
+  let opt ← Env.run (Optimize.new ctx)
+  let help ← Optimize.getHelp opt
+  return check "Optimize.getHelp" (help.length > 0)
+    s!"expected non-empty help string"
+
+/-- getStatistics: returns stats after check -/
+def testOptimizeGetStatistics : IO TestResult := runTest "Optimize.getStatistics" do
+  let ctx ← Env.run Context.new
+  let opt ← Env.run (Optimize.new ctx)
+  let x := Ast.mkIntConst ctx "x"
+  Optimize.assert opt (Ast.ge ctx x (Ast.mkInt ctx 0 (Srt.mkInt ctx)))
+  let _ ← Optimize.minimize opt x
+  let _ ← Optimize.check opt
+  let stats ← Optimize.getStatistics opt
+  let s := toString stats
+  return check "Optimize.getStatistics" (s.length > 0)
+    s!"expected non-empty stats"
+
+/-- getAssertions: retrieve all assertions -/
+def testOptimizeGetAssertions : IO TestResult := runTest "Optimize.getAssertions" do
+  let ctx ← Env.run Context.new
+  let opt ← Env.run (Optimize.new ctx)
+  let intSort := Srt.mkInt ctx
+  let x := Ast.mkIntConst ctx "x"
+  Optimize.assert opt (Ast.ge ctx x (Ast.mkInt ctx 0 intSort))
+  Optimize.assert opt (Ast.le ctx x (Ast.mkInt ctx 10 intSort))
+  let assertions ← Optimize.getAssertions opt
+  return check "Optimize.getAssertions" (assertions.size == 2)
+    s!"expected 2 assertions, got {assertions.size}"
+
+/-- getObjectives: retrieve all objective functions -/
+def testOptimizeGetObjectives : IO TestResult := runTest "Optimize.getObjectives" do
+  let ctx ← Env.run Context.new
+  let opt ← Env.run (Optimize.new ctx)
+  let intSort := Srt.mkInt ctx
+  let x := Ast.mkIntConst ctx "x"
+  let y := Ast.mkIntConst ctx "y"
+  Optimize.assert opt (Ast.ge ctx x (Ast.mkInt ctx 0 intSort))
+  let _ ← Optimize.maximize opt x
+  let _ ← Optimize.minimize opt y
+  let objectives ← Optimize.getObjectives opt
+  return check "Optimize.getObjectives" (objectives.size == 2)
+    s!"expected 2 objectives, got {objectives.size}"
+
+/-- getParamDescrs: returns param descriptions -/
+def testOptimizeGetParamDescrs : IO TestResult := runTest "Optimize.getParamDescrs" do
+  let ctx ← Env.run Context.new
+  let opt ← Env.run (Optimize.new ctx)
+  let pd ← Optimize.getParamDescrs ctx opt
+  let n := ParamDescrs.size pd
+  return check "Optimize.getParamDescrs" (n > 0)
+    s!"expected params, got {n}"
+
+/-- checkAssumptions: check with additional assumptions -/
+def testOptimizeCheckAssumptions : IO TestResult := runTest "Optimize.checkAssumptions" do
+  let ctx ← Env.run Context.new
+  let opt ← Env.run (Optimize.new ctx)
+  let a := Ast.mkBoolConst ctx "a"
+  let b := Ast.mkBoolConst ctx "b"
+  -- a ∨ b
+  Optimize.assert opt (Ast.or ctx a b)
+  -- Check with assumption ¬a ∧ ¬b → should be unsat
+  let result ← Optimize.checkAssumptions opt #[Ast.not ctx a, Ast.not ctx b]
+  return check "Optimize.checkAssumptions" (result != .true)
+    s!"expected unsat with conflicting assumptions, got {result}"
+
 def optimizeTests : List (IO TestResult) :=
   [ testOptimizeMaximize
   , testOptimizeMinimize
@@ -135,4 +231,12 @@ def optimizeTests : List (IO TestResult) :=
   , testOptimizePushPop
   , testOptimizeToString
   , testOptimizeUnsat
+  , testOptimizeAssertAndTrack
+  , testOptimizeFromString
+  , testOptimizeGetHelp
+  , testOptimizeGetStatistics
+  , testOptimizeGetAssertions
+  , testOptimizeGetObjectives
+  , testOptimizeGetParamDescrs
+  , testOptimizeCheckAssumptions
   ]

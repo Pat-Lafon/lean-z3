@@ -34,8 +34,26 @@ inductive SortKind where
   | seq
   | re
   | char
+  | typeVar
   | unknown
 deriving Inhabited, Repr, BEq, DecidableEq
+
+/-- Convert a raw `UInt32` Z3_sort_kind to `SortKind`. -/
+def SortKind.ofRaw : UInt32 → SortKind
+  | 0  => .uninterpreted | 1  => .bool   | 2  => .int     | 3  => .real
+  | 4  => .bv            | 5  => .array  | 6  => .datatype| 7  => .relation
+  | 8  => .finiteDomain  | 9  => .floatingPoint | 10 => .roundingMode
+  | 11 => .seq           | 12 => .re     | 13 => .char    | 14 => .typeVar
+  | 1000 => .unknown
+  | _  => .unknown
+
+/-- Convert `SortKind` back to a raw `UInt32`. -/
+def SortKind.toRaw : SortKind → UInt32
+  | .uninterpreted => 0  | .bool   => 1  | .int     => 2  | .real     => 3
+  | .bv            => 4  | .array  => 5  | .datatype=> 6  | .relation => 7
+  | .finiteDomain  => 8  | .floatingPoint => 9 | .roundingMode => 10
+  | .seq           => 11 | .re     => 12 | .char    => 13 | .typeVar  => 14
+  | .unknown       => 1000
 
 instance : ToString SortKind where
   toString
@@ -53,6 +71,7 @@ instance : ToString SortKind where
     | .seq => "Seq"
     | .re => "Re"
     | .char => "Char"
+    | .typeVar => "TypeVar"
     | .unknown => "Unknown"
 
 /-- AST kinds in Z3. -/

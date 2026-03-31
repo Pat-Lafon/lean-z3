@@ -91,6 +91,34 @@ def testDatatypeInspectionSolve : IO TestResult := runTest "datatype inspection 
   return check "datatype inspection solve" (result == .true)
     s!"expected sat, got {result}"
 
+/-- SortKind typed enum -/
+def testSortKindTyped : IO TestResult := runTest "SortKind typed" do
+  let ctx ← Env.run Context.new
+  let intSort := Srt.mkInt ctx
+  let boolSort := Srt.mkBool ctx
+  let bvSort := Srt.mkBv ctx 32
+  let realSort := Srt.mkReal ctx
+  let arrSort := Srt.mkArray ctx intSort boolSort
+  let strSort := Srt.mkString ctx
+  let fpSort := Srt.mkFpa ctx 8 24
+  let ok := Srt.getSortKind intSort == .int
+    && Srt.getSortKind boolSort == .bool
+    && Srt.getSortKind bvSort == .bv
+    && Srt.getSortKind realSort == .real
+    && Srt.getSortKind arrSort == .array
+    && Srt.getSortKind strSort == .seq
+    && Srt.getSortKind fpSort == .floatingPoint
+  return check "SortKind typed" ok
+    s!"sort kinds: int={Srt.getSortKind intSort} bool={Srt.getSortKind boolSort} bv={Srt.getSortKind bvSort} real={Srt.getSortKind realSort} arr={Srt.getSortKind arrSort} str={Srt.getSortKind strSort} fp={Srt.getSortKind fpSort}"
+
+/-- SortKind roundtrip (ofRaw ∘ toRaw = id) -/
+def testSortKindRoundtrip : IO TestResult := runTest "SortKind roundtrip" do
+  let kinds : List SortKind := [.uninterpreted, .bool, .int, .real, .bv, .array,
+    .datatype, .relation, .finiteDomain, .floatingPoint, .roundingMode,
+    .seq, .re, .char, .typeVar, .unknown]
+  let ok := kinds.all fun k => SortKind.ofRaw k.toRaw == k
+  return check "SortKind roundtrip" ok "roundtrip failed for some SortKind"
+
 def sortInspectTests : List (IO TestResult) :=
   [ testArraySortDomainRange
   , testArraySortDomainN
@@ -98,4 +126,6 @@ def sortInspectTests : List (IO TestResult) :=
   , testDatatypeConstructorRecognizer
   , testDatatypeAccessor
   , testDatatypeInspectionSolve
+  , testSortKindTyped
+  , testSortKindRoundtrip
   ]

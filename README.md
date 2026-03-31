@@ -51,7 +51,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 - **Solver user propagation** — `Propagator` + `SolverCallback` opaque types, `propagateInit`, `setFixed`, `setFinal`, `setEq`, `setDiseq`, `setCreated`, `setDecide`, `propagateRegister`, `propagateConsequence`, `nextSplit`, `propagateDeclare`
 - **Simplifier API** — `Simplifier` opaque type, `mk`, `andThen`, `usingParams`, `getHelp`, `getParamDescrs`, `getDescr`, `Context.getNumSimplifiers`, `getSimplifierName`, `Solver.addSimplifier`
 - **Quantifier elimination** — `Ast.qeLite`, `Ast.qeModelProject`, `Ast.modelExtrapolate`
-- **Test suite** — 316 tests
+- **Test suite** — 318 tests
 
 ### Coverage
 
@@ -71,7 +71,7 @@ Lean 4 FFI bindings to the [Z3](https://github.com/Z3Prover/z3) SMT solver using
 
 #### Ergonomics
 
-- [ ] `SortKind` typed enum from raw `UInt32` (same pattern as `DeclKind`)
+- [x] `SortKind` typed enum from raw `UInt32` (same pattern as `DeclKind`)
 - [ ] ReaderT-style API layer that threads `Context` implicitly
 
 ## Building

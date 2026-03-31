@@ -152,6 +152,10 @@ opaque Srt.mkArray (ctx : @& Context) (domain : @& Srt) (range : @& Srt) : Srt
 @[extern "lean_z3_Srt_getKindRaw"]
 opaque Srt.getKindRaw (s : @& Srt) : UInt32
 
+/-- Get the sort kind as a typed `SortKind`. -/
+def Srt.getSortKind (s : Srt) : SortKind :=
+  SortKind.ofRaw (Srt.getKindRaw s)
+
 /-- Get the name of this sort. -/
 @[extern "lean_z3_Srt_getName"]
 opaque Srt.getName (s : @& Srt) : String

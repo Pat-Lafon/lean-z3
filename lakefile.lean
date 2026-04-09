@@ -1,9 +1,6 @@
 import Lake
 open Lake DSL System
 
-package z3 where
-  preferReleaseBuild := true
-
 /-! ## Z3 Configuration -/
 
 def z3.version := "4.16.0"
@@ -22,6 +19,19 @@ def z3.os :=
     else "x64-glibc-2.39"
 
 def z3.targetName := s!"z3-{z3.version}-{z3.os}"
+
+package z3 where
+  preferReleaseBuild := true
+  -- On Linux, embed RPATH so the dynamic linker finds the downloaded libz3.so
+  -- at runtime instead of picking up an older system-installed version.
+  -- $ORIGIN resolves to the directory containing the binary/library at runtime.
+  -- All output artifacts (.so, exe) are at <pkg_root>/.lake/build/{lib,bin}/,
+  -- so ../../.. reaches <pkg_root>. Set at package level so it applies to the
+  -- lean_lib, lean_exe, and extern_lib targets.
+  moreLinkArgs :=
+    if !Platform.isOSX && !Platform.isWindows then
+      #[s!"-Wl,-rpath,$ORIGIN/../../../{z3.targetName}/bin"]
+    else #[]
 
 /-! ## Z3 Download Target -/
 
@@ -49,7 +59,8 @@ target z3Download pkg : Unit := do
 On macOS, we statically link libz3.a (Lean's clang/libc++ toolchain is compatible).
 On Linux and Windows, we dynamically link against libz3.so / libz3.dll to avoid
 ABI conflicts between Lean's libc++ toolchain and Z3's libstdc++ build.
-At runtime, LD_LIBRARY_PATH (Linux) or PATH (Windows) must include the Z3 bin dir. -/
+On Linux, RPATH ($ORIGIN-relative) is embedded so libz3.so is found automatically.
+On Windows, PATH must include the Z3 bin dir at runtime. -/
 
 def z3.linkLibName :=
   if Platform.isOSX then nameToStaticLib "z3"
